@@ -127,11 +127,11 @@ test('mobil som pekar rakt ner räknas som olutad', () => {
   assert.equal(orientationToLook({ alpha: 30, beta: 0, gamma: 0 }).rollDeg, 0);
 });
 
-test('vanligt perspektiv mäter synfältet med tangens', () => {
+test('hårt perspektiv mäter synfältet med tangens', () => {
   assertIsClose(fieldOfViewToHalfHeight(90, 'straight'), 1);
 });
 
-test('mjukt perspektiv drar ut kanterna mindre än det vanliga', () => {
+test('mjukt perspektiv drar ut kanterna mindre än det hårda', () => {
   assertIsClose(fieldOfViewToHalfHeight(180, 'soft'), 2);
   assert.ok(fieldOfViewToHalfHeight(100, 'soft') < fieldOfViewToHalfHeight(100, 'straight'));
 });

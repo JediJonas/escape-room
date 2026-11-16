@@ -65,6 +65,31 @@ schema och serverfunktionen läggs ut av `.github/workflows/supabase.yml`, som
 behöver hemligheterna `SUPABASE_ACCESS_TOKEN` och `SUPABASE_DB_PASSWORD` i
 GitHub. Anonym inloggning ska vara påslagen i projektet.
 
+### Token för utläggningen
+
+`SUPABASE_ACCESS_TOKEN` är en token från Supabase (Account → Access Tokens).
+Den används bara när GitHub lägger ut databasen och serverfunktionen. Går den
+ut fortsätter spelet att fungera, men nästa utläggning misslyckas.
+
+- **Namn:** escape-room GitHub Actions
+- **Går ut:** Never
+- **Gäller:** bara projektet escape-room
+- **Behörigheter:**
+
+| Behörighet | Nivå | Varför |
+| --- | --- | --- |
+| Project Settings | Read | CLI:t läser projektets inställningar |
+| API Keys | Read | CLI:t läser projektets nycklar |
+| API Key Secrets | Read | Samma |
+| Connection Pooling | Read | GitHub når bara databasen över IPv4, via anslutningspoolen. Ligger under Database |
+| Database | Read | Behövs inte enligt Supabase, men är bara läsning |
+| Edge Functions | Read-write | Lägger ut serverfunktionen |
+
+Migreringarna körs med databasens lösenord, `SUPABASE_DB_PASSWORD`, så
+token behöver inte kunna skriva i databasen. Byt token genom att göra en ny
+med samma inställningar, ersätta hemligheten i GitHub (Settings → Secrets and
+variables → Actions) och ta bort den gamla i Supabase.
+
 Serverfunktionen körs i Deno. GitHub Actions provar dess typer med
 `deno check index.ts` i `supabase/functions/game/`. Där ligger också
 `deno.json`, som säger åt Deno att hämta biblioteken själv i stället för ur

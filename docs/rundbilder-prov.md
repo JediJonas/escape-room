@@ -45,3 +45,12 @@ första utan att den första bilden skickades med som referens.
 Rundvisaren zoomar med två fingrar, mellan 30 och 110 graders synfält i
 höjdled. Fullt inzoomad blir bilden suddig, eftersom 2752 bildpunkter på ett
 varv bara är knappt åtta bildpunkter per grad.
+
+## Se sig omkring genom att vrida mobilen
+
+Rundvisaren kan följa mobilens rörelse, så att mobilen blir ett fönster in i
+rummet. Blicken räknas ut från mobilens läge (`orientationToLook` i
+`web/view/lookDirection.js`). Fingret och knapparna vrider då rummet i
+förhållande till mobilen, och fingret är reserven när sensorn saknas eller
+nekas. Visaren räknar med att mobilen hålls stående. Liggande mobil är inte
+hanterad.

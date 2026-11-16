@@ -86,4 +86,5 @@ alltså där projektionen är som svårast, rakt upp och rakt ner.
 
 Rundbilderna håller för blickar runt horisonten. Provbilderna är inte de
 slutliga: bilderna till det första uppdraget tas fram på nytt, och ägaren vill
-att de då blir något läskigare. Räkna med att en bild ibland behöver göras om.
+att de då blir läskigare. Uppdraget är numera från 16 år, och provbilderna
+togs fram med en text som bad om bilder för tioåringar. Räkna med att en bild ibland behöver göras om.

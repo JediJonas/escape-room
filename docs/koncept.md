@@ -181,7 +181,7 @@ Det är prövat på testsidan med tre källarbilder, och rundbilderna håller. P
 
 Spelaren ser sig omkring genom att vrida sig med mobilen, och fingret är reserven. Hon kan zooma med två fingrar och visa bilden över hela skärmen. Rummet hålls vågrätt när mobilen lutas i sidled. En vuxen blev lite yr av att se sig omkring, barnen blev det inte. Om det vanliga eller det mjuka perspektivet blir standard är inte bestämt.
 
-Provbilderna är inte de slutliga. Bilderna till Den femte gästen tas fram på nytt, och de ska vara något läskigare än provbilderna, inom uppdragets ton.
+Provbilderna är inte de slutliga. Bilderna till Den femte gästen tas fram på nytt, och de ska vara läskigare än provbilderna, som togs fram för tioåringar.
 
 Reserven är en bred illustration som spelaren bara kan panorera i sidled. Den finns i visaren och tar över av sig själv om mobilen inte klarar rundvisaren.
 
@@ -208,7 +208,7 @@ Hur bra en svensk viskning faktiskt låter är oprövat. Reserven är att spela 
 
 Den femte gästen är ett spökhusuppdrag på cirka 60 minuter med nio uppgifter, där huset spelarna sitter i blir spelplanen. Förberedelsen är nivå 1: fem platskort sätts upp.
 
-**Tonen.** Uppdraget ska vara lagom läskigt och framför allt roligt, från ungefär tio år. Stämningen byggs med mörker, viskningar i en enda mobil och något enstaka skrämselmoment, som en skärm som plötsligt slocknar. Inget blod och inget våld.
+**Tonen.** Uppdraget ska vara läskigt och samtidigt roligt, från 16 år. Stämningen byggs med mörker, viskningar i en enda mobil och skrämselmoment, som en skärm som plötsligt slocknar. Inget blod och inget våld. Åldern höjdes från ungefär tio år i november 2026, för att uppdraget ska få vara läskigare.
 
 ### Vad spelarna får veta
 
@@ -309,7 +309,7 @@ Tio frågor är avgjorda den 16 november 2026.
 | Rundbilder | Illustrerade, framtagna med Gemini-API:et (Nano Banana). Prövat och håller, utom rakt upp och rakt ner |
 | Föremål i rundbilden | Ja. Spelaren kan undersöka föremål, med korta texter som en annan spelare behöver |
 | Röster och viskningar | Genereras i förväg och sparas som ljudfiler. Oprövat på svenska |
-| Ton och ålder | Lagom läskigt med enstaka skrämselmoment, från cirka tio år, framför allt roligt |
+| Ton och ålder | Läskigt med skrämselmoment, från 16 år, och samtidigt roligt. Inget blod och inget våld |
 | Utgångsläge | Ingen befintlig app. Projektet börjar från noll |
 | Drift | GitHub Pages för webbsidan, Supabase för databas, realtid och serverkod |
 | Språk | Svenska först. Texterna ligger i uppdragsfilen, så att fler språk kan läggas till senare |

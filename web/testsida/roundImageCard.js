@@ -58,7 +58,8 @@ export function setupRoundImageCard({ report, log }) {
   let look = LOOK_AHEAD;
   let fieldOfViewDeg = DEFAULT_FIELD_OF_VIEW_DEG;
   /** @type {'straight' | 'soft'} */
-  let perspective = 'straight';
+  // Ägaren valde det mjuka perspektivet efter prov på riktig mobil.
+  let perspective = 'soft';
   // Påslaget från början: ägaren föredrog det på riktig mobil.
   let isRoomKeptLevel = true;
   let isImageInSphere = false;

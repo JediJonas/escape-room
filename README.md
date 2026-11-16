@@ -29,8 +29,8 @@ rundbilder var för sig, på iPhone Safari och Android Chrome. Den ligger på
 
 - Lägg till `?debug=1` i adressen för att se felsökningsloggen.
 - Testkorten med QR-koder finns på `testsida/platskort.html`.
-- Synkade tryck når andra mobiler först när Supabase är inställt i
-  `web/config.js`. Utan det syns bara flikar i samma webbläsare.
+- Synkade tryck går genom Supabase Realtime. Adressen och den publika nyckeln står i
+  `web/config.js`. Utan dem syns bara flikar i samma webbläsare.
 
 ## Köra lokalt
 

@@ -149,7 +149,7 @@ visar mobilen listan direkt i stället för kameran.
 ## Uppdragsfilen
 
 Ett uppdrag är en JSON-fil som följer med serverfunktionen och aldrig läggs ut
-på webbsidan. Bilder och ljud ligger i `web/missions/<uppdrag>/`.
+på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
 
 ```json
 {
@@ -205,6 +205,40 @@ på webbsidan. Bilder och ljud ligger i `web/missions/<uppdrag>/`.
 De gemensamma fälten bestäms nu. Fälten i `content` för varje uppgiftstyp
 bestäms när typen byggs.
 
+## Webbsidan
+
+Webbsidan byggs med React och Vite, med samma upplägg som Maffia (Jonas
+2026-11-16). Det som följer med därifrån:
+
+- **Verktygen.** React 19, Vite, Vitest, ESLint med samma regler och
+  typkontroll av JavaScript med JSDoc. `npm run check` kör lint, typkontroll,
+  tester och bygge, och GitHub Actions kör samma sak. Bygget läggs ut på
+  GitHub Pages.
+- **Mapparna.** `src/` med en mapp per ansvar: `game/` för motorns rena
+  funktioner, `screens/` för vyerna, och `device/`, `sound/`, `sync/` och
+  `view/` som i dag.
+- **Vyn och läckkontrollen.** Maffia har en funktion som bygger det enda en
+  telefon får veta, och en fristående kontroll som letar efter läckor i varje
+  vy. Motorn får båda. Läckkontrollen spelar hela provuppdrag i testerna och
+  letar efter facit och andras hemliga bitar i varje vy.
+- **En CLAUDE.md** med arbetssätt och arkitektur.
+
+Det som skiljer:
+
+- **Värden är servern, inte en telefon.** Maffia låter en telefon äga spelet
+  och skicka vyer genom PeerJS. Här gör serverfunktionen det. Motorn i
+  `src/game/` körs därför i Supabase och i testerna, men inte i mobilen.
+- **Uppdragsfilerna ligger utanför `src/`,** i `missions/`, så att bygget
+  aldrig tar med dem. Ett test kontrollerar att ingen fil i webbsidan
+  importerar dem.
+- **Rörelser går förbi React.** Lutning och riktning kommer många gånger i
+  sekunden och ritas direkt, som rundvisaren gör i dag. React ritar skärmarna
+  runt omkring.
+
+Testsidan följer med som en egen sida i samma bygge, på samma adress som nu.
+Flytten görs som en egen PR innan motorn påbörjas, så att den går att granska
+för sig och prova på mobilerna.
+
 ## Supabases gränser
 
 Kontrollerat mot Supabases dokumentation den 16 november 2026.
@@ -249,6 +283,8 @@ och 5 miljoner per månad, och projektet pausas aldrig.
 
 ## Byggordning inom steget
 
+0. **React och Vite.** Webbsidan flyttas till samma upplägg som Maffia, med
+   testsidan oförändrad. Egen PR.
 1. **Supabase.** Schemat, kanalernas regler och serverfunktionen läggs i repot
    under `supabase/` och läggs ut av en GitHub Action när `main` ändras.
    Fördröjningen till serverfunktionen mäts på testsidan.
@@ -285,3 +321,4 @@ själva hör till steg 3 i konceptet.
 | Uppdragsfilens roller | Bara ett antal | Roller, bitar och framträdande roller | Måste klara tre till tio spelare |
 | Namn | Svenska | Engelska | Koden som finns har engelska namn |
 | Spelledarens kanal | Egen kanal | Samma som spelarens | En sak mindre att hålla rätt |
+| Webbsidan | Vanlig JavaScript utan byggsteg | React och Vite, som i Maffia | Beslut av Jonas. Det har fungerat bra där |

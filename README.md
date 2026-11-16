@@ -15,13 +15,14 @@ Konceptet finns i `docs/koncept.md`.
 | `web/device/` | En modul per mobilfunktion: rörelse och kamera |
 | `web/sound/` | Ljud: ljudmotorn, vanligt ljud som reserv och toning |
 | `web/sync/` | Kanalen mellan mobilerna och vilka som håller fingret på skärmen |
+| `web/view/` | Visaren för rundbilder, med bred bild som reserv |
 | `web/vendor/` | Inlagda bibliotek, se `web/vendor/README.md` |
 | `tests/` | Tester för de rena funktionerna |
 
 ## Den tekniska testsidan
 
-Testsidan provar rörelse och lutning, QR-skanning, ljud och synkade tryck var
-för sig, på iPhone Safari och Android Chrome. Den ligger på
+Testsidan provar rörelse och lutning, QR-skanning, ljud, synkade tryck och
+rundbilder var för sig, på iPhone Safari och Android Chrome. Den ligger på
 `https://jedijonas.github.io/escape-room/testsida/` när GitHub Pages är påslaget
 (Settings → Pages → Source: GitHub Actions).
 

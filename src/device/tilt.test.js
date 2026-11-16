@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { measureMovement, tiltToPosition } from '../web/device/tilt.js';
+import { test } from 'vitest';
+import { measureMovement, tiltToPosition } from './tilt.js';
 
 test('plan mobil ger pricken i mitten', () => {
   assert.deepEqual(tiltToPosition({ beta: 0, gamma: 0 }), { x: 0, y: 0 });

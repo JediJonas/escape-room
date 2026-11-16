@@ -9,7 +9,6 @@
 const SCAN_INTERVAL_MS = 150;
 /** Bredare bilder än så här gör bara läsningen långsammare. */
 const MAX_SCAN_WIDTH_PX = 640;
-const JSQR_URL = new URL('../vendor/jsQR.js', import.meta.url).href;
 
 export function getCameraSupport() {
   return {
@@ -30,17 +29,6 @@ export function describeCameraError(error) {
   if (name === 'NotFoundError' || name === 'OverconstrainedError') return 'Ingen kamera hittades.';
   if (name === 'NotReadableError') return 'Kameran används av en annan app.';
   return `Kameran gick inte att starta (${name || 'okänt fel'}).`;
-}
-
-/** @param {string} url */
-function loadScript(url) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = url;
-    script.onload = resolve;
-    script.onerror = () => reject(new Error(`Kunde inte ladda ${url}`));
-    document.head.append(script);
-  });
 }
 
 /**
@@ -71,8 +59,8 @@ async function createDecoder() {
       // Läsaren finns men svarar inte. Då används jsQR i stället.
     }
   }
-  await loadScript(JSQR_URL);
-  const jsQR = /** @type {any} */ (window).jsQR;
+  // Laddas först här, så att mobiler med egen läsare aldrig hämtar jsQR.
+  const { default: jsQR } = await import('jsqr');
   return {
     name: 'jsQR',
     decode: async (canvas, context) => {

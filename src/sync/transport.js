@@ -9,7 +9,6 @@
  * tiden tur och retur.
  */
 
-const SUPABASE_SCRIPT_URL = new URL('../vendor/supabase.js', import.meta.url).href;
 const BROADCAST_EVENT = 'message';
 
 /**
@@ -41,17 +40,6 @@ export function createLocalTransport(roomCode, onMessage) {
   };
 }
 
-/** @param {string} url */
-function loadScript(url) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = url;
-    script.onload = resolve;
-    script.onerror = () => reject(new Error(`Kunde inte ladda ${url}`));
-    document.head.append(script);
-  });
-}
-
 /**
  * @param {string} roomCode
  * @param {(message: any) => void} onMessage
@@ -59,8 +47,9 @@ function loadScript(url) {
  * @returns {Promise<Transport>}
  */
 export async function createSupabaseTransport(roomCode, onMessage, supabaseConfig) {
-  if (!(/** @type {any} */ (window).supabase)) await loadScript(SUPABASE_SCRIPT_URL);
-  const client = /** @type {any} */ (window).supabase.createClient(supabaseConfig.url, supabaseConfig.publicKey);
+  // Laddas först här, så att sidan inte hämtar Supabase förrän testet körs.
+  const { createClient } = await import('@supabase/supabase-js');
+  const client = createClient(supabaseConfig.url, supabaseConfig.publicKey);
   const channel = client.channel(`testsida-${roomCode}`, { config: { broadcast: { self: true } } });
   channel.on('broadcast', { event: BROADCAST_EVENT }, (/** @type {{ payload: any }} */ received) => onMessage(received.payload));
   await new Promise((resolve, reject) => {

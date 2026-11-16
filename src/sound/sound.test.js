@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { buildFadeOutCurve } from '../web/sound/fade.js';
-import { encodeWav, synthesizeChime, synthesizeSilence } from '../web/sound/wav.js';
+import { test } from 'vitest';
+import { buildFadeOutCurve } from './fade.js';
+import { encodeWav, synthesizeChime, synthesizeSilence } from './wav.js';
 
 const readText = (bytes, offset, length) => String.fromCharCode(...bytes.slice(offset, offset + length));
 

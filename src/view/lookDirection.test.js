@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { test } from 'vitest';
 import {
   clampPitchDeg,
   dragToTurn,
@@ -12,7 +12,7 @@ import {
   wrapYawDeg,
   yawToStripOffsetPx,
   zoomFieldOfView,
-} from '../web/view/lookDirection.js';
+} from './lookDirection.js';
 
 test('vridningen hålls mellan -180 och 180 grader', () => {
   assert.equal(wrapYawDeg(0), 0);

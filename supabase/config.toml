@@ -432,5 +432,3 @@ enabled = true
 # funktionen körs.
 [functions.game]
 verify_jwt = true
-# Funktionen är skriven i JavaScript, inte i TypeScript som är förvalt.
-entrypoint = "./functions/game/index.js"

@@ -26,6 +26,19 @@ jobs:
       - run: npm run build
       - run: npm run validate:html
 
+  # Serverfunktionen körs i Deno hos Supabase. Deno provar typerna med
+  # bibliotekens riktiga typer, som tsc i Node inte kan hämta.
+  function:
+    name: Serverfunktionen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check index.ts
+        working-directory: supabase/functions/game
+
   # Provar migreringarna och kanalernas regler i en vanlig Postgres, med det
   # minsta av Supabase efterliknat i supabase/tests/supabase-stubs.sql.
   database:

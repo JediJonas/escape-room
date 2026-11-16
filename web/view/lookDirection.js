@@ -10,6 +10,12 @@
 /** Rakt upp och rakt ner snurrar bilden runt en punkt, så blicken stannar strax innan. */
 export const MAX_PITCH_DEG = 85;
 
+/** Synfält i höjdled när visaren öppnas. Ska prövas på riktiga mobiler. */
+export const DEFAULT_FIELD_OF_VIEW_DEG = 75;
+/** Snävare än så här blir bilden suddig, och vidare blir kanterna utdragna. */
+export const MIN_FIELD_OF_VIEW_DEG = 30;
+export const MAX_FIELD_OF_VIEW_DEG = 110;
+
 /**
  * Håller vridningen mellan -180 och 180 grader, så att varv efter varv inte växer.
  * @param {number} yawDeg
@@ -45,6 +51,16 @@ export function turnLook(look, turn) {
 export function dragToTurn(drag, view) {
   const degPerPx = view.fieldOfViewDeg / view.heightPx;
   return { yawDeg: -drag.xPx * degPerPx, pitchDeg: drag.yPx * degPerPx };
+}
+
+/**
+ * Zoomar genom att ändra synfältet. En faktor över 1 zoomar in, alltså ett
+ * snävare synfält. Två fingrar som dras isär till dubbla avståndet ger faktorn 2.
+ * @param {number} fieldOfViewDeg
+ * @param {number} zoomFactor
+ */
+export function zoomFieldOfView(fieldOfViewDeg, zoomFactor) {
+  return Math.max(MIN_FIELD_OF_VIEW_DEG, Math.min(MAX_FIELD_OF_VIEW_DEG, fieldOfViewDeg / zoomFactor));
 }
 
 /**

@@ -49,7 +49,7 @@ utan regler, som ett extra lås om schemat skulle exponeras av misstag.
 
 | Tabell | Innehåll |
 | --- | --- |
-| `games` | Kod att ansluta med, uppdrag, speltid, om platskort används, om spelledaren spelar, och spelets hela tillstånd som ett JSON-värde |
+| `games` | Kod att ansluta med, uppdrag och spelets hela tillstånd som ett JSON-värde. Speltid, platskort och om spelledaren spelar ligger i tillståndet |
 | `players` | Spel, användar-id, namn, om hon är spelledare och när mobilen senast hördes av. Behövs som egen tabell för att kanalernas regler ska kunna slå upp vem som hör till vilket spel |
 | `events` | En logg över varje handling med serverns tid. Används för felsökning och mätning |
 

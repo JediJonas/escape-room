@@ -12,6 +12,6 @@
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "vite.config.js"],
+  "include": ["src", "supabase/functions/game/handleAction.js", "vite.config.js"],
   "exclude": ["src/**/*.test.js"]
 }

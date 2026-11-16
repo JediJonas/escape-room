@@ -23,6 +23,11 @@ export default [
     },
   },
   {
+    // Serverfunktionerna körs i Deno hos Supabase.
+    files: ['supabase/functions/**/*.js'],
+    languageOptions: { globals: { Deno: 'readonly' } },
+  },
+  {
     files: ['**/*.test.js', 'eslint.config.js'],
     rules: { 'no-magic-numbers': 'off' },
   },

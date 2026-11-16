@@ -22,6 +22,9 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia.
 | `src/sync/` | Kanalen mellan mobilerna och vilka som håller fingret på skärmen |
 | `src/view/` | Visaren för rundbilder, med bred bild som reserv |
 | `public/` | Bilder som läggs ut som de är, som rundbilderna och testkorten |
+| `supabase/migrations/` | Databasens schema och kanalernas regler |
+| `supabase/functions/game/` | Spelets serverfunktion |
+| `supabase/tests/` | Prov av kanalernas regler i en vanlig Postgres |
 
 Testerna ligger bredvid det de testar, som `src/sync/sync.test.js`.
 
@@ -44,11 +47,20 @@ Kräver Node 22.
 npm install
 npm run dev      # webbsidan på https://localhost:5173, även för mobiler i samma nät
 npm run check    # lint, typkontroll, tester och bygge
+npm run test:db  # kanalernas regler, kräver en Postgres (PGHOST med flera)
 ```
 
 `npm run dev` använder ett eget certifikat, så att kamera och rörelsesensor
 fungerar från en mobil i samma nät. Mobilen varnar för certifikatet första
 gången.
 
-GitHub Actions kör samma kontroller på varje PR och validerar dessutom HTML:en.
-När något hamnar i `main` byggs sidan och läggs ut på GitHub Pages.
+GitHub Actions kör samma kontroller på varje PR, validerar HTML:en och provar
+kanalernas regler i Postgres. När något hamnar i `main` byggs sidan och läggs
+ut på GitHub Pages, och ändringar under `supabase/` läggs ut i Supabase.
+
+## Supabase
+
+Projektets adress och publika nyckel står i `src/config.js`. Databasens
+schema och serverfunktionen läggs ut av `.github/workflows/supabase.yml`, som
+behöver hemligheterna `SUPABASE_ACCESS_TOKEN` och `SUPABASE_DB_PASSWORD` i
+GitHub. Anonym inloggning ska vara påslagen i projektet.

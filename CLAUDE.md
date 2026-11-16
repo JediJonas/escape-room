@@ -40,6 +40,13 @@ Se README.md för mapparna. Det viktigaste:
   har en reserv.
 - **Servern äger sanningen.** Spelstatus, roller och facit ligger i Supabase.
   En mobil får bara det dess spelare ska se. Se `docs/motorn.md`.
+- **Supabase ligger i `supabase/`.** Tabellerna ligger i schemat `engine`,
+  som Data API inte visar. Kanalernas regler står i migreringen och provas
+  med `npm run test:db`. Ändras reglerna ska testet i
+  `supabase/tests/channels.test.sql` ändras i samma PR.
+- **Serverfunktionen `game`** har sin logik i rena moduler som testas med
+  Vitest. `index.js` är bara skalet som kopplar ihop dem med Deno och
+  databasen.
 - **Bibliotek som bara vissa behöver laddas med `import()`**, som jsQR och
   Supabase, så att de bara hämtas när de används.
 

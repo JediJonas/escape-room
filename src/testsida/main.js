@@ -8,6 +8,7 @@ import { setupMotionCard } from './motionCard.js';
 import { setupQrCard } from './qrCard.js';
 import { copyReport, createReport } from './report.js';
 import { setupRoundImageCard } from './roundImageCard.js';
+import { setupServerCard } from './serverCard.js';
 import { setupSoundCard } from './soundCard.js';
 import { setupSyncCard } from './syncCard.js';
 
@@ -25,8 +26,10 @@ document.addEventListener('pointerdown', () => player.unlock());
 setupMotionCard({ report, log });
 setupQrCard({ report, log });
 setupSoundCard({ player, report, log });
-setupSyncCard({ supabaseConfig: { url: SUPABASE_URL, publicKey: SUPABASE_PUBLIC_KEY }, report, log });
+const supabaseConfig = { url: SUPABASE_URL, publicKey: SUPABASE_PUBLIC_KEY };
+setupSyncCard({ supabaseConfig, report, log });
 setupRoundImageCard({ report, log });
+setupServerCard({ supabaseConfig, report, log });
 
 // Omdömena: testaren svarar själv på det som sidan inte kan mäta, som om ljudet hördes.
 document.querySelectorAll('.verdict').forEach((verdict) => {

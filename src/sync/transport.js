@@ -9,6 +9,8 @@
  * tiden tur och retur.
  */
 
+import { getSignedInClient } from './supabaseClient.js';
+
 const BROADCAST_EVENT = 'message';
 
 /**
@@ -47,10 +49,10 @@ export function createLocalTransport(roomCode, onMessage) {
  * @returns {Promise<Transport>}
  */
 export async function createSupabaseTransport(roomCode, onMessage, supabaseConfig) {
-  // Laddas först här, så att sidan inte hämtar Supabase förrän testet körs.
-  const { createClient } = await import('@supabase/supabase-js');
-  const client = createClient(supabaseConfig.url, supabaseConfig.publicKey);
-  const channel = client.channel(`testsida-${roomCode}`, { config: { broadcast: { self: true } } });
+  const client = await getSignedInClient(supabaseConfig);
+  // En privat kanal: Supabase släpper bara in inloggade mobiler, enligt
+  // reglerna i supabase/migrations.
+  const channel = client.channel(`testsida:${roomCode}`, { config: { private: true, broadcast: { self: true } } });
   channel.on('broadcast', { event: BROADCAST_EVENT }, (/** @type {{ payload: any }} */ received) => onMessage(received.payload));
   await new Promise((resolve, reject) => {
     channel.subscribe((/** @type {string} */ status) => {

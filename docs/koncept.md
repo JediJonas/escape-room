@@ -137,6 +137,7 @@ Spelledaren väljer uppdrag och speltid, skriver ut ett ark med QR-koder, sätte
 Spelet är en webbapp som körs i mobilens webbläsare, med en server som håller spelets tillstånd och skickar rätt vy till rätt spelare i realtid.
 
 - **Servern äger sanningen.** Spelstatus, rollfördelning och facit ligger på servern. En mobil får bara det material dess spelare ska se.
+- **Kanalerna kräver behörighet.** Den publika nyckeln till Supabase ligger öppet i webbsidan. Därför får en mobil bara lyssna och skicka i sitt eget spel, och bara det som dess spelare ska se.
 - **Servern avgör samtidighet.** Synkade moment mäts av servern och får inte bygga på att mobilernas klockor går lika.
 - **Uppdrag är data.** Ett uppdrag beskrivs i en fil med uppgifter, roller, texter, bilder och ljud. Motorn tolkar filen, så att ett nytt uppdrag inte kräver ny kod så länge det använder befintliga uppgiftstyper.
 - **En modul per mobilfunktion.** Kamera, rörelse, ljud och övrigt kapslas in var för sig. Modulen kontrollerar om funktionen finns, ber om tillstånd och växlar till reserven vid behov.
@@ -172,6 +173,17 @@ Uppgiftstyperna Instängd och Sökaren behöver en rundbild per rum. Bilderna ä
 Rundbilderna tas fram som illustrationer med Googles Gemini-API och bildmodellerna Nano Banana. Det är oprövat i projektet. Andra har fått fram rundbilder i formatet 2:1 med [Nano Banana 2](https://floyo.ai/workflows/nano-banana-2-for-image-to-360-panor-i64lt6mmfhhb), och modellerna beskrivs i [Geminis dokumentation](https://ai.google.dev/gemini-api/docs/image-generation.md.txt).
 
 Tre saker behöver prövas tidigt: om skarven där bildens kanter möts syns, om golv och tak förvrängs, och om flera rum får samma stil. Reserven är en bred illustration som spelaren bara kan panorera i sidled.
+
+### Föremål i rundbilden
+
+En rundbild kan ha föremål som spelaren undersöker, till exempel en etikett på en flaska, en lapp eller en inristning i väggen. Det ger Sökaren och Instängd något att hitta.
+
+- **Det man hittar kräver någon annan.** Föremålet ger en bit som en annan spelare behöver, inte en ledtråd som spelaren löser ensam.
+- **Korta texter.** En etikett eller en rad på en lapp. Längre texter hör hemma i uppgiftstypen Dokumentet.
+- **Generös träffyta.** Föremålet tänds när det hamnar nära bildens mitt eller i ficklampans sken, och ett tryck var som helst på skärmen öppnar det då. Spelaren ska inte behöva träffa ett litet föremål med tummen medan hon vrider mobilen.
+- **Föremål är data.** Ett föremål beskrivs i uppdragsfilen med en riktning och en storlek. Servern skickar innehållet först när spelaren öppnar det.
+
+Det byggs i rundvisaren när rundbilderna har visat sig hålla.
 
 ### Röster och viskningar
 
@@ -276,7 +288,7 @@ De två tidigare dokumenten har använts som inspiration. Det här är vad som f
 
 ## Beslut och öppna frågor
 
-Nio frågor är avgjorda den 16 november 2026.
+Tio frågor är avgjorda den 16 november 2026.
 
 | Fråga | Beslut |
 | --- | --- |
@@ -284,6 +296,7 @@ Nio frågor är avgjorda den 16 november 2026.
 | Spelledare som står utanför | Mobilen blir en ren administrationsvy med samma funktioner, utan roll i uppgifterna |
 | Gemensam skärm | Nej. Nedräkning, berättelse och ljud finns i spelarnas mobiler |
 | Rundbilder | Illustrerade, framtagna med Gemini-API:et (Nano Banana). Oprövat |
+| Föremål i rundbilden | Ja. Spelaren kan undersöka föremål, med korta texter som en annan spelare behöver |
 | Röster och viskningar | Genereras i förväg och sparas som ljudfiler. Oprövat på svenska |
 | Ton och ålder | Lagom läskigt med enstaka skrämselmoment, från cirka tio år, framför allt roligt |
 | Utgångsläge | Ingen befintlig app. Projektet börjar från noll |

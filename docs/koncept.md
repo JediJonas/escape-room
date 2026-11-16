@@ -143,7 +143,7 @@ Spelet är en webbapp som körs i mobilens webbläsare, med en server som hålle
 - **Servern avgör samtidighet.** Synkade moment mäts av servern och får inte bygga på att mobilernas klockor går lika.
 - **Uppdrag är data.** Ett uppdrag beskrivs i en fil med uppgifter, roller, texter, bilder och ljud. Motorn tolkar filen, så att ett nytt uppdrag inte kräver ny kod så länge det använder befintliga uppgiftstyper.
 - **En modul per mobilfunktion.** Kamera, rörelse, ljud och övrigt kapslas in var för sig. Modulen kontrollerar om funktionen finns, ber om tillstånd och växlar till reserven vid behov.
-- **React och Vite, som i Maffia.** Webbsidan byggs med React och Vite och har samma verktyg och upplägg som Maffia.
+- **React och Vite, som i Maffia.** Webbsidan byggs med React och Vite och har samma verktyg och upplägg som Maffia, men skrivs i TypeScript (Jonas 2026-11-16).
 - **Inga andra bibliotek före behov.** Kandidater att utvärdera när en uppgift kräver dem är Tone.js och Howler.js för ljud och dnd-kit för dra och släpp. QR-koder läses med jsQR där webbläsaren saknar egen läsare.
 - **En teknisk testsida.** Varje funktion ska kunna provas för sig på iPhone Safari och Android Chrome, utan att ett helt uppdrag startas.
 
@@ -316,7 +316,7 @@ Elva frågor är avgjorda den 16 november 2026.
 | Ton och ålder | Läskigt med skrämselmoment, från 16 år, och samtidigt roligt. Inget blod och inget våld |
 | Utgångsläge | Ingen befintlig app. Projektet börjar från noll |
 | Drift | GitHub Pages för webbsidan, Supabase för databas, realtid och serverkod |
-| Webbsidans verktyg | React och Vite, med samma upplägg som Maffia |
+| Webbsidans verktyg | React och Vite, med samma upplägg som Maffia, i TypeScript |
 | Språk | Svenska först. Texterna ligger i uppdragsfilen, så att fler språk kan läggas till senare |
 
 Tre saker prövas när arbetet börjar.

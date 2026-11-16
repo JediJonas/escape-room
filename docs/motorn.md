@@ -63,7 +63,7 @@ uppdragsfilen varje gång, av en ren funktion.
 
 ## Serverfunktionen
 
-En Edge Function i Supabase, skriven i JavaScript, tar emot allt: skapa spel,
+En Edge Function i Supabase, skriven i TypeScript, tar emot allt: skapa spel,
 ansluta, välja plats, spelledarens kommandon och spelarnas handlingar. Varje
 anrop gör samma sak:
 
@@ -86,7 +86,7 @@ på serversidan. Supabase beskriver sättet i sin dokumentation.
 
 **Logiken är rena funktioner.** Motorn och uppgiftstyperna känner inte till
 Supabase. De tar emot ett tillstånd och en handling och lämnar ett nytt
-tillstånd, precis som `holdRoom.js` i testsidan. De testas med `npm test` utan
+tillstånd, precis som `holdRoom.ts` i testsidan. De testas med `npm test` utan
 nät och databas. Supabase ligger i ett tunt skal runt dem, vilket också gör det
 möjligt att byta tjänst senare.
 
@@ -210,8 +210,8 @@ bestäms när typen byggs.
 Webbsidan byggs med React och Vite, med samma upplägg som Maffia (Jonas
 2026-11-16). Det som följer med därifrån:
 
-- **Verktygen.** React 19, Vite, Vitest, ESLint med samma regler och
-  typkontroll av JavaScript med JSDoc. `npm run check` kör lint, typkontroll,
+- **Verktygen.** React 19, Vite, Vitest och ESLint med samma regler.
+  Koden skrivs i TypeScript, till skillnad från Maffia (Jonas 2026-11-16). `npm run check` kör lint, typkontroll,
   tester och bygge, och GitHub Actions kör samma sak. Bygget läggs ut på
   GitHub Pages.
 - **Mapparna.** `src/` med en mapp per ansvar: `game/` för motorns rena
@@ -322,3 +322,4 @@ själva hör till steg 3 i konceptet.
 | Namn | Svenska | Engelska | Koden som finns har engelska namn |
 | Spelledarens kanal | Egen kanal | Samma som spelarens | En sak mindre att hålla rätt |
 | Webbsidan | Vanlig JavaScript utan byggsteg | React och Vite, som i Maffia | Beslut av Jonas. Det har fungerat bra där |
+| Språk | JavaScript med typer i JSDoc | TypeScript | Beslut av Jonas. Motorn har många datatyper som delas mellan mobil och server |

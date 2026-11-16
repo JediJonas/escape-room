@@ -16,7 +16,7 @@ Pusha aldrig direkt till main och merga aldrig själv.
   publiceras direkt på jedijonas.github.io/escape-room.
 - Kör `npm run check` (lint, typkontroll, tester och bygge) innan du pushar.
   GitHub Actions kör samma sak och validerar dessutom HTML:en.
-- Höj `VERSION` i `src/config.js` vid varje ändring av webbsidan, så att det
+- Höj `VERSION` i `src/config.ts` vid varje ändring av webbsidan, så att det
   syns om en mobil kör en gammal sida ur cachen.
 - Följ byggordningen i konceptet. Bygg en uppgiftstyp i taget och gör den
   provspelbar innan nästa påbörjas.
@@ -31,7 +31,10 @@ Pusha aldrig direkt till main och merga aldrig själv.
 Se README.md för mapparna. Det viktigaste:
 
 - **React och Vite, som i Maffia** (Jonas 2026-11-16). Startsidan är React.
-  Testsidan är vanlig JavaScript och skrivs inte om.
+  Testsidan använder inte React och skrivs inte om.
+- **TypeScript** (Jonas 2026-11-16), med `strict` på. Typerna står i koden,
+  inte i JSDoc. TypeScript ligger kvar på version 6 tills typescript-eslint
+  stöder version 7.
 - **Logik skild från visning.** Regler och beräkningar är rena funktioner utan
   DOM, nät eller klocka, och testas med Vitest. Testerna ligger bredvid det de
   testar.
@@ -45,7 +48,7 @@ Se README.md för mapparna. Det viktigaste:
   med `npm run test:db`. Ändras reglerna ska testet i
   `supabase/tests/channels.test.sql` ändras i samma PR.
 - **Serverfunktionen `game`** har sin logik i rena moduler som testas med
-  Vitest. `index.js` är bara skalet som kopplar ihop dem med Deno och
+  Vitest. `index.ts` är bara skalet som kopplar ihop dem med Deno och
   databasen.
 - **Bibliotek som bara vissa behöver laddas med `import()`**, som jsQR och
   Supabase, så att de bara hämtas när de används.

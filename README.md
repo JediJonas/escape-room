@@ -26,7 +26,7 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia.
 | `supabase/functions/game/` | Spelets serverfunktion |
 | `supabase/tests/` | Prov av kanalernas regler i en vanlig Postgres |
 
-Testerna ligger bredvid det de testar, som `src/sync/sync.test.js`.
+Testerna ligger bredvid det de testar, som `src/sync/sync.test.ts`.
 
 ## Den tekniska testsidan
 
@@ -37,7 +37,7 @@ rundbilder var för sig, på iPhone Safari och Android Chrome. Den ligger på
 - Lägg till `?debug=1` i adressen för att se felsökningsloggen.
 - Testkorten med QR-koder finns på `testsida/platskort.html`.
 - Synkade tryck går genom Supabase Realtime. Adressen och den publika nyckeln
-  står i `src/config.js`.
+  står i `src/config.ts`.
 
 ## Köra lokalt
 
@@ -60,7 +60,12 @@ ut på GitHub Pages, och ändringar under `supabase/` läggs ut i Supabase.
 
 ## Supabase
 
-Projektets adress och publika nyckel står i `src/config.js`. Databasens
+Projektets adress och publika nyckel står i `src/config.ts`. Databasens
 schema och serverfunktionen läggs ut av `.github/workflows/supabase.yml`, som
 behöver hemligheterna `SUPABASE_ACCESS_TOKEN` och `SUPABASE_DB_PASSWORD` i
 GitHub. Anonym inloggning ska vara påslagen i projektet.
+
+Serverfunktionen körs i Deno. GitHub Actions provar dess typer med
+`deno check index.ts` i `supabase/functions/game/`. Där ligger också
+`deno.json`, som säger åt Deno att hämta biblioteken själv i stället för ur
+repots `node_modules`.

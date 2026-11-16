@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Prova mobilens rörelsesensor, kamera, ljud och synkade tryck, en funktion i taget.">
+    <meta name="color-scheme" content="light dark">
+    <link rel="icon" href="data:,">
+    <meta name="robots" content="noindex">
+    <title>Teknisk testsida – Escape room för mobiler</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Teknisk testsida</h1>
+      <p>Prova en funktion i taget. Svara Ja eller Nej under varje test och skicka resultatet längst ner.</p>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="motion-heading">
+        <h2 id="motion-heading">1. Rörelse och lutning</h2>
+        <p>Håll mobilen plant och luta den, så rullar pricken. Vrid dig sedan ett varv och se att vridningen ändras.</p>
+        <button type="button" id="motion-start">Starta rörelsetestet</button>
+        <div class="arena" id="motion-arena" role="img" aria-label="Yta där pricken visar lutningen">
+          <div class="ball" id="motion-ball"></div>
+        </div>
+        <p class="hint">Reserv: dra pricken med fingret.</p>
+        <dl class="values">
+          <div><dt>Framåt och bakåt</dt><dd id="motion-beta">–</dd></div>
+          <div><dt>I sidled</dt><dd id="motion-gamma">–</dd></div>
+          <div><dt>Vridning</dt><dd id="motion-alpha">–</dd></div>
+          <div><dt>Rörelse</dt><dd id="motion-movement">–</dd></div>
+        </dl>
+        <p class="status" id="motion-status" role="status">Inte startat.</p>
+        <div class="verdict" role="group" aria-label="Fungerade rörelsetestet?" data-verdict="Rörelse, omdöme">
+          <span>Följde pricken lutningen?</span>
+          <button type="button" data-answer="ja">Ja</button>
+          <button type="button" data-answer="nej">Nej</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="qr-heading">
+        <h2 id="qr-heading">2. QR-skanning</h2>
+        <p>Öppna <a href="platskort.html">testkorten</a> på en annan skärm eller skriv ut dem, och rikta kameran mot ett kort.</p>
+        <div class="button-row">
+          <button type="button" id="qr-start">Starta kameran</button>
+          <button type="button" id="qr-stop" hidden>Stäng kameran</button>
+        </div>
+        <video id="qr-video" class="camera" playsinline muted hidden></video>
+        <p class="status" id="qr-status" role="status">Inte startat.</p>
+        <p class="hint" id="qr-fallback-label">Reserv: välj plats i listan.</p>
+        <div class="button-row" id="qr-fallback" role="group" aria-labelledby="qr-fallback-label"></div>
+        <div class="verdict" role="group" aria-label="Fungerade QR-skanningen?" data-verdict="QR, omdöme">
+          <span>Lästes kortet snabbt?</span>
+          <button type="button" data-answer="ja">Ja</button>
+          <button type="button" data-answer="nej">Nej</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sound-heading">
+        <h2 id="sound-heading">3. Ljud</h2>
+        <p>Prova varje knapp med ljudlös-knappen både av och på. Det sista testet spelar utan tryck, som när spelet startar ett ljud själv.</p>
+        <div class="button-column">
+          <button type="button" id="sound-engine">Spela med toning (ljudmotorn)</button>
+          <button type="button" id="sound-element">Spela som vanligt ljud</button>
+          <button type="button" id="sound-delayed">Spela om 5 sekunder, utan tryck</button>
+        </div>
+        <p class="playing" id="sound-playing" hidden>Ljudet spelas nu</p>
+        <p class="status" id="sound-status" role="status">Inget har spelats.</p>
+        <div class="verdict" role="group" aria-label="Hördes ljuden?" data-verdict="Ljud, omdöme">
+          <span>Hördes alla tre ljuden?</span>
+          <button type="button" data-answer="ja">Ja</button>
+          <button type="button" data-answer="nej">Nej</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sync-heading">
+        <h2 id="sync-heading">4. Synkade tryck</h2>
+        <p>Gå med i samma rum på minst två mobiler. Håll sedan fingret på den stora knappen samtidigt.</p>
+        <form id="sync-form" class="form">
+          <label for="sync-name">Namn</label>
+          <input id="sync-name" name="name" autocomplete="off" maxlength="20" required>
+          <label for="sync-room">Rum</label>
+          <input id="sync-room" name="room" autocomplete="off" inputmode="numeric" pattern="[0-9]{1,6}" value="1234" required>
+          <button type="submit" id="sync-join">Gå med</button>
+        </form>
+        <p class="status" id="sync-status" role="status">Inte med i något rum.</p>
+        <div id="sync-room-view" hidden>
+          <button type="button" class="hold-pad" id="sync-pad">Håll fingret här</button>
+          <p class="summary" id="sync-summary" role="status"></p>
+          <ul class="peers" id="sync-peers" aria-label="Mobiler i rummet"></ul>
+          <p class="hint" id="sync-latency"></p>
+        </div>
+        <div class="verdict" role="group" aria-label="Fungerade de synkade trycken?" data-verdict="Synk, omdöme">
+          <span>Kändes det samtidigt?</span>
+          <button type="button" data-answer="ja">Ja</button>
+          <button type="button" data-answer="nej">Nej</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="report-heading">
+        <h2 id="report-heading">Resultat</h2>
+        <p>Kopiera texten och skicka den, en gång per mobil.</p>
+        <pre id="report-text"></pre>
+        <button type="button" id="report-copy">Kopiera resultatet</button>
+        <p class="status" id="report-status" role="status"></p>
+      </section>
+    </main>
+
+    <footer>
+      <p>Version <span id="version"></span></p>
+    </footer>
+  </body>
+</html>

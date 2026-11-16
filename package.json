@@ -1,0 +1,8 @@
+{
+  "name": "escape-room",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

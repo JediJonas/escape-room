@@ -1,8 +1,36 @@
 {
   "name": "escape-room",
   "private": true,
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p jsconfig.json",
+    "lint": "eslint .",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "validate:html": "java -jar node_modules/vnu-jar/build/dist/vnu.jar --errors-only dist/index.html dist/testsida/index.html dist/testsida/platskort.html"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "jsqr": "^1.4.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "eslint": "^10.15.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0",
+    "vnu-jar": "^26.11.14"
   }
 }

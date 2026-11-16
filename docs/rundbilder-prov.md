@@ -1,7 +1,7 @@
 # Rundbilder med Gemini: prov
 
 Anteckningar från provet av rundbilder, som konceptet tar upp under Rundbilder.
-Bilderna ligger i `web/testsida/rundbilder/` och visas i kortet Rundbild på
+Bilderna ligger i `public/testsida/rundbilder/` och visas i kortet Rundbild på
 testsidan.
 
 ## Så togs bilden fram
@@ -50,7 +50,7 @@ varv bara är knappt åtta bildpunkter per grad.
 
 Rundvisaren kan följa mobilens rörelse, så att mobilen blir ett fönster in i
 rummet. Blicken räknas ut från mobilens läge (`orientationToLook` i
-`web/view/lookDirection.js`). Fingret och knapparna vrider då rummet i
+`src/view/lookDirection.js`). Fingret och knapparna vrider då rummet i
 förhållande till mobilen, och fingret är reserven när sensorn saknas eller
 nekas. Visaren räknar med att mobilen hålls stående. Liggande mobil är inte
 hanterad.

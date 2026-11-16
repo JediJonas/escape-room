@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { PEER_TIMEOUT_MS, applyPeerMessage, createRoom, dropSilentPeers, summarizeRoom } from '../web/sync/holdRoom.js';
-import { summarizeRoundTrips } from '../web/sync/latency.js';
+import { test } from 'vitest';
+import { PEER_TIMEOUT_MS, applyPeerMessage, createRoom, dropSilentPeers, summarizeRoom } from './holdRoom.js';
+import { summarizeRoundTrips } from './latency.js';
 
 const peer = (id, isHolding) => ({ id, name: `Mobil ${id}`, isHolding });
 

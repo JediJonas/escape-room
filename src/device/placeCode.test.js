@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { parsePlaceCode } from '../web/device/placeCode.js';
+import { test } from 'vitest';
+import { parsePlaceCode } from './placeCode.js';
 
 test('ett platskort ger platsens id', () => {
   assert.equal(parsePlaceCode('plats:C'), 'C');

@@ -13,9 +13,17 @@ export function setupQrCard({ report, log }) {
   const stopButton = getButton('qr-stop');
   const video = /** @type {HTMLVideoElement} */ (getElement('qr-video'));
   const status = getElement('qr-status');
+  const result = getElement('qr-result');
   const fallback = getElement('qr-fallback');
   /** @type {(() => void) | null} */
   let stopScan = null;
+
+  // Det lästa kortet visas stort, så att det inte går att missa under kamerabilden.
+  /** @param {string} text */
+  function showResult(text) {
+    result.textContent = text;
+    result.hidden = false;
+  }
 
   function closeCamera() {
     if (stopScan) stopScan();
@@ -37,6 +45,7 @@ export function setupQrCard({ report, log }) {
     }
 
     startButton.disabled = true;
+    result.hidden = true;
     status.textContent = 'Startar kameran …';
     video.hidden = false;
     const startedAt = performance.now();
@@ -48,7 +57,8 @@ export function setupQrCard({ report, log }) {
           status.textContent = `Läste en kod som inte är ett platskort: ${text.slice(0, MAX_SHOWN_CODE_LENGTH)}`;
           return;
         }
-        status.textContent = `Läste platskort ${placeId}.`;
+        status.textContent = 'Kortet är läst. Rikta kameran mot ett annat kort för att läsa fler.';
+        showResult(`Läste platskort ${placeId}`);
         if (hasReadPlace) return;
         hasReadPlace = true;
         const seconds = ((performance.now() - startedAt) / 1000).toFixed(1);
@@ -81,7 +91,8 @@ export function setupQrCard({ report, log }) {
     button.textContent = placeId;
     button.setAttribute('aria-label', `Plats ${placeId}`);
     button.addEventListener('click', () => {
-      status.textContent = `Valde plats ${placeId} i listan.`;
+      status.textContent = 'Platsen valdes i listan.';
+      showResult(`Valde plats ${placeId}`);
       report.setResult('QR, reserv', `plats ${placeId} valdes i listan`);
     });
     fallback.append(button);

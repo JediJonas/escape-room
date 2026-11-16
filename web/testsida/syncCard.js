@@ -29,6 +29,10 @@ export function setupSyncCard({ supabaseConfig, report, log }) {
   const summary = getElement('sync-summary');
   const peerList = getElement('sync-peers');
   const latency = getElement('sync-latency');
+  const hasSupabase = Boolean(supabaseConfig.url && supabaseConfig.publicKey);
+  // Utan Supabase kan testaren inte svara på om trycken synkades mellan mobiler.
+  getElement('sync-notice').hidden = hasSupabase;
+  getElement('sync-verdict').hidden = !hasSupabase;
 
   const myId = createRandomId();
   const room = createRoom();
@@ -131,7 +135,6 @@ export function setupSyncCard({ supabaseConfig, report, log }) {
     if (transport) return;
     joinButton.disabled = true;
     const roomCode = roomInput.value.trim();
-    const hasSupabase = Boolean(supabaseConfig.url && supabaseConfig.publicKey);
     try {
       status.textContent = 'Ansluter …';
       transport = hasSupabase
@@ -148,7 +151,7 @@ export function setupSyncCard({ supabaseConfig, report, log }) {
     log(`synk: med i rum ${roomCode} via ${transport.name}`);
     status.textContent = transport.reachesOtherDevices
       ? `Med i rum ${roomCode}.`
-      : `Med i rum ${roomCode}, men Supabase är inte inställt än. Just nu syns bara flikar i samma webbläsare.`;
+      : `Med i rum ${roomCode}, men bara flikar i samma webbläsare syns.`;
     nameInput.disabled = true;
     roomInput.disabled = true;
     roomView.hidden = false;

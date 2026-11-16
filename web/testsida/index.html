@@ -48,6 +48,7 @@
           <button type="button" id="qr-stop" hidden>Stäng kameran</button>
         </div>
         <video id="qr-video" class="camera" playsinline muted hidden></video>
+        <p class="scan-result" id="qr-result" hidden></p>
         <p class="status" id="qr-status" role="status">Inte startat.</p>
         <p class="hint" id="qr-fallback-label">Reserv: välj plats i listan.</p>
         <div class="button-row" id="qr-fallback" role="group" aria-labelledby="qr-fallback-label"></div>
@@ -77,7 +78,8 @@
 
       <section class="card" aria-labelledby="sync-heading">
         <h2 id="sync-heading">4. Synkade tryck</h2>
-        <p>Gå med i samma rum på minst två mobiler. Håll sedan fingret på den stora knappen samtidigt.</p>
+        <p>Gå med i samma rum på minst två mobiler. Båda ska då synas i listan. Håll sedan fingret på den stora knappen på alla mobiler samtidigt, så tänds texten ”Alla håller!”.</p>
+        <p class="notice" id="sync-notice" hidden>Det här testet går inte att köra mellan mobiler än. Mobilerna hittar varandra först när Supabase är inställt. Tills dess syns bara flikar i samma webbläsare.</p>
         <form id="sync-form" class="form">
           <label for="sync-name">Namn</label>
           <input id="sync-name" name="name" autocomplete="off" maxlength="20" required>
@@ -92,8 +94,8 @@
           <ul class="peers" id="sync-peers" aria-label="Mobiler i rummet"></ul>
           <p class="hint" id="sync-latency"></p>
         </div>
-        <div class="verdict" role="group" aria-label="Fungerade de synkade trycken?" data-verdict="Synk, omdöme">
-          <span>Kändes det samtidigt?</span>
+        <div class="verdict" id="sync-verdict" role="group" aria-label="Fungerade de synkade trycken?" data-verdict="Synk, omdöme">
+          <span>Tändes ”Alla håller!” direkt när den sista tryckte?</span>
           <button type="button" data-answer="ja">Ja</button>
           <button type="button" data-answer="nej">Nej</button>
         </div>

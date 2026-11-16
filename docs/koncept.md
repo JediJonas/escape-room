@@ -170,9 +170,20 @@ Tillstånden för rörelse, kamera och ljud bör samlas in tidigt och inom berä
 
 Uppgiftstyperna Instängd och Sökaren behöver en rundbild per rum. Bilderna är den största produktionskostnaden i ett uppdrag. Mörker och ficklampa minskar den, eftersom spelaren aldrig ser hela bilden på en gång.
 
-Rundbilderna tas fram som illustrationer med Googles Gemini-API och bildmodellerna Nano Banana. Det är oprövat i projektet. Andra har fått fram rundbilder i formatet 2:1 med [Nano Banana 2](https://floyo.ai/workflows/nano-banana-2-for-image-to-360-panor-i64lt6mmfhhb), och modellerna beskrivs i [Geminis dokumentation](https://ai.google.dev/gemini-api/docs/image-generation.md.txt).
+Rundbilderna tas fram som illustrationer med Googles Gemini-API och bildmodellen Nano Banana 2.1. Modellerna beskrivs i [Geminis dokumentation](https://ai.google.dev/gemini-api/docs/image-generation.md.txt). API:et tar inte formatet 2:1, så bilden tas fram i 16:9 och trycks ihop efteråt.
 
-Tre saker behöver prövas tidigt: om skarven där bildens kanter möts syns, om golv och tak förvrängs, och om flera rum får samma stil. Reserven är en bred illustration som spelaren bara kan panorera i sidled.
+Det är prövat på testsidan med tre källarbilder, och rundbilderna håller. Provet beskrivs i `docs/rundbilder-prov.md`.
+
+- **Skarven** där bildens kanter möts syns inte i någon av bilderna.
+- **Golv och tak** förvrängs nära rakt upp och rakt ner, och där kan Gemini också måla fel. Upp till ungefär 30 grader från horisonten ser rummet rätt ut. Uppgifterna ska därför inte lägga något viktigt i taket eller på golvet under spelaren, och mörker och ficklampa får dölja resten.
+- **Samma stil i flera rum** är inte prövat med olika sorters rum. De tre källarna fick samma stil av samma stilbeskrivning.
+- **Rummets storlek** styrs av hur bilden beskrivs för Gemini, inte av visaren. I ett stort rum blir föremålen små och suddiga när spelaren zoomar in.
+
+Spelaren ser sig omkring genom att vrida sig med mobilen, och fingret är reserven. Hon kan zooma med två fingrar och visa bilden över hela skärmen. En vuxen blev lite yr av att se sig omkring, barnen blev det inte. Vilket perspektiv som blir standard är inte bestämt.
+
+Provbilderna är inte de slutliga. Bilderna till Den femte gästen tas fram på nytt, och de ska vara något läskigare än provbilderna, inom uppdragets ton.
+
+Reserven är en bred illustration som spelaren bara kan panorera i sidled. Den finns i visaren och tar över av sig själv om mobilen inte klarar rundvisaren.
 
 ### Föremål i rundbilden
 
@@ -295,7 +306,7 @@ Tio frågor är avgjorda den 16 november 2026.
 | Spelledarens roll | Spelar med som standard, men kan välja att stå utanför |
 | Spelledare som står utanför | Mobilen blir en ren administrationsvy med samma funktioner, utan roll i uppgifterna |
 | Gemensam skärm | Nej. Nedräkning, berättelse och ljud finns i spelarnas mobiler |
-| Rundbilder | Illustrerade, framtagna med Gemini-API:et (Nano Banana). Oprövat |
+| Rundbilder | Illustrerade, framtagna med Gemini-API:et (Nano Banana). Prövat och håller, utom rakt upp och rakt ner |
 | Föremål i rundbilden | Ja. Spelaren kan undersöka föremål, med korta texter som en annan spelare behöver |
 | Röster och viskningar | Genereras i förväg och sparas som ljudfiler. Oprövat på svenska |
 | Ton och ålder | Lagom läskigt med enstaka skrämselmoment, från cirka tio år, framför allt roligt |
@@ -305,7 +316,8 @@ Tio frågor är avgjorda den 16 november 2026.
 
 Tre saker prövas när arbetet börjar.
 
-- Ger Gemini rundbilder som håller i en visare, eller behövs reserven med bred illustration?
+- Får olika sorters rum samma stil i Geminis rundbilder?
+- Vilket perspektiv i rundvisaren ger minst yrsel?
 - Låter genererade svenska röster och viskningar tillräckligt bra, och vilken tjänst ger bäst resultat?
 - Räcker Supabases gratisnivå för realtid med tio mobiler i samma session?
 

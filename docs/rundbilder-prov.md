@@ -76,3 +76,11 @@ sexton gånger tjugo meter och minst åtta meter till varje vägg. Rummet blev
 tydligt större, med pelare och valv och små föremål längs väggarna. Längst ner
 i bilden, rakt under betraktaren, målade Gemini ett band som ser ut som böjda
 plankor i stället för golv. Det syns bara när man tittar brant nedåt.
+Ägaren såg också att skarven syns i taket i den här bilden. Felen sitter
+alltså där projektionen är som svårast, rakt upp och rakt ner.
+
+## Slutsats
+
+Rundbilderna håller för blickar runt horisonten. Provbilderna är inte de
+slutliga: bilderna till det första uppdraget tas fram på nytt, och ägaren vill
+att de då blir något läskigare. Räkna med att en bild ibland behöver göras om.

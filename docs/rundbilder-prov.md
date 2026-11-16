@@ -66,6 +66,9 @@ Kortet har därför tre saker att prova, och valet hamnar i resultattexten:
 - Håll rummet vågrätt, som låter rummet stå still när mobilen lutas i sidled.
   Utan det lutar rummet med mobilen.
 
+Ägaren föredrog Håll rummet vågrätt på riktig mobil, så det är påslaget från
+början. Valet mellan vanligt och mjukt perspektiv är inte gjort.
+
 Visaren har ingen rumsstorlek. Betraktaren står i mitten av ett klot, så hur
 stort rummet känns avgörs bara av vad som är målat i bilden. De två
 provbilderna med rutnät visar det: samma kub med 8 respektive 16 rutor per

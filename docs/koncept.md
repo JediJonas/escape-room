@@ -179,7 +179,7 @@ Det är prövat på testsidan med tre källarbilder, och rundbilderna håller. P
 - **Samma stil i flera rum** är inte prövat med olika sorters rum. De tre källarna fick samma stil av samma stilbeskrivning.
 - **Rummets storlek** styrs av hur bilden beskrivs för Gemini, inte av visaren. I ett stort rum blir föremålen små och suddiga när spelaren zoomar in.
 
-Spelaren ser sig omkring genom att vrida sig med mobilen, och fingret är reserven. Hon kan zooma med två fingrar och visa bilden över hela skärmen. En vuxen blev lite yr av att se sig omkring, barnen blev det inte. Vilket perspektiv som blir standard är inte bestämt.
+Spelaren ser sig omkring genom att vrida sig med mobilen, och fingret är reserven. Hon kan zooma med två fingrar och visa bilden över hela skärmen. Rummet hålls vågrätt när mobilen lutas i sidled. En vuxen blev lite yr av att se sig omkring, barnen blev det inte. Om det vanliga eller det mjuka perspektivet blir standard är inte bestämt.
 
 Provbilderna är inte de slutliga. Bilderna till Den femte gästen tas fram på nytt, och de ska vara något läskigare än provbilderna, inom uppdragets ton.
 
@@ -317,7 +317,7 @@ Tio frågor är avgjorda den 16 november 2026.
 Tre saker prövas när arbetet börjar.
 
 - Får olika sorters rum samma stil i Geminis rundbilder?
-- Vilket perspektiv i rundvisaren ger minst yrsel?
+- Ska rundvisaren ha vanligt eller mjukt perspektiv som standard?
 - Låter genererade svenska röster och viskningar tillräckligt bra, och vilken tjänst ger bäst resultat?
 - Räcker Supabases gratisnivå för realtid med tio mobiler i samma session?
 

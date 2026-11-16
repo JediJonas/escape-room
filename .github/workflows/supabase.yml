@@ -27,8 +27,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # En fast version, så att en ny CLI inte ändrar flaggorna mitt i
+          # en utläggning. Höjs för hand.
+          version: 3.2.0
       - run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
       # --remote behövs, annars försöker CLI:n nå en lokal databas.
       - run: supabase db push --yes --remote
-      - run: supabase functions deploy game --project-ref "$SUPABASE_PROJECT_ID" --use-api
+      # --yes behövs, annars väntar CLI:n på en bekräftelse som aldrig kommer.
+      - run: supabase functions deploy game --remote="$SUPABASE_PROJECT_ID" --use-api --yes

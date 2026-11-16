@@ -16,7 +16,8 @@ import { getElement } from './dom.js';
 const ROUND_IMAGES = [
   { name: 'Stora källaren (Gemini)', file: 'rundbilder/kallare-stor.webp' },
   { name: 'Lilla källaren (Gemini)', file: 'rundbilder/kallare.webp' },
-  { name: 'Provbild med rutnät', file: 'rundbilder/provbild-rutnat.webp' },
+  { name: 'Rutnät, 8 rutor per sida', file: 'rundbilder/provbild-rutnat.webp' },
+  { name: 'Rutnät, 16 rutor per sida', file: 'rundbilder/provbild-rutnat-stor.webp' },
 ];
 
 /** Hur långt knapparna vrider blicken per tryck. */

@@ -169,7 +169,32 @@ button:disabled { opacity: 0.55; cursor: default; }
   user-select: none;
   -webkit-user-select: none;
 }
-.round-frame > * { display: block; width: 100%; height: 100%; }
+.round-frame > canvas, .round-frame > div { display: block; width: 100%; height: 100%; }
+
+/* iPhone har ingen riktig fullskärm för annat än film. Visaren läggs därför
+   över hela webbläsarfönstret, och där riktig fullskärm finns används den också. */
+.round-frame.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100dvh;
+  max-height: none;
+  aspect-ratio: auto;
+  margin: 0;
+  border-radius: 0;
+}
+.is-showing-fullscreen { overflow: hidden; }
+.round-close {
+  position: absolute;
+  left: 50%;
+  bottom: var(--bottom-gap);
+  transform: translateX(-50%);
+  background: rgb(0 0 0 / 0.7);
+  border-color: #ffffff;
+  color: #ffffff;
+}
+.round-close:focus-visible { outline-color: #ffffff; }
 
 .verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 .verdict + .verdict { margin-top: 0.75rem; }

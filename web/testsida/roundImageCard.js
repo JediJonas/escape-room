@@ -184,6 +184,8 @@ export function setupRoundImageCard({ report, log }) {
   };
 
   frame.addEventListener('pointerdown', (event) => {
+    // Stängknappen ligger ovanpå bilden och ska få sina egna tryck.
+    if (event.target instanceof Element && event.target.closest('button')) return;
     fingers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     frame.setPointerCapture(event.pointerId);
   });
@@ -232,6 +234,39 @@ export function setupRoundImageCard({ report, log }) {
   };
   Object.entries(lookButtons).forEach(([id, getLook]) => {
     getElement(id).addEventListener('click', () => lookAt(getLook()));
+  });
+
+  const openFullscreenButton = getElement('round-fullscreen-open');
+  const closeFullscreenButton = getElement('round-fullscreen-close');
+
+  /** @param {boolean} isFullscreen */
+  function showFullscreen(isFullscreen) {
+    frame.classList.toggle('is-fullscreen', isFullscreen);
+    document.documentElement.classList.toggle('is-showing-fullscreen', isFullscreen);
+    closeFullscreenButton.hidden = !isFullscreen;
+    (isFullscreen ? closeFullscreenButton : openFullscreenButton).focus();
+    report.setResult('Rundbild, fullskärm', document.fullscreenElement ? 'riktig fullskärm' : 'hela webbläsarfönstret');
+  }
+
+  openFullscreenButton.addEventListener('click', () => {
+    showFullscreen(true);
+    // Safari på iPhone saknar requestFullscreen för annat än film. Då räcker
+    // det att visaren redan täcker webbläsarfönstret.
+    frame.requestFullscreen?.().catch((error) => log(`rundbild: ingen riktig fullskärm, ${error}`));
+  });
+  closeFullscreenButton.addEventListener('click', () => {
+    // Från riktig fullskärm stänger händelsen fullscreenchange nedan, så att
+    // fokus flyttas först när webbläsaren har lämnat fullskärmen.
+    if (document.fullscreenElement) document.exitFullscreen();
+    else showFullscreen(false);
+  });
+  // Riktig fullskärm kan lämnas med webbläsarens egen gest eller knapp.
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) report.setResult('Rundbild, fullskärm', 'riktig fullskärm');
+    else if (frame.classList.contains('is-fullscreen')) showFullscreen(false);
+  });
+  frame.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && frame.classList.contains('is-fullscreen')) closeFullscreenButton.click();
   });
 
   getElement('round-zoom-in').addEventListener('click', () => zoom(BUTTON_ZOOM_FACTOR));

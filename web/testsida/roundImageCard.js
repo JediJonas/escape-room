@@ -1,5 +1,14 @@
 // @ts-check
-import { DEFAULT_FIELD_OF_VIEW_DEG, dragToTurn, turnLook, zoomFieldOfView } from '../view/lookDirection.js';
+import { requestMotionPermission, watchMotion } from '../device/motion.js';
+import {
+  clampPitchDeg,
+  DEFAULT_FIELD_OF_VIEW_DEG,
+  dragToTurn,
+  orientationToLook,
+  turnLook,
+  wrapYawDeg,
+  zoomFieldOfView,
+} from '../view/lookDirection.js';
 import { createSphereView, createStripView } from '../view/roundImageViewer.js';
 import { getElement } from './dom.js';
 
@@ -15,6 +24,8 @@ const BUTTON_TURN_DEG = 30;
 /** Hur mycket zoomknapparna och ett hack på mushjulet zoomar. */
 const BUTTON_ZOOM_FACTOR = 1.25;
 const WHEEL_ZOOM_FACTOR = 1.1;
+/** Kommer inga sensorvärden inom den här tiden får fingret ta över igen. */
+const NO_SENSOR_VALUES_TIMEOUT_MS = 2000;
 
 const LOOK_AHEAD = { yawDeg: 0, pitchDeg: 0 };
 const LOOK_AT_SEAM = { yawDeg: -180, pitchDeg: 0 };
@@ -89,11 +100,72 @@ export function setupRoundImageCard({ report, log }) {
     image.src = roundImage.file;
   }
 
+  // När mobilens rörelse styr är sensorn facit för höjdled, medan vridningen
+  // får ett tillägg. Tillägget gör att bilden inte hoppar när sensorn startar,
+  // och att fingret och knapparna kan vrida rummet i förhållande till mobilen.
+  /** @type {(() => void) | null} */
+  let stopSensor = null;
+  /** @type {number | null} */
+  let sensorYawOffsetDeg = null;
+  let sensedYawDeg = 0;
+
   /** @param {import('../view/lookDirection.js').LookDirection} newLook */
   function lookAt(newLook) {
-    look = mode === 'sphere' ? newLook : { ...newLook, pitchDeg: 0 };
+    if (stopSensor && sensorYawOffsetDeg !== null) {
+      sensorYawOffsetDeg = newLook.yawDeg - sensedYawDeg;
+      look = { ...look, yawDeg: newLook.yawDeg };
+    } else {
+      look = mode === 'sphere' ? newLook : { ...newLook, pitchDeg: 0 };
+    }
     draw();
   }
+
+  const sensorButton = getElement('round-sensor');
+
+  function stopFollowingSensor() {
+    stopSensor?.();
+    stopSensor = null;
+    sensorYawOffsetDeg = null;
+    sensorButton.setAttribute('aria-pressed', 'false');
+  }
+
+  /** @param {{ alpha: number | null, beta: number | null, gamma: number | null }} orientation */
+  function followSensor({ alpha, beta, gamma }) {
+    if (alpha === null || beta === null || gamma === null) return;
+    const sensed = orientationToLook({ alpha, beta, gamma });
+    sensedYawDeg = sensed.yawDeg;
+    if (sensorYawOffsetDeg === null) {
+      sensorYawOffsetDeg = look.yawDeg - sensedYawDeg;
+      status.textContent = 'Vrid dig med mobilen framför dig för att se dig omkring.';
+      report.setResult('Rundbild, rörelse', 'bilden följer mobilen');
+    }
+    look = { yawDeg: wrapYawDeg(sensedYawDeg + sensorYawOffsetDeg), pitchDeg: clampPitchDeg(sensed.pitchDeg) };
+    draw();
+  }
+
+  sensorButton.addEventListener('click', async () => {
+    if (stopSensor) {
+      stopFollowingSensor();
+      status.textContent = 'Dra i bilden för att se dig omkring.';
+      return;
+    }
+    const permission = await requestMotionPermission();
+    log(`rundbild: tillstånd för rörelse ${permission}`);
+    if (permission === 'denied') {
+      status.textContent = 'Rörelsesensorn fick inte användas. Dra i bilden med fingret.';
+      report.setResult('Rundbild, rörelse', 'tillstånd nekades');
+      return;
+    }
+    stopSensor = watchMotion({ onOrientation: followSensor, onMovement: () => {} });
+    sensorButton.setAttribute('aria-pressed', 'true');
+    status.textContent = 'Väntar på sensorn …';
+    setTimeout(() => {
+      if (!stopSensor || sensorYawOffsetDeg !== null) return;
+      stopFollowingSensor();
+      status.textContent = 'Inga sensorvärden kom. Dra i bilden med fingret.';
+      report.setResult('Rundbild, rörelse', 'inga sensorvärden');
+    }, NO_SENSOR_VALUES_TIMEOUT_MS);
+  });
 
   /** @param {number} zoomFactor över 1 zoomar in */
   function zoom(zoomFactor) {

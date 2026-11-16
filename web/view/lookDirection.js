@@ -54,6 +54,33 @@ export function dragToTurn(drag, view) {
 }
 
 /**
+ * Räknar ut åt vilket håll mobilens baksida pekar, så att mobilen blir ett
+ * fönster in i rummet. Vinklarna är de som webbläsaren ger för mobilens läge:
+ * alpha runt lodlinjen, beta framåt och bakåt, gamma i sidled. Vridningen i
+ * svaret har en godtycklig nollpunkt, eftersom mobiler utan kompass börjar
+ * räkna där de råkar stå. Hur mobilen är vriden runt sin egen blick räknas
+ * inte med, så bilden lutar inte när mobilen lutas i sidled.
+ * @param {{ alpha: number, beta: number, gamma: number }} orientation i grader
+ * @returns {LookDirection}
+ */
+export function orientationToLook({ alpha, beta, gamma }) {
+  const toRadians = Math.PI / 180;
+  const [sinAlpha, cosAlpha] = [Math.sin(alpha * toRadians), Math.cos(alpha * toRadians)];
+  const [sinBeta, cosBeta] = [Math.sin(beta * toRadians), Math.cos(beta * toRadians)];
+  const [sinGamma, cosGamma] = [Math.sin(gamma * toRadians), Math.cos(gamma * toRadians)];
+  // Riktningen ut ur mobilens baksida, med öster, norr och uppåt som axlar.
+  // Den är tredje kolumnen, med omvänt tecken, i rotationsmatrisen Z-X'-Y''
+  // som W3C:s specifikation för deviceorientation beskriver.
+  const east = -(cosGamma * sinAlpha * sinBeta + cosAlpha * sinGamma);
+  const north = -(sinAlpha * sinGamma - cosAlpha * cosGamma * sinBeta);
+  const up = -(cosBeta * cosGamma);
+  return {
+    yawDeg: wrapYawDeg(Math.atan2(east, north) / toRadians),
+    pitchDeg: Math.asin(Math.max(-1, Math.min(1, up))) / toRadians,
+  };
+}
+
+/**
  * Zoomar genom att ändra synfältet. En faktor över 1 zoomar in, alltså ett
  * snävare synfält. Två fingrar som dras isär till dubbla avståndet ger faktorn 2.
  * @param {number} fieldOfViewDeg

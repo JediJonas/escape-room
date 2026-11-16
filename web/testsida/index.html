@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="Prova mobilens rörelsesensor, kamera, ljud och synkade tryck, en funktion i taget.">
+    <meta name="description" content="Prova mobilens rörelsesensor, kamera, ljud, synkade tryck och rundbilder, en funktion i taget.">
     <meta name="color-scheme" content="light dark">
     <link rel="icon" href="data:,">
     <meta name="robots" content="noindex">
@@ -94,6 +94,47 @@
         </div>
         <div class="verdict" role="group" aria-label="Fungerade de synkade trycken?" data-verdict="Synk, omdöme">
           <span>Kändes det samtidigt?</span>
+          <button type="button" data-answer="ja">Ja</button>
+          <button type="button" data-answer="nej">Nej</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="round-heading">
+        <h2 id="round-heading">5. Rundbild</h2>
+        <p>Dra i bilden och se dig omkring. Titta särskilt på skarven bakom dig, och på golvet och taket.</p>
+        <div class="form">
+          <label for="round-image">Bild</label>
+          <select id="round-image"></select>
+        </div>
+        <div class="button-row" role="group" aria-label="Visare">
+          <button type="button" class="choice" id="round-mode-sphere" aria-pressed="false">Rundvisare</button>
+          <button type="button" class="choice" id="round-mode-strip" aria-pressed="false">Reserv: bred bild</button>
+        </div>
+        <div class="round-frame" id="round-frame">
+          <canvas id="round-canvas" role="img" aria-label="Rundbilden, sedd inifrån rummet"></canvas>
+          <div id="round-strip" role="img" aria-label="Rundbilden som bred bild" hidden></div>
+        </div>
+        <div class="button-row" role="group" aria-label="Vrid blicken">
+          <button type="button" id="round-left">Vänster</button>
+          <button type="button" id="round-right">Höger</button>
+          <button type="button" id="round-up">Upp</button>
+          <button type="button" id="round-down">Ner</button>
+          <button type="button" id="round-ahead">Rakt fram</button>
+          <button type="button" id="round-seam">Visa skarven</button>
+        </div>
+        <p class="status" id="round-status" role="status">Inte startat.</p>
+        <div class="verdict" role="group" aria-label="Är skarven osynlig?" data-verdict="Rundbild, skarv">
+          <span>Är skarven osynlig?</span>
+          <button type="button" data-answer="ja">Ja</button>
+          <button type="button" data-answer="nej">Nej</button>
+        </div>
+        <div class="verdict" role="group" aria-label="Ser golv och tak rätt ut?" data-verdict="Rundbild, golv och tak">
+          <span>Ser golv och tak rätt ut?</span>
+          <button type="button" data-answer="ja">Ja</button>
+          <button type="button" data-answer="nej">Nej</button>
+        </div>
+        <div class="verdict" role="group" aria-label="Känns det som att stå i rummet?" data-verdict="Rundbild, omdöme">
+          <span>Känns det som att stå i rummet?</span>
           <button type="button" data-answer="ja">Ja</button>
           <button type="button" data-answer="nej">Nej</button>
         </div>

@@ -14,6 +14,7 @@ import { getElement } from './dom.js';
 
 /** Rundbilderna som går att välja. Skarven ligger alltid rakt bakom startriktningen. */
 const ROUND_IMAGES = [
+  { name: 'Största källaren (Gemini)', file: 'rundbilder/kallare-storst.webp' },
   { name: 'Stora källaren (Gemini)', file: 'rundbilder/kallare-stor.webp' },
   { name: 'Lilla källaren (Gemini)', file: 'rundbilder/kallare.webp' },
   { name: 'Rutnät, 8 rutor per sida', file: 'rundbilder/provbild-rutnat.webp' },

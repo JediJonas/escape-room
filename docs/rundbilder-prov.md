@@ -70,3 +70,9 @@ Visaren har ingen rumsstorlek. Betraktaren står i mitten av ett klot, så hur
 stort rummet känns avgörs bara av vad som är målat i bilden. De två
 provbilderna med rutnät visar det: samma kub med 8 respektive 16 rutor per
 sida, där den med fler och mindre rutor läses som ett dubbelt så stort rum.
+
+En tredje källare, `kallare-storst.webp`, togs fram med rummet beskrivet som
+sexton gånger tjugo meter och minst åtta meter till varje vägg. Rummet blev
+tydligt större, med pelare och valv och små föremål längs väggarna. Längst ner
+i bilden, rakt under betraktaren, målade Gemini ett band som ser ut som böjda
+plankor i stället för golv. Det syns bara när man tittar brant nedåt.

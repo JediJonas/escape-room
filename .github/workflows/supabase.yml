@@ -29,5 +29,6 @@ jobs:
         with:
           version: latest
       - run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
-      - run: supabase db push --yes
+      # --remote behövs, annars försöker CLI:n nå en lokal databas.
+      - run: supabase db push --yes --remote
       - run: supabase functions deploy game --project-ref "$SUPABASE_PROJECT_ID" --use-api

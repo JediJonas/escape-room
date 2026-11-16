@@ -4,7 +4,10 @@ import { createSphereView, createStripView, FIELD_OF_VIEW_DEG } from '../view/ro
 import { getElement } from './dom.js';
 
 /** Rundbilderna som går att välja. Skarven ligger alltid rakt bakom startriktningen. */
-const ROUND_IMAGES = [{ name: 'Provbild med rutnät', file: 'rundbilder/provbild-rutnat.webp' }];
+const ROUND_IMAGES = [
+  { name: 'Källaren (Gemini)', file: 'rundbilder/kallare.webp' },
+  { name: 'Provbild med rutnät', file: 'rundbilder/provbild-rutnat.webp' },
+];
 
 /** Hur långt knapparna vrider blicken per tryck. */
 const BUTTON_TURN_DEG = 30;

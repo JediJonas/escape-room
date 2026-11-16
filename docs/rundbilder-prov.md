@@ -54,3 +54,17 @@ rummet. Blicken räknas ut från mobilens läge (`orientationToLook` i
 förhållande till mobilen, och fingret är reserven när sensorn saknas eller
 nekas. Visaren räknar med att mobilen hålls stående. Liggande mobil är inte
 hanterad.
+
+## Perspektiv och yrsel
+
+En vuxen blev lite yr av att se sig omkring i rummet, barnen blev det inte.
+Kortet har därför tre saker att prova, och valet hamnar i resultattexten:
+
+- Synfältet, som ändras med zoomen. Ett snävare synfält rör bilden lugnare.
+- Mjukt perspektiv (stereografiskt), som inte drar ut kanterna vid brett
+  synfält men böjer raka linjer.
+- Håll rummet vågrätt, som låter rummet stå still när mobilen lutas i sidled.
+  Utan det lutar rummet med mobilen.
+
+Visaren har ingen rumsstorlek. Betraktaren står i mitten av ett klot, så hur
+stort rummet känns avgörs bara av vad som är målat i bilden.

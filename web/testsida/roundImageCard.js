@@ -52,12 +52,19 @@ export function setupRoundImageCard({ report, log }) {
 
   /** @type {'sphere' | 'strip'} */
   let mode = sphereView ? 'sphere' : 'strip';
+  /** @type {import('../view/lookDirection.js').LookDirection} */
   let look = LOOK_AHEAD;
   let fieldOfViewDeg = DEFAULT_FIELD_OF_VIEW_DEG;
+  /** @type {'straight' | 'soft'} */
+  let perspective = 'straight';
+  let isRoomKeptLevel = false;
   let isImageInSphere = false;
 
   function draw() {
-    if (mode === 'sphere' && sphereView) sphereView.draw(look, fieldOfViewDeg);
+    if (mode === 'sphere' && sphereView) {
+      const levelLook = isRoomKeptLevel ? look : { ...look, rollDeg: 0 };
+      sphereView.draw(levelLook, { fieldOfViewDeg, perspective });
+    }
     else stripView.draw(look);
   }
 
@@ -139,7 +146,11 @@ export function setupRoundImageCard({ report, log }) {
       status.textContent = 'Vrid dig med mobilen framför dig för att se dig omkring.';
       report.setResult('Rundbild, rörelse', 'bilden följer mobilen');
     }
-    look = { yawDeg: wrapYawDeg(sensedYawDeg + sensorYawOffsetDeg), pitchDeg: clampPitchDeg(sensed.pitchDeg) };
+    look = {
+      yawDeg: wrapYawDeg(sensedYawDeg + sensorYawOffsetDeg),
+      pitchDeg: clampPitchDeg(sensed.pitchDeg),
+      rollDeg: sensed.rollDeg,
+    };
     draw();
   }
 
@@ -167,10 +178,39 @@ export function setupRoundImageCard({ report, log }) {
     }, NO_SENSOR_VALUES_TIMEOUT_MS);
   });
 
+  // Synfältet och perspektivet står i resultattexten, så att det går att
+  // säga vilken inställning som kändes bäst.
+  function reportLens() {
+    const perspectiveName = perspective === 'soft' ? 'mjukt' : 'vanligt';
+    const levelName = isRoomKeptLevel ? 'rummet hålls vågrätt' : 'rummet lutar med mobilen';
+    report.setResult('Rundbild, perspektiv', `${perspectiveName}, synfält ${Math.round(fieldOfViewDeg)}°, ${levelName}`);
+  }
+
+  const perspectiveButtons = { straight: getElement('round-perspective-straight'), soft: getElement('round-perspective-soft') };
+  /** @param {'straight' | 'soft'} newPerspective */
+  function showPerspective(newPerspective) {
+    perspective = newPerspective;
+    perspectiveButtons.straight.setAttribute('aria-pressed', String(perspective === 'straight'));
+    perspectiveButtons.soft.setAttribute('aria-pressed', String(perspective === 'soft'));
+    reportLens();
+    draw();
+  }
+  perspectiveButtons.straight.addEventListener('click', () => showPerspective('straight'));
+  perspectiveButtons.soft.addEventListener('click', () => showPerspective('soft'));
+
+  const levelButton = getElement('round-level');
+  levelButton.addEventListener('click', () => {
+    isRoomKeptLevel = !isRoomKeptLevel;
+    levelButton.setAttribute('aria-pressed', String(isRoomKeptLevel));
+    reportLens();
+    draw();
+  });
+
   /** @param {number} zoomFactor över 1 zoomar in */
   function zoom(zoomFactor) {
     if (mode !== 'sphere') return;
     fieldOfViewDeg = zoomFieldOfView(fieldOfViewDeg, zoomFactor);
+    reportLens();
     draw();
   }
 

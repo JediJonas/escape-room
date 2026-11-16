@@ -116,6 +116,12 @@
           <button type="button" class="choice" id="round-sensor" aria-pressed="false">Styr genom att vrida mobilen</button>
           <button type="button" id="round-fullscreen-open">Visa i fullskärm</button>
         </div>
+        <p class="hint" id="round-perspective-label">Perspektiv, att prova om bilden gör dig yr:</p>
+        <div class="button-row" role="group" aria-labelledby="round-perspective-label">
+          <button type="button" class="choice" id="round-perspective-straight" aria-pressed="true">Vanligt</button>
+          <button type="button" class="choice" id="round-perspective-soft" aria-pressed="false">Mjukt</button>
+          <button type="button" class="choice" id="round-level" aria-pressed="false">Håll rummet vågrätt</button>
+        </div>
         <div class="round-frame" id="round-frame">
           <canvas id="round-canvas" role="img" aria-label="Rundbilden, sedd inifrån rummet"></canvas>
           <div id="round-strip" role="img" aria-label="Rundbilden som bred bild" hidden></div>

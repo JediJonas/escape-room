@@ -7,7 +7,7 @@
  * @typedef {import('./lookDirection.js').LookDirection} LookDirection
  */
 
-import { yawToStripOffsetPx } from './lookDirection.js';
+import { fieldOfViewToHalfHeight, yawToStripOffsetPx } from './lookDirection.js';
 
 /** Remsan visar mitten av bilden, där en rundbild är minst förvrängd. */
 const STRIP_SHARE_OF_IMAGE_HEIGHT = 0.5;
@@ -29,9 +29,18 @@ uniform sampler2D image;
 uniform vec2 halfSize;
 uniform vec2 yaw;
 uniform vec2 pitch;
+uniform vec2 roll;
+uniform float softness;
 const float PI = 3.14159265358979;
 void main() {
-  vec3 ray = normalize(vec3(screen * halfSize, -1.0));
+  vec2 point = screen * halfSize;
+  point = vec2(point.x * roll.x + point.y * roll.y, point.y * roll.x - point.x * roll.y);
+  // Mjukt perspektiv är stereografiskt: avståndet från mitten motsvarar
+  // dubbla tangens för halva vinkeln, i stället för tangens för hela.
+  float distance = length(point);
+  float angle = 2.0 * atan(distance / 2.0);
+  vec3 softRay = distance > 0.0 ? vec3(point / distance * sin(angle), -cos(angle)) : vec3(0.0, 0.0, -1.0);
+  vec3 ray = mix(normalize(vec3(point, -1.0)), softRay, softness);
   ray = vec3(ray.x, ray.y * pitch.x - ray.z * pitch.y, ray.y * pitch.y + ray.z * pitch.x);
   ray = vec3(ray.x * yaw.x - ray.z * yaw.y, ray.y, ray.x * yaw.y + ray.z * yaw.x);
   float longitude = atan(ray.x, -ray.z);
@@ -87,6 +96,8 @@ export function createSphereView(canvas) {
     halfSize: gl.getUniformLocation(program, 'halfSize'),
     yaw: gl.getUniformLocation(program, 'yaw'),
     pitch: gl.getUniformLocation(program, 'pitch'),
+    roll: gl.getUniformLocation(program, 'roll'),
+    softness: gl.getUniformLocation(program, 'softness'),
   };
 
   gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
@@ -120,11 +131,14 @@ export function createSphereView(canvas) {
 
     /**
      * @param {LookDirection} look
-     * @param {number} fieldOfViewDeg synfält i höjdled
+     * @param {{ fieldOfViewDeg: number, perspective: 'straight' | 'soft' }} lens synfält i höjdled och perspektiv
      */
-    draw(look, fieldOfViewDeg) {
+    draw(look, { fieldOfViewDeg, perspective }) {
       matchCanvasToScreen();
-      const halfHeight = Math.tan(toRadians(fieldOfViewDeg) / 2);
+      const halfHeight = fieldOfViewToHalfHeight(fieldOfViewDeg, perspective);
+      const rollDeg = look.rollDeg ?? 0;
+      gl.uniform1f(uniforms.softness, perspective === 'soft' ? 1 : 0);
+      gl.uniform2f(uniforms.roll, Math.cos(toRadians(rollDeg)), Math.sin(toRadians(rollDeg)));
       gl.uniform2f(uniforms.halfSize, (halfHeight * canvas.width) / canvas.height, halfHeight);
       gl.uniform2f(uniforms.yaw, Math.cos(toRadians(look.yawDeg)), Math.sin(toRadians(look.yawDeg)));
       gl.uniform2f(uniforms.pitch, Math.cos(toRadians(look.pitchDeg)), Math.sin(toRadians(look.pitchDeg)));

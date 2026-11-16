@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import {
   clampPitchDeg,
   dragToTurn,
+  fieldOfViewToHalfHeight,
   MAX_FIELD_OF_VIEW_DEG,
   MAX_PITCH_DEG,
   MIN_FIELD_OF_VIEW_DEG,
@@ -94,4 +95,43 @@ test('mobil som ligger plant tittar rakt ner', () => {
 // fördelar vridningen mellan dem, så båda måste räknas in.
 test('upprätt mobil räknar in vridning som hamnar i gamma', () => {
   assertLookIsClose(orientationToLook({ alpha: 10, beta: 90, gamma: 20 }), { yawDeg: -30, pitchDeg: 0 });
+});
+
+/**
+ * @param {number} actual
+ * @param {number} expected
+ */
+function assertIsClose(actual, expected) {
+  assert.ok(Math.abs(actual - expected) < 1e-6, `${actual}, väntade ${expected}`);
+}
+
+test('upprätt mobil är inte lutad i sidled', () => {
+  assertIsClose(orientationToLook({ alpha: 0, beta: 90, gamma: 0 }).rollDeg, 0);
+  assertIsClose(orientationToLook({ alpha: 70, beta: 120, gamma: 0 }).rollDeg, 0);
+});
+
+// Mobilen står på högkant på sin högra långsida: baksidan pekar åt väster
+// och överkanten åt norr, som är åt höger för den som tittar västerut.
+test('mobil som ligger på sin högra sida är rollad ett kvarts varv medurs', () => {
+  const look = orientationToLook({ alpha: 0, beta: 0, gamma: 90 });
+  assertIsClose(look.yawDeg, -90);
+  assertIsClose(look.pitchDeg, 0);
+  assertIsClose(look.rollDeg, 90);
+});
+
+test('mobil som ligger på sin vänstra sida är rollad ett kvarts varv moturs', () => {
+  assertIsClose(orientationToLook({ alpha: 0, beta: 0, gamma: -90 }).rollDeg, -90);
+});
+
+test('mobil som pekar rakt ner räknas som olutad', () => {
+  assert.equal(orientationToLook({ alpha: 30, beta: 0, gamma: 0 }).rollDeg, 0);
+});
+
+test('vanligt perspektiv mäter synfältet med tangens', () => {
+  assertIsClose(fieldOfViewToHalfHeight(90, 'straight'), 1);
+});
+
+test('mjukt perspektiv drar ut kanterna mindre än det vanliga', () => {
+  assertIsClose(fieldOfViewToHalfHeight(180, 'soft'), 2);
+  assert.ok(fieldOfViewToHalfHeight(100, 'soft') < fieldOfViewToHalfHeight(100, 'straight'));
 });

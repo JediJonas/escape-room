@@ -58,7 +58,8 @@ export function setupRoundImageCard({ report, log }) {
   let look = LOOK_AHEAD;
   let fieldOfViewDeg = DEFAULT_FIELD_OF_VIEW_DEG;
   /** @type {'straight' | 'soft'} */
-  let perspective = 'straight';
+  // Ägaren valde det mjuka perspektivet efter prov på riktig mobil.
+  let perspective = 'soft';
   // Påslaget från början: ägaren föredrog det på riktig mobil.
   let isRoomKeptLevel = true;
   let isImageInSphere = false;
@@ -184,7 +185,7 @@ export function setupRoundImageCard({ report, log }) {
   // Synfältet och perspektivet står i resultattexten, så att det går att
   // säga vilken inställning som kändes bäst.
   function reportLens() {
-    const perspectiveName = perspective === 'soft' ? 'mjukt' : 'vanligt';
+    const perspectiveName = perspective === 'soft' ? 'mjukt' : 'hårt';
     const levelName = isRoomKeptLevel ? 'rummet hålls vågrätt' : 'rummet lutar med mobilen';
     report.setResult('Rundbild, perspektiv', `${perspectiveName}, synfält ${Math.round(fieldOfViewDeg)}°, ${levelName}`);
   }

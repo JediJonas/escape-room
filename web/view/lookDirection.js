@@ -111,7 +111,7 @@ export function zoomFieldOfView(fieldOfViewDeg, zoomFactor) {
 
 /**
  * Hur långt från bildens mitt visarens överkant ligger, i den enhet där
- * avståndet till bilden är 1. Det vanliga perspektivet håller raka linjer raka
+ * avståndet till bilden är 1. Det hårda perspektivet håller raka linjer raka
  * men drar ut kanterna när synfältet är brett. Det mjuka (stereografiska)
  * behåller formen på det som syns i kanterna och böjer i stället raka linjer.
  * @param {number} fieldOfViewDeg synfält i höjdled

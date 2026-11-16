@@ -59,7 +59,8 @@ export function setupRoundImageCard({ report, log }) {
   let fieldOfViewDeg = DEFAULT_FIELD_OF_VIEW_DEG;
   /** @type {'straight' | 'soft'} */
   let perspective = 'straight';
-  let isRoomKeptLevel = false;
+  // Påslaget från början: ägaren föredrog det på riktig mobil.
+  let isRoomKeptLevel = true;
   let isImageInSphere = false;
 
   function draw() {

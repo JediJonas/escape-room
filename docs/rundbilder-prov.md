@@ -66,6 +66,9 @@ Kortet har därför tre saker att prova, och valet hamnar i resultattexten:
 - Håll rummet vågrätt, som låter rummet stå still när mobilen lutas i sidled.
   Utan det lutar rummet med mobilen.
 
+Ägaren föredrog Håll rummet vågrätt på riktig mobil, så det är påslaget från
+början. Valet mellan vanligt och mjukt perspektiv är inte gjort.
+
 Visaren har ingen rumsstorlek. Betraktaren står i mitten av ett klot, så hur
 stort rummet känns avgörs bara av vad som är målat i bilden. De två
 provbilderna med rutnät visar det: samma kub med 8 respektive 16 rutor per
@@ -76,3 +79,12 @@ sexton gånger tjugo meter och minst åtta meter till varje vägg. Rummet blev
 tydligt större, med pelare och valv och små föremål längs väggarna. Längst ner
 i bilden, rakt under betraktaren, målade Gemini ett band som ser ut som böjda
 plankor i stället för golv. Det syns bara när man tittar brant nedåt.
+Ägaren såg också att skarven syns i taket i den här bilden. Felen sitter
+alltså där projektionen är som svårast, rakt upp och rakt ner.
+
+## Slutsats
+
+Rundbilderna håller för blickar runt horisonten. Provbilderna är inte de
+slutliga: bilderna till det första uppdraget tas fram på nytt, och ägaren vill
+att de då blir läskigare. Uppdraget är numera från 16 år, och provbilderna
+togs fram med en text som bad om bilder för tioåringar. Räkna med att en bild ibland behöver göras om.

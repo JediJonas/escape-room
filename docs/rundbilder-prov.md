@@ -32,3 +32,16 @@ Bilden är alltså inte en riktig equirektangulär projektion, men den ligger
 tillräckligt nära för blickar runt horisonten. Två sätt att leva med det är att
 begränsa hur långt upp och ner spelaren kan titta, eller att låta mörker och
 ficklampa dölja tak och golv.
+
+## Större rum och zoom
+
+Den första källaren upplevdes som liten. En andra bild, `kallare-stor.webp`,
+togs fram med samma prompt och ett tillägg om rummets storlek: ungefär åtta
+gånger tio meter, minst fyra meter till varje vägg, öppet golv runt
+betraktaren och föremålen längs väggarna. Rummets storlek går alltså att styra
+med prompten. Skarven syns inte i den bilden heller, och stilen blev lik den
+första utan att den första bilden skickades med som referens.
+
+Rundvisaren zoomar med två fingrar, mellan 30 och 110 graders synfält i
+höjdled. Fullt inzoomad blir bilden suddig, eftersom 2752 bildpunkter på ett
+varv bara är knappt åtta bildpunkter per grad.

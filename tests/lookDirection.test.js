@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { clampPitchDeg, dragToTurn, MAX_PITCH_DEG, turnLook, wrapYawDeg, yawToStripOffsetPx } from '../web/view/lookDirection.js';
+import {
+  clampPitchDeg,
+  dragToTurn,
+  MAX_FIELD_OF_VIEW_DEG,
+  MAX_PITCH_DEG,
+  MIN_FIELD_OF_VIEW_DEG,
+  turnLook,
+  wrapYawDeg,
+  yawToStripOffsetPx,
+  zoomFieldOfView,
+} from '../web/view/lookDirection.js';
 
 test('vridningen hålls mellan -180 och 180 grader', () => {
   assert.equal(wrapYawDeg(0), 0);
@@ -39,4 +49,13 @@ test('rakt fram hamnar bildens mitt mitt i visaren', () => {
 
 test('en kvarts varv åt höger flyttar remsan en kvarts bildbredd åt vänster', () => {
   assert.equal(yawToStripOffsetPx(90, { imageWidthPx: 2000, viewWidthPx: 400 }), -1300);
+});
+
+test('fingrar som dras isär till dubbla avståndet halverar synfältet', () => {
+  assert.equal(zoomFieldOfView(80, 2), 40);
+});
+
+test('zoomen stannar vid det snävaste och det vidaste synfältet', () => {
+  assert.equal(zoomFieldOfView(40, 10), MIN_FIELD_OF_VIEW_DEG);
+  assert.equal(zoomFieldOfView(100, 0.1), MAX_FIELD_OF_VIEW_DEG);
 });

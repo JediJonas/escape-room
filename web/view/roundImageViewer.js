@@ -9,9 +9,6 @@
 
 import { yawToStripOffsetPx } from './lookDirection.js';
 
-/** Synfält i höjdled. Ska prövas på riktiga mobiler. */
-export const FIELD_OF_VIEW_DEG = 75;
-
 /** Remsan visar mitten av bilden, där en rundbild är minst förvrängd. */
 const STRIP_SHARE_OF_IMAGE_HEIGHT = 0.5;
 
@@ -121,10 +118,13 @@ export function createSphereView(canvas) {
       return true;
     },
 
-    /** @param {LookDirection} look */
-    draw(look) {
+    /**
+     * @param {LookDirection} look
+     * @param {number} fieldOfViewDeg synfält i höjdled
+     */
+    draw(look, fieldOfViewDeg) {
       matchCanvasToScreen();
-      const halfHeight = Math.tan(toRadians(FIELD_OF_VIEW_DEG) / 2);
+      const halfHeight = Math.tan(toRadians(fieldOfViewDeg) / 2);
       gl.uniform2f(uniforms.halfSize, (halfHeight * canvas.width) / canvas.height, halfHeight);
       gl.uniform2f(uniforms.yaw, Math.cos(toRadians(look.yawDeg)), Math.sin(toRadians(look.yawDeg)));
       gl.uniform2f(uniforms.pitch, Math.cos(toRadians(look.pitchDeg)), Math.sin(toRadians(look.pitchDeg)));

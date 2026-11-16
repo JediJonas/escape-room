@@ -67,4 +67,6 @@ Kortet har därför tre saker att prova, och valet hamnar i resultattexten:
   Utan det lutar rummet med mobilen.
 
 Visaren har ingen rumsstorlek. Betraktaren står i mitten av ett klot, så hur
-stort rummet känns avgörs bara av vad som är målat i bilden.
+stort rummet känns avgörs bara av vad som är målat i bilden. De två
+provbilderna med rutnät visar det: samma kub med 8 respektive 16 rutor per
+sida, där den med fler och mindre rutor läses som ett dubbelt så stort rum.

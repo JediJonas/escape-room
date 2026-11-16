@@ -8,4 +8,4 @@ export const SUPABASE_PUBLIC_KEY = '';
 
 // Visas på sidan och i felsökningsloggen, så att det syns om mobilen kör en
 // gammal sida ur cachen. Höjs vid varje ändring av webbsidan.
-export const VERSION = '2026-11-16.2';
+export const VERSION = '2026-11-16.3';

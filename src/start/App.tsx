@@ -28,7 +28,8 @@ function getScreenWithoutGame(): Screen {
 
 /** Startsidan: skapa ett spel eller gå med, väntrummet och sedan spelet. */
 export function App() {
-  const [screen, setScreen] = useState<Screen>(() => (readSavedGameId() ? { name: 'loading' } : getScreenWithoutGame()));
+  // En kod i adressen går före ett sparat spel: den som skannar en ny QR-kod vill till det nya spelet.
+  const [screen, setScreen] = useState<Screen>(() => (readSavedGameId() && !readJoinCodeFromUrl(location.href) ? { name: 'loading' } : getScreenWithoutGame()));
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState('');
   const currentView = screen.name === 'game' ? screen.view : null;
@@ -65,8 +66,14 @@ export function App() {
   // Efter en omladdning hämtas spelet som mobilen var med i.
   useEffect(() => {
     const savedGameId = readSavedGameId();
-    if (!savedGameId) return;
+    if (!savedGameId || readJoinCodeFromUrl(location.href)) return;
     callGame({ type: 'getView', gameId: savedGameId }).then((response) => {
+      // Ett spel som är slut glöms, så att mobilen börjar på startsidan nästa gång.
+      if (response.ok && response.view?.type === 'game' && response.view.isFinished) {
+        saveGameId(null);
+        showScreen(getScreenWithoutGame());
+        return;
+      }
       if (response.ok) {
         showResponse(response);
         return;

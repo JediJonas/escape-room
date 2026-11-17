@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { type SeanceView, findCellCenter } from '../../supabase/functions/game/seance.ts';
-import { clampToBoard, describeSeanceStatus, holdGlowProgress, isPlanchetteOnGlow } from './seanceBoard.ts';
+import { ARRIVED_RETRY_MS, ARRIVED_STAGGER_MS, clampToBoard, describeSeanceStatus, holdGlowProgress, isPlanchetteOnGlow, shouldReportArrival } from './seanceBoard.ts';
 
 const VIEW: SeanceView = {
   segment: { from: findCellCenter(29), to: findCellCenter(7), durationMs: 5000 },
@@ -11,7 +11,9 @@ const VIEW: SeanceView = {
   letterIndex: 0,
   letterCount: 5,
   waitingFor: ['Bo', 'Cia'],
+  followers: [],
   isMeOnGlow: false,
+  myFollowOrder: null,
   isComplete: false,
   brokenBy: null,
 };
@@ -55,4 +57,14 @@ test('skenet flyttar sig aldrig bakåt, och hoppar inte när det stannar', () =>
   // Står skenet still hoppar det varken bakåt eller framåt.
   assert.equal(holdGlowProgress({ computed: 0.6, shown: 0.5, isHeld: true, maxStep }), 0.5);
   assert.equal(holdGlowProgress({ computed: 0.4, shown: 0.5, isHeld: true, maxStep }), 0.5);
+});
+
+test('den som kom först till skenet säger till direkt att det har nått bokstaven, de andra väntar på sin tur', () => {
+  const reachedAtMs = 10_000;
+  assert.equal(shouldReportArrival({ nowMs: reachedAtMs, reachedAtMs, sentAtMs: null, followOrder: 0 }), true);
+  assert.equal(shouldReportArrival({ nowMs: reachedAtMs + ARRIVED_STAGGER_MS - 1, reachedAtMs, sentAtMs: null, followOrder: 1 }), false);
+  assert.equal(shouldReportArrival({ nowMs: reachedAtMs + ARRIVED_STAGGER_MS, reachedAtMs, sentAtMs: null, followOrder: 1 }), true);
+  // Höll servern inte med frågar mobilen igen efter en stund, inte i varje bildruta.
+  assert.equal(shouldReportArrival({ nowMs: reachedAtMs + 100, reachedAtMs, sentAtMs: reachedAtMs, followOrder: 0 }), false);
+  assert.equal(shouldReportArrival({ nowMs: reachedAtMs + ARRIVED_RETRY_MS, reachedAtMs, sentAtMs: reachedAtMs, followOrder: 0 }), true);
 });

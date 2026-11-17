@@ -4,8 +4,8 @@
  */
 
 import { SUPABASE_PUBLIC_KEY, SUPABASE_URL } from '../config.ts';
-import { VIEW_EVENT, getPlayerTopic } from '../../supabase/functions/game/channels.ts';
-import type { PlayerView } from '../../supabase/functions/game/views.ts';
+import { SEANCE_EVENT, VIEW_EVENT, getGroupTopic, getPlayerTopic } from '../../supabase/functions/game/channels.ts';
+import type { PlayerView, SeanceUpdate } from '../../supabase/functions/game/views.ts';
 import { type ServerPing, summarizeServerPings } from './serverClock.ts';
 import { getSignedInClient } from './supabaseClient.ts';
 
@@ -50,6 +50,24 @@ export async function listenToPlayerView({ playerId, onView, onListening }: {
   channel.subscribe((status: string) => {
     if (status === 'SUBSCRIBED') onListening();
   });
+  return () => {
+    client.removeChannel(channel);
+  };
+}
+
+/**
+ * Lyssnar på gruppens kanal, där servern skickar seansens läge en gång till
+ * alla i stället för en vy till var och en. Missas ett läge hämtar mobilen
+ * vyn som vanligt, se onListening i listenToPlayerView.
+ */
+export async function listenToGroup({ gameId, onSeance }: {
+  gameId: string;
+  onSeance: (update: SeanceUpdate) => void;
+}): Promise<() => void> {
+  const client = await getSignedInClient(SUPABASE_CONFIG);
+  const channel = client.channel(getGroupTopic(gameId), { config: { private: true } });
+  channel.on('broadcast', { event: SEANCE_EVENT }, (message: { payload: unknown }) => onSeance(message.payload as SeanceUpdate));
+  channel.subscribe();
   return () => {
     client.removeChannel(channel);
   };

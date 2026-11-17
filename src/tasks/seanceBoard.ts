@@ -68,6 +68,32 @@ export function holdGlowProgress({ computed, shown, isHeld, maxStep }: {
   return Math.min(computed, shown + maxStep);
 }
 
+/**
+ * Hur länge mobilerna väntar på varandra innan de säger till att skenet har
+ * nått bokstaven. Den som kom först till skenet säger till direkt, nästa
+ * efter en halv sekund och så vidare. Hinner servern svara innan dess
+ * behöver de andra inte fråga, så att tio mobiler inte ställer sig i kö
+ * samtidigt. Skenet står ändå kvar på bokstaven i tre sekunder.
+ */
+export const ARRIVED_STAGGER_MS = 500;
+
+/** Hur ofta mobilen säger till igen, om servern inte höll med, till exempel när klockorna går lite olika. */
+export const ARRIVED_RETRY_MS = 1000;
+
+/** Om mobilen ska säga till nu att skenet har nått bokstaven. */
+export function shouldReportArrival({ nowMs, reachedAtMs, sentAtMs, followOrder }: {
+  nowMs: number;
+  /** När mobilen såg skenet nå bokstaven. */
+  reachedAtMs: number;
+  /** När mobilen senast sa till om samma bokstav, eller null. */
+  sentAtMs: number | null;
+  /** Var i ordningen spelaren kom till skenet. */
+  followOrder: number;
+}): boolean {
+  if (nowMs - reachedAtMs < followOrder * ARRIVED_STAGGER_MS) return false;
+  return sentAtMs === null || nowMs - sentAtMs >= ARRIVED_RETRY_MS;
+}
+
 /** Håller planchetten på brädet, även när fingret glider utanför. */
 export function clampToBoard(point: BoardPoint): BoardPoint {
   return { x: Math.min(1, Math.max(0, point.x)), y: Math.min(1, Math.max(0, point.y)) };

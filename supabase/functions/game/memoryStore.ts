@@ -8,6 +8,7 @@ import type { GameView } from './game.ts';
 import { handleAction } from './handleAction.ts';
 import type { LobbyView } from './lobby.ts';
 import type { GameRecord, PlayerRecord } from './state.ts';
+import type { SeanceUpdate } from './views.ts';
 
 export const SERVER_TIME = new Date('2026-11-16T20:00:00.123Z');
 
@@ -17,6 +18,7 @@ export function createMemoryStore() {
   const players: PlayerRecord[] = [];
   const events: object[] = [];
   const sentViews: { playerId: string; view: LobbyView | GameView }[] = [];
+  const sentSeances: { gameId: string; update: SeanceUpdate }[] = [];
   let nextId = 1;
 
   const transaction: GameTransaction = {
@@ -55,6 +57,9 @@ export function createMemoryStore() {
     async sendView(playerId, view) {
       sentViews.push({ playerId, view: view as LobbyView | GameView });
     },
+    async sendSeance(gameId, update) {
+      sentSeances.push({ gameId, update: update as SeanceUpdate });
+    },
   };
   // Testerna kan flytta klockan framåt, till exempel för att skenet i seansen ska hinna glida.
   const clock = { nowMs: SERVER_TIME.getTime() };
@@ -62,7 +67,7 @@ export function createMemoryStore() {
     readServerTimeMs: async () => clock.nowMs,
     transaction: (work) => work(transaction),
   };
-  return { store, games, players, events, sentViews, clock };
+  return { store, games, players, events, sentViews, sentSeances, clock };
 }
 
 export function createContext(store: GameStore, userId: string, joinCodes = ['BCDF']) {

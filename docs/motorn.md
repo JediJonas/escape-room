@@ -18,7 +18,8 @@ Det här är andra versionen. Vad som ändrades sedan den första står sist.
   räknar fram det nya tillståndet med en ren funktion och skickar varje spelare
   sin egen vy.
 - Varje spelare har en privat realtidskanal för sin vy. RLS på kanalerna gör
-  att en mobil bara kan lyssna på sin egen kanal och sitt eget spels kanal.
+  att en mobil bara kan lyssna på sin egen kanal och sitt eget spels
+  kanaler.
 - Servern har ingen klocka som tickar. Förlopp som styrs av tiden bestäms i
   förväg som ett schema, och tillståndet räknas fram till nu vid varje anrop.
 - Ett uppdrag är en JSON-fil i repot som bara serverfunktionen läser.
@@ -131,6 +132,17 @@ och skicka. Publika kanaler stängs av i projektets inställningar.
 | --- | --- | --- | --- |
 | `player:<id>` | Bara den spelaren | Bara servern | Spelarens vy. Spelledarens administrationsvy kommer samma väg |
 | `game:<id>` | Alla spelare i spelet | Alla spelare i spelet | Rörelser som ska synas direkt i andra mobiler |
+| `group:<id>` | Alla spelare i spelet | Bara servern | Det som är lika för alla och ändras ofta, som seansens läge |
+
+**Gruppens kanal.** En vy skickas till varje spelare för sig, så en ändring
+blir lika många meddelanden som det finns spelare, och varje meddelande
+räknas både när det skickas och när det tas emot. Det som är lika för alla och
+ändras ofta skickas därför en gång i gruppens kanal (Jonas 2026-11-17). Med
+tio spelare blir en ändring 11 meddelanden i stället för 20. Vyn och läget kan
+komma i fel ordning, så mobilen behåller det läge som har den senaste
+serverns tid. Mobilerna skickar inte i gruppens kanal, så ingen kan låtsas
+vara servern. En mobil som väntar på att bli insläppt kan lyssna där, men ser
+då bara seansens läge och namnen på dem som skenet väntar på.
 
 **Rörelser går inte genom servern.** Lutning och riktning som ska synas direkt
 i en annan mobil, som i Lotsen, skickas mellan mobilerna i spelets kanal. Det
@@ -224,7 +236,14 @@ tar en bestämd tid för varje sträcka medan alla följer, så både servern oc
 mobilerna kan räkna ut var det är utan att servern tickar. Farten längs
 sträckan varierar, men det avgör bara var mobilen ritar skenet. Mobilen avgör själv om
 planchetten är på skenet och säger bara till när det ändras, och när den ser
-skenet nå en bokstav. Fingrets rörelser går inte genom servern. Skenet
+skenet nå en bokstav. Fingrets rörelser går inte genom servern. Seansens läge
+skickas i gruppens kanal, och bara när meddelandet är klart får alla en ny vy.
+Läget har namnen på dem som följer i den ordning de kom till skenet, så att
+varje mobil ser om den själv följer utan att någon annans id skickas. När
+skenet når en bokstav säger den som kom först till skenet till direkt, och de
+andra en halv sekund senare var, i tur och ordning, om servern inte redan har
+svarat. Annars ställer sig tio anrop i kö hos servern samtidigt
+(Jonas 2026-11-17). Skenet
 flyttas aldrig bakåt på skärmen, och den egna mobilen stoppar det direkt när
 planchetten tappar, så att fördröjningen till servern inte syns som ett hopp.
 Ligger skenet efter servern när det rör sig igen glider det ikapp. Se
@@ -312,6 +331,13 @@ till tre andra ger 20 meddelanden i sekunden. Med tio mobiler blir det 50.
 Båda ligger under gränsen på 100, men tio gånger i sekunden med tio mobiler
 gör det inte, och då kopplar Supabase tillfälligt ner mobilerna. Rörelser
 skickas därför högst fem gånger i sekunden och inte när mobilen är stilla.
+
+**Seansen** är den uppgift som ligger närmast gränsen. När tio spelare lägger
+fingret på brädet inom två eller tre sekunder blir det tio ändringar. Som vyer
+till var och en blev det cirka 200 meddelanden, alltså 70–100 i sekunden. I
+gruppens kanal blir det cirka 110, alltså 40–55 i sekunden. Samma sak händer
+när någon har lyft fingret och alla kommer tillbaka till skenet. Räknat i en
+simulering den 17 november 2026, inte uppmätt i Supabase.
 
 **Pausen.** Ett gratisprojekt som inte används på en vecka kan pausas och
 måste då väckas för hand. Det är precis vad som händer mellan två spelkvällar.
@@ -411,3 +437,4 @@ själva hör till steg 3 i konceptet.
 | Spelledarens kanal | Egen kanal | Samma som spelarens | En sak mindre att hålla rätt |
 | Webbsidan | Vanlig JavaScript utan byggsteg | React och Vite, som i Maffia | Beslut av Jonas. Det har fungerat bra där |
 | Språk | JavaScript med typer i JSDoc | TypeScript | Beslut av Jonas. Motorn har många datatyper som delas mellan mobil och server |
+| Seansens läge | En vy till varje spelare | En gång i gruppens kanal | Halverar meddelandena, så att tio spelare håller sig under gränsen per sekund (Jonas 2026-11-17) |

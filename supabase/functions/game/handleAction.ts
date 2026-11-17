@@ -9,7 +9,7 @@
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
 import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
-import { chooseGuest, moveInCellar, searchHere, touchBoard, walkThroughDoor } from './taskActions.ts';
+import { chooseMemoryRoom, fadeMemory, moveInCellar, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
 import { readCellarMove } from './cellar.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts';
@@ -179,24 +179,32 @@ async function touchBoardAction(action: Action, context: Context): Promise<Actio
   });
 }
 
-/**
- * Ett fel val ändrar bara rummet, så bara de som har rummet och spelledaren
- * får en ny vy. Ett rätt val syns hos alla, som antal lösta rum.
- */
-function findGuestRecipients(scope: GameScope, change: StateChange): readonly PlayerRecord[] | undefined {
-  if ('refusal' in change) return [];
-  const before = scope.game.state.rooms;
-  const after = change.state.rooms;
-  if (!before || !after || before.solvedPlaces.length !== after.solvedPlaces.length) return undefined;
-  const placeId = scope.game.state.placeByPlayer[scope.player.id];
-  return scope.players.filter((player) => player.isLeader || before.visitsByPlayer[player.id]?.some((visit) => visit.place === placeId));
-}
-
-async function chooseGuestAction(action: Action, context: Context): Promise<ActionResult> {
+/** Golvuret och minnet syns hos alla, så alla får en ny vy när något ändras. */
+async function turnClockAction(action: Action, context: Context): Promise<ActionResult> {
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
-    const change = chooseGuest({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, guest: action.guest, nowMs });
-    return applyChange(scope, change, { action: { type: 'chooseGuest', guest: action.guest, stepIndex: scope.game.state.stepIndex }, recipients: findGuestRecipients(scope, change) });
+    const change = turnClock({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, minutes: action.minutes, nowMs });
+    const isUnchanged = 'state' in change && change.state.rooms?.dialMinutes === scope.game.state.rooms?.dialMinutes && change.state.rooms?.remembersUntilMs === scope.game.state.rooms?.remembersUntilMs && change.state.stepIndex === scope.game.state.stepIndex;
+    return applyChange(scope, change, { action: { type: 'turnClock', minutes: action.minutes }, recipients: isUnchanged ? [scope.player] : undefined });
+  });
+}
+
+/** Alla får en ny vy, eftersom rummen som går att välja ändras för alla. */
+async function chooseMemoryRoomAction(action: Action, context: Context): Promise<ActionResult> {
+  const nowMs = await context.store.readServerTimeMs();
+  return withParticipant(action, context, async (scope) => {
+    const change = chooseMemoryRoom({ state: scope.game.state, mission: scope.mission, player: scope.player, placeId: action.placeId, nowMs });
+    return applyChange(scope, change, { action: { type: 'chooseMemoryRoom', placeId: action.placeId } });
+  });
+}
+
+/** Alla mobiler säger till när minnet bleknar. Bara den första ändrar något. */
+async function fadeMemoryAction(action: Action, context: Context): Promise<ActionResult> {
+  const nowMs = await context.store.readServerTimeMs();
+  return withParticipant(action, context, async (scope) => {
+    const change = fadeMemory({ state: scope.game.state, mission: scope.mission, players: scope.participants, nowMs });
+    const isUnchanged = 'state' in change && change.state === scope.game.state;
+    return applyChange(scope, change, { action: { type: 'fadeMemory' }, recipients: isUnchanged ? [scope.player] : undefined });
   });
 }
 
@@ -229,8 +237,9 @@ async function showSolutionAction(action: Action, context: Context): Promise<Act
 
 /** Bara den som går får en ny vy, eftersom ingen annan ser var hon är. */
 async function walkAction(action: Action, context: Context): Promise<ActionResult> {
+  const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
-    const change = walkThroughDoor({ state: scope.game.state, mission: scope.mission, player: scope.player, placeId: action.placeId });
+    const change = walkThroughDoor({ state: scope.game.state, mission: scope.mission, player: scope.player, placeId: action.placeId, nowMs });
     return applyChange(scope, change, { action: { type: 'walk', placeId: action.placeId }, recipients: [scope.player] });
   });
 }
@@ -256,7 +265,9 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   setPaused: setPausedAction,
   submitAnswer: submitAnswerAction,
   touchBoard: touchBoardAction,
-  chooseGuest: chooseGuestAction,
+  turnClock: turnClockAction,
+  chooseMemoryRoom: chooseMemoryRoomAction,
+  fadeMemory: fadeMemoryAction,
   moveInCellar: moveInCellarAction,
   walk: walkAction,
   searchRoom: searchRoomAction,

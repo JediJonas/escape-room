@@ -1,144 +1,186 @@
 /**
- * Uppgiftstypen Splittrade rum med Delat vittnesmål, så som Rummen minns
- * använder den. Spelarna går till var sitt rum och ser hur det såg ut en
- * gång. Varje rum har bitar, till exempel vad man ser och vad man hör, och
- * den som står i rummet väljer vem som var där. Namnet på den som var i ett
- * rum finns i ett annat rum, så att spelarna måste ropa till varandra. Fel
- * val gör att rummet glömmer en stund, så att det inte lönar sig att gissa.
- * Se docs/koncept.md, Rummen minns.
+ * Uppgiftstypen Splittrade rum, så som Rummen minns använder den. Golvuret i
+ * salongen har stannat. Den som vrider visarna till rätt tid får hela huset
+ * att minnas, för alla spelare samtidigt. Då väljer var och en ett rum och
+ * ser det som det var, med bitar som bara den som står där ser. Rummen fylls
+ * jämnt. Efter några minuter bleknar minnet, och visarna går tillbaka till
+ * tiden de hade från början. När gruppen har sett alla rummen och minnet har
+ * bleknat är uppgiften klar. Se docs/koncept.md, Nu och 1962.
  *
- * Rena funktioner utan klocka: serverns tid skickas in.
+ * Servern tickar inte. Tiden då minnet bleknar sparas när det börjar, och
+ * tillståndet räknas fram till nu vid varje anrop. Rena funktioner utan
+ * klocka: serverns tid skickas in.
  */
 
 import { MAX_PLAYERS } from './lobby.ts';
 import type { Place, RoomsStep } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 
-/** Hur länge ett rum glömmer efter ett fel val. */
-export const ROOM_FORGETS_MS = 15_000;
+const MS_PER_MINUTE = 60_000;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+/** En urtavla visar tolv timmar. Kvart över nio på kvällen står som kvart över nio på morgonen. */
+export const DIAL_HOURS = 12;
+export const DIAL_MINUTES = DIAL_HOURS * MINUTES_PER_HOUR;
+/** Visarna hakar i var femte minut, så att det går att träffa rätt (Jonas 2026-11-17). */
+export const DIAL_STEP_MINUTES = 5;
 
-/** Ett rum som en spelare ska till, och vilka av rummets bitar hon ser där. */
-export type RoomVisit = { place: PlaceId; pieceIndexes: number[] };
+/** En tid som "21.15" eller "4.40", i minuter på urtavlan, eller null om den inte går att läsa. */
+export function readDialTime(time: unknown): number | null {
+  const match = typeof time === 'string' ? /^(\d{1,2})\.(\d{2})$/.exec(time) : null;
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours >= HOURS_PER_DAY || minutes >= MINUTES_PER_HOUR || minutes % DIAL_STEP_MINUTES !== 0) return null;
+  return (hours * MINUTES_PER_HOUR + minutes) % DIAL_MINUTES;
+}
+
+/** Hakar i närmaste femte minut och håller visarna på urtavlan. */
+export function snapDial(minutes: number): number {
+  const snapped = Math.round(minutes / DIAL_STEP_MINUTES) * DIAL_STEP_MINUTES;
+  return ((snapped % DIAL_MINUTES) + DIAL_MINUTES) % DIAL_MINUTES;
+}
+
+/** Ett val av rum i minnet. Ordningen avgör hur bitarna delas när flera står i samma rum. */
+export type MemoryChoice = { playerId: string; place: PlaceId };
 
 export type RoomsState = {
-  /** Rummen som varje spelare ska till, efter spelarens id. */
-  visitsByPlayer: Record<string, RoomVisit[]>;
-  /** Rummen där gruppen har valt rätt. */
-  solvedPlaces: PlaceId[];
-  /** Ett rum som har fått fel val glömmer till den här tiden, i serverns tid. */
-  forgetsUntilMsByPlace: Partial<Record<PlaceId, number>>;
+  /** Var visarna står, i minuter på urtavlan. */
+  dialMinutes: number;
+  /** Huset minns till den här tiden, i serverns tid, eller null när det inte minns. */
+  remembersUntilMs: number | null;
+  /** Vilka som har valt rum i minnet just nu, i den ordning de valde. */
+  choices: MemoryChoice[];
+  /** Rummen som någon har stått i under ett minne. */
+  seenPlaces: PlaceId[];
 };
 
+function readStartMinutes(step: RoomsStep): number {
+  return readDialTime(step.clockStart) ?? 0;
+}
+
+export function startRooms(step: RoomsStep): RoomsState {
+  return { dialMinutes: readStartMinutes(step), remembersUntilMs: null, choices: [], seenPlaces: [] };
+}
+
+export function isRemembering(rooms: RoomsState, nowMs: number): boolean {
+  return rooms.remembersUntilMs !== null && nowMs < rooms.remembersUntilMs;
+}
+
 /**
- * Delar ut rummen. Är spelarna färre än rummen tar någon flera rum och går
- * mellan dem. Är de fler delar flera på ett rum, och bitarna delas så att
- * ingen får samma skärm: med två i ett rum ser den ena och den andra hör.
+ * För fram tillståndet till nu. Har minnet bleknat räknas rummen som sedda,
+ * och visarna går tillbaka till tiden de hade från början (Jonas 2026-11-17).
  */
-export function dealRooms(step: RoomsStep, playerIds: readonly string[]): Record<string, RoomVisit[]> {
-  const visitsByPlayer: Record<string, RoomVisit[]> = {};
-  if (playerIds.length === 0) return visitsByPlayer;
-  const roomCount = step.rooms.length;
-  step.rooms.forEach((room, roomIndex) => {
-    const holders = playerIds.length <= roomCount
-      ? [playerIds[roomIndex % playerIds.length]]
-      : playerIds.filter((_, playerIndex) => playerIndex % roomCount === roomIndex);
-    holders.forEach((playerId, holderIndex) => {
-      const pieceIndexes = room.pieces.map((_, pieceIndex) => pieceIndex).filter((pieceIndex) => pieceIndex % holders.length === holderIndex);
-      visitsByPlayer[playerId] = [...(visitsByPlayer[playerId] ?? []), { place: room.place, pieceIndexes }];
-    });
-  });
-  return visitsByPlayer;
+export function advanceRooms(rooms: RoomsState, step: RoomsStep, nowMs: number): RoomsState {
+  if (rooms.remembersUntilMs === null || isRemembering(rooms, nowMs)) return rooms;
+  return { dialMinutes: readStartMinutes(step), remembersUntilMs: null, choices: [], seenPlaces: rooms.seenPlaces };
 }
 
-export function startRooms(step: RoomsStep, playerIds: readonly string[]): RoomsState {
-  return { visitsByPlayer: dealRooms(step, playerIds), solvedPlaces: [], forgetsUntilMsByPlace: {} };
-}
-
+/** Uppgiften är klar när gruppen har sett alla rummen och minnet har bleknat. */
 export function isRoomsSolved(rooms: RoomsState, step: RoomsStep): boolean {
-  return step.rooms.every((room) => rooms.solvedPlaces.includes(room.place));
+  return rooms.remembersUntilMs === null && step.rooms.every((room) => rooms.seenPlaces.includes(room.place));
 }
 
-/** Spelaren är klar när alla hennes rum har rätt gäst. Den som inte fick något rum är klar direkt. */
-export function hasSolvedOwnRooms(rooms: RoomsState, playerId: string): boolean {
-  return (rooms.visitsByPlayer[playerId] ?? []).every((visit) => rooms.solvedPlaces.includes(visit.place));
+export type RoomsRefusal = 'houseRemembers' | 'notRemembering' | 'alreadyChosen' | 'unknownPlace' | 'roomFull';
+
+/** Spelaren vrider visarna. Står de på rätt tid börjar huset minnas. */
+export function turnClock({ rooms, step, minutes, nowMs }: {
+  rooms: RoomsState;
+  step: RoomsStep;
+  minutes: unknown;
+  nowMs: number;
+}): { rooms: RoomsState } | { refusal: RoomsRefusal } {
+  if (isRemembering(rooms, nowMs)) return { refusal: 'houseRemembers' };
+  const current = advanceRooms(rooms, step, nowMs);
+  if (typeof minutes !== 'number' || !Number.isFinite(minutes)) return { rooms: current };
+  const dialMinutes = snapDial(minutes);
+  if (dialMinutes !== readDialTime(step.solution.time)) return { rooms: { ...current, dialMinutes } };
+  return { rooms: { ...current, dialMinutes, remembersUntilMs: nowMs + step.memoryMinutes * MS_PER_MINUTE, choices: [] } };
 }
 
-export type GuestRefusal = 'notAtPlace' | 'roomForgets';
+function countByPlace(rooms: RoomsState, step: RoomsStep): Map<PlaceId, number> {
+  const counts = new Map<PlaceId, number>(step.rooms.map((room) => [room.place, 0]));
+  for (const choice of rooms.choices) counts.set(choice.place, (counts.get(choice.place) ?? 0) + 1);
+  return counts;
+}
 
 /**
- * Spelaren väljer vem som stod i rummet där hon är. Bara den som har rummet
- * och står där kan välja. Ett fel val gör att rummet glömmer en stund.
+ * Rummen som går att välja just nu. Ett rum går bara att välja om inget
+ * annat rum har färre spelare i sig, så att rummen fylls jämnt
+ * (Jonas 2026-11-17).
  */
-export function chooseGuest({ rooms, step, playerId, placeId, guest, nowMs }: {
+export function listChoosablePlaces(rooms: RoomsState, step: RoomsStep): PlaceId[] {
+  const counts = countByPlace(rooms, step);
+  const fewest = Math.min(...counts.values());
+  return step.rooms.map((room) => room.place).filter((place) => counts.get(place) === fewest);
+}
+
+/** Spelaren väljer sitt rum i minnet. Hon stannar där tills minnet bleknar. */
+export function chooseMemoryRoom({ rooms, step, playerId, placeId, nowMs }: {
   rooms: RoomsState;
   step: RoomsStep;
   playerId: string;
-  /** Platsen där spelaren är just nu. */
-  placeId: PlaceId | undefined;
-  guest: unknown;
+  placeId: unknown;
   nowMs: number;
-}): { rooms: RoomsState } | { refusal: GuestRefusal } {
-  const visit = rooms.visitsByPlayer[playerId]?.find((candidate) => candidate.place === placeId);
-  if (!visit) return { refusal: 'notAtPlace' };
-  if (rooms.solvedPlaces.includes(visit.place)) return { rooms };
-  if ((rooms.forgetsUntilMsByPlace[visit.place] ?? 0) > nowMs) return { refusal: 'roomForgets' };
-  if (guest === step.solution.guestByPlace[visit.place]) return { rooms: { ...rooms, solvedPlaces: [...rooms.solvedPlaces, visit.place] } };
-  return { rooms: { ...rooms, forgetsUntilMsByPlace: { ...rooms.forgetsUntilMsByPlace, [visit.place]: nowMs + ROOM_FORGETS_MS } } };
+}): { rooms: RoomsState } | { refusal: RoomsRefusal } {
+  if (!isRemembering(rooms, nowMs)) return { refusal: 'notRemembering' };
+  if (rooms.choices.some((choice) => choice.playerId === playerId)) return { refusal: 'alreadyChosen' };
+  if (!isPlaceId(placeId) || !step.rooms.some((room) => room.place === placeId)) return { refusal: 'unknownPlace' };
+  if (!listChoosablePlaces(rooms, step).includes(placeId)) return { refusal: 'roomFull' };
+  const seenPlaces = rooms.seenPlaces.includes(placeId) ? rooms.seenPlaces : [...rooms.seenPlaces, placeId];
+  return { rooms: { ...rooms, choices: [...rooms.choices, { playerId, place: placeId }], seenPlaces } };
 }
 
-/** Det en spelare ser av uppgiften. Bitarna i ett rum syns bara för den som har rummet och står där. */
+/**
+ * Bitarna som spelaren ser i sitt rum. Står flera i samma rum delas bitarna
+ * mellan dem i den ordning de valde, så att ingen får samma skärm.
+ */
+function findMyPieces(rooms: RoomsState, step: RoomsStep, playerId: string): { place: PlaceId; pieces: string[] } | null {
+  const mine = rooms.choices.find((choice) => choice.playerId === playerId);
+  const room = step.rooms.find((candidate) => candidate.place === mine?.place);
+  if (!mine || !room) return null;
+  const holders = rooms.choices.filter((choice) => choice.place === mine.place);
+  const holderIndex = holders.indexOf(mine);
+  const pieces = room.pieces.filter((_, pieceIndex) => pieceIndex % holders.length === holderIndex);
+  return { place: mine.place, pieces };
+}
+
+/** Det en spelare ser av uppgiften. Bitarna i ett rum syns bara för den som har valt rummet. */
 export type RoomsView = {
-  /** Alla som kan ha stått i ett rum, att välja bland. */
-  guests: string[];
-  myRooms: { place: Place; isHere: boolean; isSolved: boolean }[];
-  /** Spelarens rum där hon står just nu, om hon står i ett av dem. */
-  current: {
-    place: Place;
-    pieces: string[];
-    /** Den som stod här, när gruppen har valt rätt. */
-    guest: string | null;
-    /** Rummet glömmer till den här tiden, i serverns tid, efter ett fel val. */
-    forgetsUntilMs: number | null;
-  } | null;
-  /** Om spelaren har ett rum kvar som hon inte står i. */
-  hasRoomElsewhere: boolean;
-  solvedCount: number;
-  roomCount: number;
+  /** Var visarna står, i minuter på urtavlan. */
+  dialMinutes: number;
+  /** Huset minns till den här tiden, i serverns tid. Mobilen säger till när den har passerat. */
+  remembersUntilMs: number | null;
+  /** Raden överst i minnet, efter platsens namn, till exempel "kvart över nio, 1962". */
+  memoryLabel: string;
+  /** Alla rum i minnet, och om spelaren kan välja dem just nu. */
+  rooms: { place: Place; isChoosable: boolean }[];
+  /** Spelarens rum i minnet och det hon ser där, när hon har valt. */
+  myRoom: { place: Place; pieces: string[] } | null;
 };
 
-export function describeRooms({ rooms, step, places, placeId, viewerId }: {
+export function describeRooms({ rooms, step, places, viewerId }: {
   rooms: RoomsState;
   step: RoomsStep;
   places: readonly Place[];
-  /** Platsen där spelaren är just nu. */
-  placeId: PlaceId | undefined;
   viewerId: string;
 }): RoomsView {
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
-  const visits = rooms.visitsByPlayer[viewerId] ?? [];
-  const isSolved = (id: PlaceId) => rooms.solvedPlaces.includes(id);
-  const here = visits.find((visit) => visit.place === placeId);
-  const room = step.rooms.find((candidate) => candidate.place === here?.place);
+  const mine = findMyPieces(rooms, step, viewerId);
+  const choosable = rooms.remembersUntilMs !== null && !mine ? listChoosablePlaces(rooms, step) : [];
   return {
-    guests: step.guests,
-    myRooms: visits.map((visit) => ({ place: findPlace(visit.place), isHere: visit === here, isSolved: isSolved(visit.place) })),
-    current: here && room
-      ? {
-        place: findPlace(here.place),
-        pieces: here.pieceIndexes.map((index) => room.pieces[index]).filter((piece) => piece !== undefined),
-        guest: isSolved(here.place) ? step.solution.guestByPlace[here.place] ?? null : null,
-        forgetsUntilMs: rooms.forgetsUntilMsByPlace[here.place] ?? null,
-      }
-      : null,
-    hasRoomElsewhere: visits.some((visit) => visit !== here && !isSolved(visit.place)),
-    solvedCount: rooms.solvedPlaces.length,
-    roomCount: step.rooms.length,
+    dialMinutes: rooms.dialMinutes,
+    remembersUntilMs: rooms.remembersUntilMs,
+    memoryLabel: step.memoryLabel,
+    rooms: step.rooms.map((room) => ({ place: findPlace(room.place), isChoosable: choosable.includes(room.place) })),
+    myRoom: mine ? { place: findPlace(mine.place), pieces: mine.pieces } : null,
   };
 }
 
-/** Facit som text, med rummens namn, för spelledaren och läckkontrollen. */
+/** Facit som text, för spelledaren och läckkontrollen. */
 export function describeRoomsSolution(step: RoomsStep, places: readonly Place[]): string {
-  return step.rooms.map((room) => `${places.find((place) => place.id === room.place)?.name ?? room.place}: ${step.solution.guestByPlace[room.place] ?? '?'}`).join(', ');
+  const names = step.rooms.map((room) => places.find((place) => place.id === room.place)?.name ?? room.place);
+  return `Vrid golvuret till ${step.solution.time}, och se ${names.join(', ')} i minnet`;
 }
 
 function isFilledText(value: unknown): value is string {
@@ -151,11 +193,16 @@ function isFilledText(value: unknown): value is string {
  */
 export function findRoomsErrors(step: Record<string, unknown>, name: string, places: Record<string, unknown>): string[] {
   const errors: string[] = [];
-  const guests = step.guests;
-  if (!Array.isArray(guests) || guests.length < 2 || !guests.every(isFilledText) || new Set(guests).size !== guests.length) errors.push(`${name} ska ha minst två gäster med olika namn`);
+  const time = (step.solution as { time?: unknown } | undefined)?.time;
+  const target = readDialTime(time);
+  const start = readDialTime(step.clockStart);
+  if (target === null) errors.push(`${name} saknar en tid i facit, som 21.15, på en femte minut`);
+  if (start === null) errors.push(`${name} saknar en starttid på golvuret, som 4.40, på en femte minut`);
+  if (target !== null && start === target) errors.push(`${name} har golvuret på rätt tid från början`);
+  if (!(typeof step.memoryMinutes === 'number' && step.memoryMinutes > 0)) errors.push(`${name} saknar hur många minuter minnet varar`);
+  if (!isFilledText(step.memoryLabel)) errors.push(`${name} saknar raden överst i minnet`);
   const rooms = step.rooms;
   if (!Array.isArray(rooms) || rooms.length === 0) return [...errors, `${name} saknar rum`];
-  const guestByPlace = (step.solution as { guestByPlace?: Record<string, unknown> } | undefined)?.guestByPlace ?? {};
   const piecesNeeded = Math.ceil(MAX_PLAYERS / rooms.length);
   const roomPlaces = new Set<unknown>();
   for (const room of rooms) {
@@ -164,34 +211,29 @@ export function findRoomsErrors(step: Record<string, unknown>, name: string, pla
     if (roomPlaces.has(place)) errors.push(`${name} har två rum på platsen ${String(place)}`);
     roomPlaces.add(place);
     if (!Array.isArray(room?.pieces) || room.pieces.length < piecesNeeded || !room.pieces.every(isFilledText)) errors.push(`rummet ${String(place)} i ${name} ska ha minst ${piecesNeeded} bitar`);
-    if (!Array.isArray(guests) || !guests.includes(guestByPlace[String(place)])) errors.push(`rummet ${String(place)} i ${name} saknar en gäst i facit`);
   }
-  if (Object.keys(guestByPlace).some((place) => !roomPlaces.has(place))) errors.push(`${name} har facit för ett rum som inte finns`);
   return errors;
 }
 
-function isNumberRecord(value: unknown): value is Record<string, number> {
-  return !!value && typeof value === 'object' && Object.values(value).every((item) => typeof item === 'number' && Number.isFinite(item));
-}
-
-function readVisits(saved: unknown): RoomVisit[] {
+function readChoices(saved: unknown): MemoryChoice[] {
   if (!Array.isArray(saved)) return [];
-  return saved.flatMap((visit) => {
-    const fields = visit as Record<string, unknown> | null;
-    if (!fields || !isPlaceId(fields.place) || !Array.isArray(fields.pieceIndexes) || !fields.pieceIndexes.every(Number.isInteger)) return [];
-    return [{ place: fields.place, pieceIndexes: fields.pieceIndexes as number[] }];
+  return saved.flatMap((choice) => {
+    const fields = choice as Record<string, unknown> | null;
+    if (!fields || typeof fields.playerId !== 'string' || !isPlaceId(fields.place)) return [];
+    return [{ playerId: fields.playerId, place: fields.place }];
   });
 }
 
-/** Läser sparade rum, eller null om de saknas eller är trasiga. */
+/** Läser sparade rum, eller null om de saknas eller är trasiga. Det gamla formatet med gäster blir null. */
 export function readRoomsState(saved: unknown): RoomsState | null {
   if (!saved || typeof saved !== 'object') return null;
   const fields = saved as Record<string, unknown>;
-  if (!fields.visitsByPlayer || typeof fields.visitsByPlayer !== 'object' || !Array.isArray(fields.solvedPlaces)) return null;
-  const visitsByPlayer: Record<string, RoomVisit[]> = {};
-  for (const [playerId, visits] of Object.entries(fields.visitsByPlayer)) visitsByPlayer[playerId] = readVisits(visits);
-  const forgets = isNumberRecord(fields.forgetsUntilMsByPlace) ? fields.forgetsUntilMsByPlace : {};
-  const forgetsUntilMsByPlace: Partial<Record<PlaceId, number>> = {};
-  for (const [place, untilMs] of Object.entries(forgets)) if (isPlaceId(place)) forgetsUntilMsByPlace[place] = untilMs;
-  return { visitsByPlayer, solvedPlaces: fields.solvedPlaces.filter(isPlaceId), forgetsUntilMsByPlace };
+  if (!Number.isInteger(fields.dialMinutes) || !Array.isArray(fields.seenPlaces)) return null;
+  const until = fields.remembersUntilMs;
+  return {
+    dialMinutes: snapDial(fields.dialMinutes as number),
+    remembersUntilMs: typeof until === 'number' && Number.isFinite(until) ? until : null,
+    choices: readChoices(fields.choices),
+    seenPlaces: fields.seenPlaces.filter(isPlaceId),
+  };
 }

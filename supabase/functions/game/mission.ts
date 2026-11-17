@@ -115,27 +115,31 @@ export type SeanceStep = {
   solution: { message: string };
 };
 
-/** Ett rum i Rummen minns: platsen och bitarna, viktigast först. */
+/** Ett rum i Rummen minns: platsen och det som syns där i minnet, viktigast först. */
 export type Room = { place: PlaceId; pieces: string[] };
 
 /**
- * Splittrade rum: spelarna går till var sitt rum och väljer vem som stod
- * där. Se rooms.ts.
+ * Splittrade rum: golvuret får huset att minnas, och spelarna väljer var
+ * sitt rum i minnet. Se rooms.ts.
  */
 export type RoomsStep = {
   id: string;
   type: 'rooms';
-  /** Det alla ser, före och i rummen. */
+  /** Det spelaren ser vid golvuret. */
   text: string;
   goTo?: undefined;
   textAtPlace?: undefined;
   roles?: undefined;
-  /** Alla som kan ha stått i ett rum, i den ordning de visas. */
-  guests: string[];
+  /** Tiden som golvuret står på från början, som "4.40". */
+  clockStart: string;
+  /** Hur många minuter huset minns innan minnet bleknar. */
+  memoryMinutes: number;
+  /** Raden överst i minnet, efter platsens namn, till exempel "kvart över nio, 1962". */
+  memoryLabel: string;
   rooms: Room[];
   hints: string[];
-  /** Vem som stod i vilket rum. Lämnar aldrig servern. */
-  solution: { guestByPlace: Partial<Record<PlaceId, string>> };
+  /** Tiden som får huset att minnas, som "21.15". Lämnar aldrig servern. */
+  solution: { time: string };
 };
 
 /**

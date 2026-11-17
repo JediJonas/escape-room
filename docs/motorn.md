@@ -207,8 +207,8 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   med tio spelare. En roll har minst lika många bitar som den kan få
   spelare, och testerna kontrollerar det för varje uppdrag.
 - **En roll kan ha en egen plats** med `goTo`. Då delar gruppen på sig i
-  samma steg, och spelaren ser sina bitar först när hon är framme. Det är så
-  Splittrade rum och Rummen minns byggs. Ett steg utan roller med egen plats
+  samma steg, och spelaren ser sina bitar först när hon är framme. Så
+  byggdes Källaren. Ett steg utan roller med egen plats
   samlar alla på samma plats eller ingen.
 - **Högst antal bitar per spelare.** Med `maxPiecesPerPlayer` får ingen fler
   bitar än så. Är spelarna få blir då vissa bitar kvar hos ingen. Utan gränsen
@@ -249,15 +249,23 @@ planchetten tappar, så att fördröjningen till servern inte syns som ett hopp.
 Ligger skenet efter servern när det rör sig igen glider det ikapp. Se
 `seance.ts`.
 
-**Rummen minns** har typen `rooms`. Steget har `guests`, alla som kan ha
-stått i ett rum, och `rooms`, med en plats och bitar för varje rum, viktigast
-först. Facit ligger i `solution.guestByPlace`. Motorn delar ut rummen när
-steget börjar: med färre spelare än rum tar någon flera, och med fler delar
-flera på ett rum och får varsina bitar. Varje rum har därför minst så många
-bitar som det kan få spelare med tio i gruppen, och testerna kontrollerar
-det. Bitarna syns bara för den som har rummet och står där. Ett fel val
-sparar till vilken tid rummet glömmer, och bara rummets spelare och
-spelledaren får en ny vy. Se `rooms.ts`.
+**Rummen minns** har typen `rooms`. Steget öppnas från golvuret i
+salongen, och bara den som står där kan vrida visarna. Steget har
+`clockStart`, tiden som golvuret står på från början, `memoryMinutes`, hur
+länge huset minns, `memoryLabel`, raden överst i minnet, och `rooms`, med en
+plats och bitar för varje rum, viktigast först. Tiden som får huset att minnas
+ligger i `solution.time`. Tiderna skrivs som `21.15` och räknas på en
+tolvtimmars urtavla, på en femte minut. Mobilen skickar visarnas läge när
+spelaren släpper, och servern hakar i och avgör. Servern sparar var visarna
+står, när minnet bleknar, vilka som har valt vilket rum i den ordning de
+valde, och vilka rum som har setts. Ett rum går bara att välja om inget annat
+rum har färre spelare, och den som väljer ett rum står sedan där. Står flera i
+samma rum delas bitarna mellan dem i den ordning de valde. Varje rum har därför
+minst så många bitar som det kan få spelare med tio i gruppen. Medan huset
+minns är dörrarna stängda. Servern tickar inte: när tiden har gått säger
+mobilerna till, och servern för fram tillståndet. Visarna går då tillbaka till
+starttiden, och har alla rum setts går gruppen vidare. Golvuret och minnet
+syns hos alla, så alla får en ny vy när de ändras. Se `rooms.ts`.
 
 **Källaren** har typen `cellar`. Steget har roller som andra steg, där
 `trappedRoleId` pekar ut den instängda rollen, som har en egen plats.

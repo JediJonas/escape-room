@@ -271,6 +271,13 @@ och servern avgör. Hann det fram sätts `markWhenCaught` i tillståndets
 rörelsesensorn utan att fråga, eftersom tillståndet begärs i en scen
 tidigare (`asksFor`). Kommer inga värden styr fingret. Se `cellar.ts`.
 
+**Tidningsurklippen** är en scen med roller. Urklippen är bitarna i en roll
+för alla, så att de delas ut och ingen har alla. Det som alla ser, som
+huvudartikeln och gästboken, står i scenens `documents`. Med `foundTitle`
+hamnar steget i Hittat när gruppen lämnar det: servern sparar vem som hade
+vilka bitar i tillståndets `found`, och varje spelare ser sedan dokumenten
+och bara sina egna bitar. Se `found.ts`.
+
 **Uppdraget väljs när spelet startar.** Spelledaren ser uppdragen i
 väntrummet och väljer ett när hon trycker Starta spelet. Spelet skapas med
 Provhuset.

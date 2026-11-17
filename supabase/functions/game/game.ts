@@ -5,7 +5,7 @@
  */
 
 import { type ClockView, describeClock, pauseClock, resumeClock, startClock } from './clock.ts';
-import { type CellarStep, type Mission, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
+import { type CellarStep, type Mission, type MissionDocument, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
@@ -13,6 +13,7 @@ import { dealRoles } from './roles.ts';
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
 import { type RoomsView, describeRooms, hasSolvedOwnRooms, startRooms } from './rooms.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
+import { type FoundItem, describeFound, keepFound } from './found.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
 export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'roomForgets' | 'notTrapped' | 'noMoreFuses';
@@ -49,8 +50,9 @@ function finish(state: GameState): GameState {
  */
 export function moveOn(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
   const nextIndex = state.stepIndex + 1;
-  if (nextIndex >= mission.steps.length) return finish(state);
-  const entered = enterStep(state, mission, players, nextIndex);
+  const kept = { ...state, found: keepFound(state.found, mission.steps[state.stepIndex], state.roleByPlayer) };
+  if (nextIndex >= mission.steps.length) return finish(kept);
+  const entered = enterStep(kept, mission, players, nextIndex);
   const isEnding = nextIndex === mission.steps.length - 1 && mission.steps[nextIndex].type === 'scene';
   return isEnding ? finish(entered) : entered;
 }
@@ -252,6 +254,8 @@ export type GameView = {
     textAtPlace: string | null;
     /** Tillstånden som mobilen ber om när spelaren trycker Klar. */
     asksFor: Permission[];
+    /** Det som alla ser i steget, till exempel en artikel. */
+    documents: MissionDocument[];
     /** Spelarens roll i steget och bara hennes egna bitar. */
     role: { title: string; pieces: string[] } | null;
     type: MissionStep['type'];
@@ -270,6 +274,8 @@ export type GameView = {
     /** Källaren, med bilden bara hos den instängda. */
     cellar: CellarView | null;
   };
+  /** Det gruppen har hittat och kan läsa igen, med bara spelarens egna bitar. */
+  found: FoundItem[];
   /** Bara hos spelledaren: vilka som är klara med steget. */
   progress: { name: string; isMe: boolean; isDone: boolean }[] | null;
   /** Bara hos spelledaren: mobiler som väntar på att få vara med eller ta över en spelare. */
@@ -301,6 +307,7 @@ function describeStep(step: MissionStep, state: GameState, places: readonly Plac
   return {
     text: step.text,
     asksFor: step.type === 'scene' ? step.asksFor ?? [] : [],
+    documents: step.type === 'scene' ? step.documents ?? [] : [],
     goTo: findPlace(places, goal),
     textAtPlace: isAtStepPlace ? step.textAtPlace ?? null : null,
     role: describeRole(step, state, viewerId),
@@ -357,6 +364,7 @@ export function buildGameView({ game, mission, players, viewer }: {
     progress: showsLeaderTools
       ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))
       : null,
+    found: describeFound(mission, state.found, viewer.id),
     pending: showsLeaderTools ? describePending(state, players) : null,
     clock: isRunning && state.clock ? describeClock(state.clock) : null,
     myPlace,

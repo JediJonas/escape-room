@@ -11,6 +11,7 @@ import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
 import { PlaceScanner } from './PlaceScanner.tsx';
+import { DocumentList, FoundView } from './FoundDocuments.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
@@ -48,6 +49,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [cameraProblem, setCameraProblem] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
+  const [isFoundOpen, setIsFoundOpen] = useState(false);
   const { step } = view;
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
   // I Rummen minns kan spelaren ha ett rum kvar att gå till fast hon står i ett annat.
@@ -67,6 +69,15 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     setAnswer('');
     setIsMenuOpen(false);
     setHasLeftBoard(false);
+    setIsFoundOpen(false);
+  }
+
+  if (isFoundOpen) {
+    return (
+      <ScreenLayout actions={<button type="button" onClick={() => setIsFoundOpen(false)}>Tillbaka</button>}>
+        <FoundView found={view.found} />
+      </ScreenLayout>
+    );
   }
 
   // Under seansen fyller brädet skärmen. Texten, ledtrådarna och spelledarens knappar ligger i menyn.
@@ -163,11 +174,13 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
       </p>
       {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
+      {view.found.length > 0 && <button type="button" className="secondary small found-button" onClick={() => setIsFoundOpen(true)}>Hittat</button>}
       <p className="scene-text">{step.text}</p>
+      <DocumentList documents={step.documents} />
       {step.role && (
         <section className="role-card" aria-label="Bara du ser det här">
           <h2>{step.role.title}</h2>
-          {step.role.pieces.map((piece) => <p key={piece}>{piece}</p>)}
+          {step.role.pieces.map((piece) => <p key={piece} className={step.documents.length > 0 ? 'clipping' : undefined}>{piece}</p>)}
         </section>
       )}
       {step.hints.length > 0 && (

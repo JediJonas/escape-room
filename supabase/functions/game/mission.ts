@@ -40,6 +40,9 @@ export type Role = {
   maxPiecesPerPlayer?: number;
 };
 
+/** Ett dokument som alla ser, till exempel en tidningsartikel eller en gästbok. */
+export type MissionDocument = { title: string; text: string };
+
 /** Berättelsen mellan uppgifterna. Kan skicka spelarna till en plats. */
 export type SceneStep = {
   /* Fälten som bara uppgifter har saknas, så att alla steg kan läsas på samma sätt. */
@@ -60,6 +63,14 @@ export type SceneStep = {
    * Mobilens funktioner.
    */
   asksFor?: Permission[];
+  /** Det som alla ser i steget, under texten. */
+  documents?: MissionDocument[];
+  /**
+   * Namnet i listan Hittat. Med ett namn sparas stegets dokument och
+   * spelarens egna bitar, så att de går att läsa igen senare. Se
+   * docs/koncept.md, Rundbilder och Hittat.
+   */
+  foundTitle?: string;
 };
 
 /** Det som en mobil måste be om tillstånd för, eller låsa upp med ett tryck. */
@@ -226,6 +237,16 @@ function findRoleErrors(roles: unknown, stepName: string, minPlayers: number, pl
   return errors;
 }
 
+function findDocumentErrors(step: Record<string, unknown>, name: string): string[] {
+  const errors: string[] = [];
+  const { documents, foundTitle } = step;
+  if ((documents !== undefined || foundTitle !== undefined) && step.type !== 'scene') errors.push(`${name} har dokument eller Hittat men är ingen scen`);
+  const isDocument = (item: unknown) => !!item && typeof item === 'object' && isFilledText((item as MissionDocument).title) && isFilledText((item as MissionDocument).text);
+  if (documents !== undefined && !(Array.isArray(documents) && documents.length > 0 && documents.every(isDocument))) errors.push(`${name} har dokument utan rubrik eller text`);
+  if (foundTitle !== undefined && !isFilledText(foundTitle)) errors.push(`${name} har ett tomt namn i Hittat`);
+  return errors;
+}
+
 function findHintErrors(step: Record<string, unknown>, name: string): string[] {
   const hasHints = Array.isArray(step.hints) && step.hints.length === HINT_COUNT && step.hints.every(isFilledText);
   return hasHints ? [] : [`${name} ska ha ${HINT_COUNT} ledtrådar`];
@@ -260,6 +281,7 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   if (step.type === 'scene' && (step.hints !== undefined || step.solution !== undefined)) errors.push(`${name} är en scen men har ledtrådar eller facit`);
   if (step.asksFor !== undefined && !(step.type === 'scene' && Array.isArray(step.asksFor) && step.asksFor.every((item) => (PERMISSIONS as readonly unknown[]).includes(item)))) errors.push(`${name} ber om tillstånd som inte finns, eller är ingen scen`);
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
+  errors.push(...findDocumentErrors(step, name));
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);
   if (step.roles !== undefined && step.type !== 'seance' && step.type !== 'rooms') errors.push(...findRoleErrors(step.roles, name, minPlayers, places));

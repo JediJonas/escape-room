@@ -14,7 +14,7 @@
     {
       "id": "inledning",
       "type": "scene",
-      "text": "En kväll 1962 hölls en seans i det här huset. Fem gäster kom, men bara fyra gick därifrån. Den femte, Vera, sågs aldrig mer. I kväll gör ni om seansen."
+      "text": "Ni är några vänner som har bestämt er för att hålla en seans i ett hus där det sägs spöka. I kväll ska ni ta reda på om någon svarar."
     },
     {
       "id": "runt-bordet",
@@ -41,7 +41,46 @@
     {
       "id": "vera-svarar",
       "type": "scene",
-      "text": "Skenet slocknar. Någon har svarat er. Hon heter Vera, och hon är fortfarande kvar i huset. Hon vill att ni tar reda på vad som hände henne."
+      "text": "Skenet slocknar. Någon har svarat er, och hon vill ha hjälp. Ni vet inte vem hon är. Leta i huset efter vad som hände här. I biblioteket står en gammal byrå med lådorna på glänt."
+    },
+    {
+      "id": "tidningsurklippen",
+      "type": "scene",
+      "text": "I byrån ligger en bunt gamla tidningsurklipp och en gästbok. Var och en har fått några urklipp. Läs dem för varandra och ta reda på vilka gästerna var och hur man känner igen dem. Urklippen sparas i Hittat. Tryck Klar när ni har läst.",
+      "documents": [
+        {
+          "title": "Ung kvinna försvunnen efter seans",
+          "text": "I lördags kväll samlades fem unga gäster i villan på Ekbacken för att hålla en seans. Strax efter nio slocknade ljuset i hela huset. Golvuret i salongen stannade på kvart över nio och har inte gått sedan dess. När ljuset kom tillbaka var bara fyra av gästerna kvar. Ingen av dem kan säga var de var när det blev mörkt. Polisen söker fortfarande den femte."
+        },
+        {
+          "title": "Gästboken i hallen",
+          "text": "De fem sista som skrev i boken, alla samma kväll i oktober 1962: Arvid Lund, Elsa Rydén, Margit Holm, Sven Dahl och Vera Sjö."
+        },
+        {
+          "title": "Tavlan i köket",
+          "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Till Elsa, sommaren 1961."
+        }
+      ],
+      "foundTitle": "Tidningsurklippen",
+      "roles": [
+        {
+          "id": "urklipp",
+          "title": "Dina urklipp",
+          "count": "rest",
+          "pieces": [
+            "Förlovningsannons. Margit Holm och Karl Berg har förlovat sig. Ringen är beställd hos guldsmeden på Storgatan.",
+            "Guldsmed Ek, Storgatan. Vi tackar för beställningen av förlovningsringen och för att fröken Holms pärlhalsband kunde lagas i tid till förlovningen.",
+            "Optiker Strand. Månadens kund är kantorn i Ekbackens kyrka, som aldrig syns utan våra nya runda bågar.",
+            "Kyrkonytt. Kantor Sven Dahl spelar piano vid söndagens gudstjänst.",
+            "Pipklubben Röken tackar sin kassör, som aldrig syns utan sin pipa, för ännu ett år med ordning i kassan.",
+            "Föreningsnytt. Bokhandlare Arvid Lund lämnar uppdraget som kassör efter fem år.",
+            "Dödsruna. Husets förra ägare, fröken Agnes Wall, har stilla insomnat. Hon bodde ensam i villan på Ekbacken i över trettio år.",
+            "Strömavbrott i villastaden. Ljuset slocknade på hela Ekbacken i lördags kväll. Elverket kan inte förklara varför.",
+            "Annons. Seanser och spådomar. Fru Lindqvist tar emot på torsdagar.",
+            "Höstmörkret har kommit. Gatlyktorna tänds nu redan klockan sex."
+          ]
+        }
+      ]
     },
     {
       "id": "rummen-minns",

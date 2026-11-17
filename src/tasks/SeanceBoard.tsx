@@ -155,7 +155,7 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
   return (
     <section className="seance" aria-label="Seansen">
       <div
-        className={`seance-board${seance.isComplete ? ' is-complete' : ''}`}
+        className="seance-board"
         aria-label={canTouch ? 'Brädet. Håll fingret på planchetten och följ skenet.' : 'Brädet'}
         onPointerDown={press}
         onPointerMove={move}
@@ -168,7 +168,7 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
             <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
           ))}
         </div>
-        <div ref={glowRef} className={`seance-glow${isWaiting ? ' is-waiting' : ''}`} />
+        <div ref={glowRef} className={`seance-glow${isWaiting ? ' is-waiting' : ''}`} hidden={seance.isComplete} />
         <div ref={planchetteRef} className="seance-planchette" hidden />
       </div>
       {canTouch && !hasTouched && !seance.isComplete && <p className="seance-instruction">{text}</p>}

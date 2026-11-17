@@ -185,6 +185,11 @@ export function App() {
     setPaused: (isPaused) => sendInGame({ type: 'setPaused', isPaused }),
     choosePlace: (placeId, source) => sendInGame({ type: 'choosePlace', placeId, source }),
     submitAnswer: (answer) => sendInGame({ type: 'submitAnswer', answer }),
+    // Planchetten skickas utan att knapparna blir upptagna, och svaret används inte:
+    // vyn kommer i kanalen, i rätt ordning, även när flera anrop är på väg samtidigt.
+    touchBoard: (touch, letterIndex) => {
+      if (gameId) void callGame({ type: 'touchBoard', gameId, touch, letterIndex });
+    },
     giveHint: () => sendInGame({ type: 'giveHint' }),
     showSolution: () => sendInGame({ type: 'showSolution' }),
     answerPending: (playerId, isAdmitted) => sendInGame({ type: isAdmitted ? 'admitPlayer' : 'rejectPlayer', playerId }),

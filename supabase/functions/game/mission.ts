@@ -7,6 +7,7 @@
 
 import { MAX_PLAYERS } from './lobby.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
+import { SEANCE_LETTERS } from './seance.ts';
 
 export const MISSION_FORMAT = 1;
 
@@ -73,7 +74,39 @@ export type AnswerStep = {
   solution: { answers: string[] };
 };
 
-export type MissionStep = SceneStep | AnswerStep;
+/**
+ * Seansen: alla följer skenet över brädet, och bokstäverna i meddelandet
+ * syns på en mobil i taget. Se seance.ts.
+ */
+export type SeanceStep = {
+  id: string;
+  type: 'seance';
+  /** Det alla ser ovanför brädet. */
+  text: string;
+  goTo?: undefined;
+  textAtPlace?: undefined;
+  roles?: undefined;
+  hints: string[];
+  /** Meddelandet, med versaler och mellanslag mellan orden. Lämnar aldrig servern i sin helhet. */
+  solution: { message: string };
+};
+
+/** Uppgifter är de steg som gruppen löser, med ledtrådar och facit. */
+export type TaskStep = AnswerStep | SeanceStep;
+
+export type MissionStep = SceneStep | TaskStep;
+
+/** Facit som text, det som spelledaren ser när hon ber om det. */
+export function describeSolution(step: TaskStep): string {
+  return step.type === 'answer' ? step.solution.answers[0] : step.solution.message;
+}
+
+/** Alla texter i facit. Läckkontrollen letar efter dem i vyerna. */
+export function listSolutionTexts(step: MissionStep): string[] {
+  if (step.type === 'answer') return step.solution.answers;
+  if (step.type === 'seance') return [step.solution.message];
+  return [];
+}
 
 export type Mission = {
   format: typeof MISSION_FORMAT;
@@ -119,9 +152,21 @@ function findRoleErrors(roles: unknown, stepName: string, minPlayers: number, pl
   return errors;
 }
 
+function findHintErrors(step: Record<string, unknown>, name: string): string[] {
+  const hasHints = Array.isArray(step.hints) && step.hints.length === HINT_COUNT && step.hints.every(isFilledText);
+  return hasHints ? [] : [`${name} ska ha ${HINT_COUNT} ledtrådar`];
+}
+
+function findSeanceErrors(step: Record<string, unknown>, name: string): string[] {
+  const errors = findHintErrors(step, name);
+  const message = (step.solution as { message?: unknown } | undefined)?.message;
+  if (typeof message !== 'string' || !SEANCE_LETTERS.test(message)) errors.push(`${name} ska ha ett meddelande med versaler A till Ö och ett mellanslag mellan orden`);
+  if (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined) errors.push(`${name} är en seans och kan inte ha plats eller roller`);
+  return errors;
+}
+
 function findAnswerErrors(step: Record<string, unknown>, name: string): string[] {
-  const errors: string[] = [];
-  if (!Array.isArray(step.hints) || step.hints.length !== HINT_COUNT || !step.hints.every(isFilledText)) errors.push(`${name} ska ha ${HINT_COUNT} ledtrådar`);
+  const errors = findHintErrors(step, name);
   const answers = (step.solution as { answers?: unknown } | undefined)?.answers;
   if (!Array.isArray(answers) || answers.length === 0 || !answers.every(isFilledText)) errors.push(`${name} saknar svar i facit`);
   if (step.goTo !== undefined || step.textAtPlace !== undefined) errors.push(`${name} är en uppgift och kan inte skicka till en plats än`);
@@ -132,13 +177,14 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   const errors: string[] = [];
   if (!isFilledText(step.id)) errors.push('ett steg saknar id');
   const name = `steget ${String(step.id)}`;
-  if (step.type !== 'scene' && step.type !== 'answer') errors.push(`${name} har en okänd typ: ${String(step.type)}`);
+  if (step.type !== 'scene' && step.type !== 'answer' && step.type !== 'seance') errors.push(`${name} har en okänd typ: ${String(step.type)}`);
   if (step.type === 'answer') errors.push(...findAnswerErrors(step, name));
+  if (step.type === 'seance') errors.push(...findSeanceErrors(step, name));
   if (step.type === 'scene' && (step.hints !== undefined || step.solution !== undefined)) errors.push(`${name} är en scen men har ledtrådar eller facit`);
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);
-  if (step.roles !== undefined) errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
+  if (step.roles !== undefined && step.type !== 'seance') errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
   return errors;
 }
 

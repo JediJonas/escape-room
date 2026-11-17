@@ -1,0 +1,48 @@
+{
+  "format": 1,
+  "id": "den-femte-gasten",
+  "title": "Den femte gästen",
+  "minPlayers": 2,
+  "places": {
+    "A": "Källaren",
+    "B": "Hallen",
+    "C": "Köket",
+    "D": "Biblioteket",
+    "E": "Sovrummet"
+  },
+  "steps": [
+    {
+      "id": "inledning",
+      "type": "scene",
+      "text": "En kväll 1962 hölls en seans i det här huset. Fem gäster kom, men bara fyra gick därifrån. Den femte, Vera, sågs aldrig mer. I kväll gör ni om seansen."
+    },
+    {
+      "id": "runt-bordet",
+      "type": "scene",
+      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Tryck Klar när du sitter."
+    },
+    {
+      "id": "seansen",
+      "type": "seance",
+      "text": "Lägg fingret på planchetten och följ skenet. Släpp inte. Ser du en bokstav, säg den högt.",
+      "hints": [
+        "Alla måste hålla fingret kvar hela tiden. Lyfter någon börjar meddelandet om.",
+        "Skenet väntar tills allas planchetter är framme. Följ det tillsammans.",
+        "Meddelandet är två ord. Bara en av er ser varje bokstav, så säg dem högt."
+      ],
+      "solution": {
+        "message": "HJÄLP MIG"
+      }
+    },
+    {
+      "id": "vera-svarar",
+      "type": "scene",
+      "text": "Skenet slocknar. Någon har svarat er. Hon heter Vera, och hon är fortfarande kvar i huset. Hon vill att ni tar reda på vad som hände henne."
+    },
+    {
+      "id": "slut",
+      "type": "scene",
+      "text": "Här slutar provet av Den femte gästen. Fler uppgifter kommer."
+    }
+  ]
+}

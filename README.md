@@ -17,6 +17,7 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia.
 | `testsida/` | Sidorna för den tekniska testsidan och testkorten |
 | `src/start/` | Startsidan i React: skapa spel, gå med och väntrummet |
 | `src/screens/` | Spelets skärmar |
+| `src/tasks/` | Uppgiftstypernas egna vyer, som brädet i Seansen |
 | `src/testsida/` | Koden till den tekniska testsidan (byggordning steg 1) |
 | `src/device/` | En modul per mobilfunktion: rörelse och kamera |
 | `src/sound/` | Ljud: ljudmotorn, vanligt ljud som reserv och toning |

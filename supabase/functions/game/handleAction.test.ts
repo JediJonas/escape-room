@@ -29,6 +29,10 @@ function createMemoryStore() {
       const game = games.find((candidate) => candidate.id === gameId);
       if (game) game.state = state;
     },
+    async updateGameMission(gameId, missionId) {
+      const game = games.find((candidate) => candidate.id === gameId);
+      if (game) game.missionId = missionId;
+    },
     listPlayers: async (gameId) => players.filter((player) => player.gameId === gameId),
     async insertPlayer({ gameId, userId, name, isLeader }) {
       const player = { id: `player-${nextId}`, gameId, userId, name, isLeader, joinedAtMs: nextId++ };
@@ -343,4 +347,64 @@ test('spelledaren kan neka den som väntar, och kan stå utanför spelet', async
   const rejected = readGameView((await send(memory.store, 'user-leader', { type: 'rejectPlayer', gameId, playerId: 'player-5' })).body);
   assert.deepEqual(rejected.pending, []);
   assert.deepEqual(await send(memory.store, 'user-Dan', { type: 'getView', gameId }), { status: 404, body: { error: 'notInGame' } });
+});
+
+test('spelledaren väljer uppdrag när hon startar, och ett okänt uppdrag ger ett fel', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  assert.deepEqual(await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'finns-inte' }), { status: 500, body: { error: 'unknownMission' } });
+  const view = readGameView((await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' })).body);
+  assert.equal(view.missionTitle, 'Den femte gästen');
+  assert.equal(memory.games[0].missionId, 'den-femte-gasten');
+});
+
+test('i seansen tas bokstaven när alla följer skenet, och bara en mobil ser den', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
+  let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
+  while (view.step.type !== 'seance') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'fuska', letterIndex: 0 }), { status: 400, body: { error: 'unknownAction' } });
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'submitAnswer', gameId, answer: 'HJÄLP MIG' }), { status: 409, body: { error: 'notATask' } });
+
+  const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'onGlow', letterIndex: 0 })).body);
+  assert.equal(leaderView.step.seance?.followerCount, 1);
+  memory.sentViews.length = 0;
+  const boView = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'onGlow', letterIndex: 0 })).body);
+  assert.equal(boView.step.seance?.letterIndex, 1);
+  assert.equal(memory.sentViews.length, 2);
+  const letters = memory.sentViews.map(({ view: sent }) => (sent as GameView).step.seance?.myLetter?.letter ?? null);
+  assert.deepEqual(letters, ['H', null]);
+
+  // En handling för en bokstav som redan är tagen ger ingen ny vy hos de andra.
+  memory.sentViews.length = 0;
+  await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'offGlow', letterIndex: 0 });
+  assert.deepEqual(memory.sentViews.map(({ view: sent }) => sent.me.name), ['Bo']);
+
+  const broken = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'lifted', letterIndex: 1 })).body);
+  assert.equal(broken.step.seance?.letterIndex, 0);
+  assert.equal(broken.step.seance?.brokenBy?.name, 'Bo');
+
+  const shown = readGameView((await send(memory.store, 'user-leader', { type: 'showSolution', gameId })).body);
+  assert.equal(shown.step.solution, 'HJÄLP MIG');
+});
+
+test('när meddelandet är klart trycker alla Klar och går vidare', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
+  let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
+  while (view.step.type !== 'seance') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  assert.equal(view.step.usesReadyButton, false);
+  const stepNumber = view.step.number;
+  for (let letterIndex = 0; letterIndex < (view.step.seance?.letterCount ?? 0); letterIndex += 1) {
+    await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'onGlow', letterIndex });
+    view = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'onGlow', letterIndex })).body);
+  }
+  assert.equal(view.step.seance?.isComplete, true);
+  assert.equal(view.step.usesReadyButton, true);
+  await send(memory.store, 'user-leader', { type: 'markReady', gameId });
+  view = readGameView((await send(memory.store, 'user-Bo', { type: 'markReady', gameId })).body);
+  assert.equal(view.step.number, stepNumber + 1);
+  assert.equal(view.step.seance, null);
 });

@@ -6,6 +6,7 @@
 import { type GameView, buildGameView } from './game.ts';
 import { type LobbyView, buildLobbyView } from './lobby.ts';
 import type { Mission } from './mission.ts';
+import { MISSIONS } from './missions/index.ts';
 import { type WaitingView, isPending } from './participants.ts';
 import type { GameRecord, PlayerRecord } from './state.ts';
 
@@ -30,7 +31,7 @@ export function buildPlayerView(input: {
   players: readonly PlayerRecord[];
   viewer: PlayerRecord;
 }): PlayerView {
-  if (input.game.state.status === 'lobby') return buildLobbyView(input);
+  if (input.game.state.status === 'lobby') return buildLobbyView({ ...input, missions: MISSIONS });
   if (isPending(input.game.state, input.viewer.id)) return buildWaitingView(input);
   return buildGameView(input);
 }

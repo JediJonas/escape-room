@@ -6,10 +6,10 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
+import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame, touchBoard } from './game.ts';
 import { MAX_PLAYERS } from './lobby.ts';
 import { listParticipants } from './participants.ts';
-import type { Mission } from './mission.ts';
+import { type Mission, listSolutionTexts } from './mission.ts';
 import { MISSIONS } from './missions/index.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
@@ -29,7 +29,7 @@ function listSecrets(mission: Mission, stepIndex: number): string[] {
     ...(step.textAtPlace ? [step.textAtPlace] : []),
     ...(step.roles ?? []).flatMap((role) => role.pieces),
     ...(step.hints ?? []),
-    ...(step.solution?.answers ?? []),
+    ...listSolutionTexts(step),
   ];
 }
 
@@ -66,7 +66,7 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
       ...(view.step.textAtPlace ? [view.step.textAtPlace] : []),
       ...view.step.hints,
       // Facit får bara synas hos spelledaren, och bara när hon har bett om det.
-      ...(viewer.isLeader && state.isSolutionShown ? mission.steps[state.stepIndex].solution?.answers ?? [] : []),
+      ...(viewer.isLeader && state.isSolutionShown ? listSolutionTexts(mission.steps[state.stepIndex]) : []),
     ]);
     for (const secret of secrets) {
       if (text.includes(secret)) assert.ok(allowed.has(secret), `${mission.id} steg ${state.stepIndex + 1}, ${viewer.name} ser någon annans: ${secret}`);
@@ -90,6 +90,17 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
   }
 }
 
+/** Alla följer skenet genom hela meddelandet, och vyerna kontrolleras efter varje bokstav. */
+function followWholeSeance(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
+  let followed = state;
+  while (followed.seance && !buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state: followed }, mission, players, viewer: participants[0] }).step.seance?.isComplete) {
+    const letterIndex = followed.seance.letterIndex;
+    for (const player of participants) followed = readState(touchBoard({ state: followed, mission, players: participants, player, touch: 'onGlow', letterIndex, nowMs: 0 }));
+    checkStep(mission, followed, players);
+  }
+  return followed;
+}
+
 for (const mission of MISSIONS) {
   test(`${mission.id}: ingen vy läcker något, med ${mission.minPlayers} till ${MAX_PLAYERS} spelare, med och utan spelledaren`, () => {
     for (const leaderPlays of [true, false]) for (let playerCount = mission.minPlayers; playerCount <= MAX_PLAYERS; playerCount += 1) {
@@ -107,8 +118,10 @@ for (const mission of MISSIONS) {
           state = goToGoals(mission, state, participants, participants);
           checkStep(mission, state, players);
         }
+        // I en seans kontrolleras vyerna efter varje bokstav, när någon ser den.
+        if (mission.steps[state.stepIndex].type === 'seance') state = followWholeSeance(mission, state, players, participants);
         // I en uppgift kontrolleras vyerna igen med alla ledtrådar och facit framme.
-        if (mission.steps[state.stepIndex].type === 'answer') {
+        if (mission.steps[state.stepIndex].type !== 'scene') {
           while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));
           state = readState(showSolution({ state, mission, player: leader }));
           checkStep(mission, state, players);

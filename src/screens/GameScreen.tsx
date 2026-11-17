@@ -1,6 +1,8 @@
 import { type FormEvent, useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
+import type { BoardTouch } from '../../supabase/functions/game/seance.ts';
+import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
 import { PlaceScanner } from './PlaceScanner.tsx';
@@ -17,6 +19,7 @@ export type GameActions = {
   setPaused: (isPaused: boolean) => void;
   choosePlace: (placeId: PlaceId, source: 'scan' | 'list') => void;
   submitAnswer: (answer: string) => void;
+  touchBoard: (touch: BoardTouch, letterIndex: number) => void;
   giveHint: () => void;
   showSolution: () => void;
   answerPending: (playerId: string, isAdmitted: boolean) => void;
@@ -54,7 +57,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   }
   const isTask = step.type !== 'scene' && !view.isFinished;
   // Spelledaren som står utanför svarar inte och trycker inte Klar.
-  const canAnswer = isTask && view.me.isPlaying;
+  const canAnswer = step.type === 'answer' && !view.isFinished && view.me.isPlaying;
 
   function submitAnswer(event: FormEvent) {
     event.preventDefault();
@@ -97,6 +100,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
       </p>
       {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
       <p className="scene-text">{step.text}</p>
+      {step.seance && <SeanceBoard seance={step.seance} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} />}
       {step.role && (
         <section className="role-card" aria-label="Bara du ser det här">
           <h2>{step.role.title}</h2>

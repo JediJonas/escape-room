@@ -249,7 +249,7 @@ Akt 1 är uppgift 1–2, akt 2 är uppgift 3–7 och akt 3 är uppgift 8–9.
 
 ### Uppgifterna
 
-**1. Seansen.** Alla lägger ett finger på sin skärm och håller kvar det. Bokstäver tänds på olika mobiler i tur och ordning, och var och en läser högt när den egna lyser. Lyfter någon fingret bryts kontakten och meddelandet börjar om. Uppgiften lär ut att alla behövs, och trycket på skärmen ger samtidigt tillstånd för ljud och rörelse.
+**1. Seansen.** Seansen spelas som med ett ouijabräde (Jonas 2026-11-17). Varje mobil visar ett mörkt bräde utan bokstäver, och alla håller fingret på sin egen planchett. Ett sken glider fram över brädet, lika hos alla, och spelarna följer det med fingret. Skenet väntar tills allas planchetter är framme. Då tas bokstaven, och den syns bara på en av mobilerna, olika för varje bokstav. Den spelaren läser den högt. Lyfter någon fingret bryts kontakten, alla ser vem som släppte och meddelandet börjar om. När meddelandet är klart trycker alla Klar. Uppgiften lär ut att alla behövs, både för att flytta skenet och för att höra vad det säger. Tillstånd för ljud och rörelse ska begäras i scenen före, när spelaren trycker Klar, eftersom en systemruta på iPhone mitt i seansen kan bryta kontakten.
 
 **2. Tidningsurklippet.** Ett utskrivet urklipp från 1962 berättar om seansen. Vera viskar olika läsregler till olika mobiler, till exempel "vart tredje ord i andra stycket". Ingen regel räcker ensam. Tillsammans ger de gästernas namn och vilket rum var och en gick till. Reserv: urklippet visas på skärmen.
 

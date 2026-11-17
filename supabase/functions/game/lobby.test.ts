@@ -51,13 +51,15 @@ test('väntrummet visar alla i den ordning de gick med och markerar mobilens ege
   const leader = createPlayer(0, { name: 'Jonna' });
   const late = createPlayer(2, { name: 'Sist' });
   const early = createPlayer(1, { name: 'Först' });
-  const view = buildLobbyView({ game: GAME, mission: MISSION, players: [leader, late, early], viewer: early });
+  const view = buildLobbyView({ game: GAME, mission: MISSION, missions: [MISSION], players: [leader, late, early], viewer: early });
   assert.deepEqual(view, {
     type: 'lobby',
     gameId: 'game-1',
     joinCode: 'BCDF',
+    missionId: 'prov',
     missionTitle: 'Provhuset',
     minPlayers: 2,
+    missionChoices: null,
     me: { playerId: 'player-1', name: 'Först', isLeader: false },
     players: [
       { name: 'Jonna', isLeader: true, isMe: false },
@@ -67,9 +69,15 @@ test('väntrummet visar alla i den ordning de gick med och markerar mobilens ege
   });
 });
 
+test('bara spelledaren får välja uppdrag', () => {
+  const leader = createPlayer(0, { name: 'Jonna' });
+  const view = buildLobbyView({ game: GAME, mission: MISSION, missions: [MISSION], players: [leader], viewer: leader });
+  assert.deepEqual(view.missionChoices, [{ id: 'prov', title: 'Provhuset', minPlayers: 2 }]);
+});
+
 test('väntrummet läcker inte andra spelares id eller inloggningar', () => {
   const players = [createPlayer(0), createPlayer(1), createPlayer(2)];
-  const text = JSON.stringify(buildLobbyView({ game: GAME, mission: MISSION, players, viewer: players[1] }));
+  const text = JSON.stringify(buildLobbyView({ game: GAME, mission: MISSION, missions: [MISSION], players, viewer: players[1] }));
   for (const other of [players[0], players[2]]) {
     assert.ok(!text.includes(other.id), other.id);
     assert.ok(!text.includes(other.userId), other.userId);

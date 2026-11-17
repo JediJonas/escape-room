@@ -8,12 +8,13 @@
 
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
-import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
+import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer, touchBoard } from './game.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts';
 import { getMission } from './missions/index.ts';
 import { type PlayerRecord, createInitialState } from './state.ts';
 import { answerPendingAction, joinAfterStart } from './latecomers.ts';
+import { readBoardTouch } from './seance.ts';
 import { buildPlayerView } from './views.ts';
 
 export type { ActionError } from './actionKit.ts';
@@ -84,14 +85,19 @@ async function leaveGame(action: Action, context: Context): Promise<ActionResult
   return isGone ? succeed({}) : result;
 }
 
+/** Spelledaren väljer uppdrag när hon startar. Utan val gäller det som spelet skapades med. */
 async function startGameAction(action: Action, context: Context): Promise<ActionResult> {
   const nowMs = await context.store.readServerTimeMs();
   return withOwnPlayer(action, context, async (scope) => {
+    const mission = typeof action.missionId === 'string' ? getMission(action.missionId) : scope.mission;
+    if (!mission) return fail('unknownMission');
     const usesPlaceCards = action.usesPlaceCards !== false;
     const minutes = readGameMinutes(action.minutes);
     const leaderPlays = action.leaderPlays !== false;
-    const change = startGame({ state: scope.game.state, mission: scope.mission, players: scope.players, starter: scope.player, usesPlaceCards, leaderPlays, minutes, nowMs });
-    return applyChange(scope, change, { action: { type: 'startGame', usesPlaceCards, leaderPlays, minutes } });
+    const change = startGame({ state: scope.game.state, mission, players: scope.players, starter: scope.player, usesPlaceCards, leaderPlays, minutes, nowMs });
+    if ('state' in change && mission.id !== scope.game.missionId) await scope.transaction.updateGameMission(scope.game.id, mission.id);
+    const chosen = { ...scope, mission, game: { ...scope.game, missionId: mission.id } };
+    return applyChange(chosen, change, { action: { type: 'startGame', missionId: mission.id, usesPlaceCards, leaderPlays, minutes } });
   });
 }
 
@@ -145,6 +151,19 @@ async function submitAnswerAction(action: Action, context: Context): Promise<Act
   });
 }
 
+async function touchBoardAction(action: Action, context: Context): Promise<ActionResult> {
+  const touch = readBoardTouch(action.touch);
+  if (!touch) return fail('unknownAction');
+  const nowMs = await context.store.readServerTimeMs();
+  return withParticipant(action, context, async (scope) => {
+    const change = touchBoard({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, touch, letterIndex: action.letterIndex, nowMs });
+    // En handling som kom för sent ändrar ingenting, och då behöver ingen annan en ny vy.
+    const isUnchanged = 'state' in change && change.state.seance === scope.game.state.seance;
+    const recipients = isUnchanged ? [scope.player] : undefined;
+    return applyChange(scope, change, { action: { type: 'touchBoard', touch, letterIndex: action.letterIndex }, recipients });
+  });
+}
+
 async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
     const change = giveHint({ state: scope.game.state, mission: scope.mission, player: scope.player });
@@ -171,6 +190,7 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   markReady: markReadyAction,
   setPaused: setPausedAction,
   submitAnswer: submitAnswerAction,
+  touchBoard: touchBoardAction,
   giveHint: giveHintAction,
   showSolution: showSolutionAction,
   admitPlayer: (action, context) => answerPendingAction(action, context, true),

@@ -216,6 +216,18 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
 De gemensamma fälten bestäms nu. Fälten i `content` för varje uppgiftstyp
 bestäms när typen byggs.
 
+**Seansen** har typen `seance` och meddelandet i `solution.message`, med
+versaler och ett mellanslag mellan orden. Servern sparar vilken bokstav
+gruppen är på, vems planchett som är på skenet och i vilken ordning spelarna
+läser bokstäverna. Mobilen avgör själv om planchetten är på skenet och säger
+bara till när det ändras, så att fingrets rörelser inte går genom servern.
+Skenets väg räknas fram ur stegets id, och mobilen får bara rutan, aldrig
+bokstaven, utom den som ska läsa den. Se `seance.ts`.
+
+**Uppdraget väljs när spelet startar.** Spelledaren ser uppdragen i
+väntrummet och väljer ett när hon trycker Starta spelet. Spelet skapas med
+Provhuset.
+
 ## Webbsidan
 
 Webbsidan byggs med React och Vite, med samma upplägg som Maffia (Jonas

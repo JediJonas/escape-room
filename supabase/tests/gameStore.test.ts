@@ -62,7 +62,7 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
     const [saved] = await sql`select state from engine.games where id = ${gameId}`;
     // Klockan startar med databasens tid, så den jämförs för sig.
     const { clock, ...rest } = saved.state;
-    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [] });
+    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], seance: null });
     assert.equal(clock.durationMs, 60 * 60_000);
     assert.equal(clock.pausedAtMs, null);
 
@@ -73,6 +73,15 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
     assert.equal((await send(LEADER, { type: 'admitPlayer', gameId, playerId: waitingId })).status, 200);
     const owners = await sql`select id, user_id from engine.players where game_id = ${gameId} and not is_leader`;
     assert.deepEqual(owners.map((row) => ({ ...row })), [{ id: guestView.me.playerId, user_id: NEW_PHONE }]);
+  });
+
+  test('spelledaren väljer uppdrag när hon startar, och valet sparas', async () => {
+    const created = await send(LEADER, { type: 'createGame', name: 'Ledare' }, ['HJKL']);
+    const { gameId } = (created.body as { view: LobbyView }).view;
+    await send(GUEST, { type: 'joinGame', joinCode: 'HJKL', name: 'Gäst' });
+    assert.equal((await send(LEADER, { type: 'startGame', gameId, missionId: 'den-femte-gasten' })).status, 200);
+    const [game] = await sql`select mission_id, state->'seance'->>'letterIndex' as letter_index from engine.games where id = ${gameId}`;
+    assert.deepEqual({ ...game }, { mission_id: 'den-femte-gasten', letter_index: null });
   });
 
   test('en kod som redan används byts, och ett id som inte är ett uuid ger inget fel', async () => {

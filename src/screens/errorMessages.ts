@@ -24,6 +24,8 @@ const MESSAGES: Record<ActionError, string> = {
   noSuchPlayer: 'Den mobilen väntar inte längre.',
   notATask: 'Det finns ingen uppgift att svara på just nu.',
   wrongAnswer: 'Det stämmer inte. Försök igen.',
+  notTrapped: 'Det kan bara den andra sidan av källardörren göra.',
+  noMoreFuses: 'Säkringarna är slut.',
   roomForgets: 'Rummet minns inte just nu. Vänta en stund.',
   noMoreHints: 'Uppgiften har inga fler ledtrådar.',
   unknownMission: 'Uppdraget finns inte längre. Starta ett nytt spel.',

@@ -54,6 +54,8 @@ const STATUS_FOR_ERROR: Record<ActionError, number> = {
   notATask: HTTP_CONFLICT,
   wrongAnswer: HTTP_CONFLICT,
   roomForgets: HTTP_CONFLICT,
+  notTrapped: HTTP_FORBIDDEN,
+  noMoreFuses: HTTP_CONFLICT,
   noMoreHints: HTTP_CONFLICT,
   unknownMission: HTTP_SERVER_ERROR,
   noFreeJoinCode: HTTP_UNAVAILABLE,

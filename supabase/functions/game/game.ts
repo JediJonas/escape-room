@@ -5,16 +5,17 @@
  */
 
 import { type ClockView, describeClock, pauseClock, resumeClock, startClock } from './clock.ts';
-import { type Mission, type MissionStep, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
+import { type CellarStep, type Mission, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
 import { dealRoles } from './roles.ts';
-import { type RoomsView, chooseGuest as chooseGuestInRoom, describeRooms, hasSolvedOwnRooms, isRoomsSolved, startRooms } from './rooms.ts';
-import { type BoardTouch, type SeanceView, applyBoardTouch, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
+import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
+import { type RoomsView, describeRooms, hasSolvedOwnRooms, startRooms } from './rooms.ts';
+import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'roomForgets';
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'roomForgets' | 'notTrapped' | 'noMoreFuses';
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
@@ -29,6 +30,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     isSolutionShown: false,
     seance: step.type === 'seance' ? startSeance() : null,
     rooms: step.type === 'rooms' ? startRooms(step, sortByJoinOrder(players).map((player) => player.id)) : null,
+    cellar: step.type === 'cellar' ? startCellar() : null,
   };
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
@@ -37,7 +39,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
 }
 
 function finish(state: GameState): GameState {
-  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null, rooms: null };
+  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null, rooms: null, cellar: null };
 }
 
 /**
@@ -45,7 +47,7 @@ function finish(state: GameState): GameState {
  * slutet: spelet tar slut när gruppen kommer dit, så att ingen behöver
  * trycka Klar på sluttexten.
  */
-function moveOn(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
+export function moveOn(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
   const nextIndex = state.stepIndex + 1;
   if (nextIndex >= mission.steps.length) return finish(state);
   const entered = enterStep(state, mission, players, nextIndex);
@@ -53,7 +55,7 @@ function moveOn(state: GameState, mission: Mission, players: readonly PlayerReco
   return isEnding ? finish(entered) : entered;
 }
 
-function findRole(step: MissionStep, state: GameState, playerId: string): Role | undefined {
+export function findRole(step: MissionStep, state: GameState, playerId: string): Role | undefined {
   const roleId = state.roleByPlayer[playerId]?.roleId;
   return step.roles?.find((role) => role.id === roleId);
 }
@@ -66,7 +68,7 @@ function findGoal(step: MissionStep, state: GameState, playerId: string): PlaceI
   return findRole(step, state, playerId)?.goTo ?? step.goTo;
 }
 
-function isAtGoal(step: MissionStep, state: GameState, playerId: string): boolean {
+export function isAtGoal(step: MissionStep, state: GameState, playerId: string): boolean {
   const goal = findGoal(step, state, playerId);
   return goal !== undefined && state.placeByPlayer[playerId] === goal;
 }
@@ -88,6 +90,7 @@ function isDoneWhenArrived(step: MissionStep): boolean {
  */
 function usesReadyButton(step: MissionStep, state: GameState): boolean {
   if (step.type === 'seance') return state.seance !== null && isSeanceComplete(state.seance, step.solution.message);
+  if (step.type === 'cellar') return state.cellar !== null && state.cellar.outcome !== null;
   return step.type === 'scene' && !isDoneWhenArrived(step);
 }
 
@@ -150,18 +153,26 @@ export function markReady({ state, mission, players, player }: {
   return { state: moveOnIfAllDone({ ...state, readyPlayerIds: [...state.readyPlayerIds, player.id] }, mission, players) };
 }
 
-/** Spelaren är på en plats, oavsett om hon skannade kortet eller valde i listan. */
-export function choosePlace({ state, mission, players, player, placeId }: {
+/**
+ * Spelaren är på en plats, oavsett om hon skannade kortet eller valde i
+ * listan. Kommer den instängda fram till källaren börjar det komma närmare.
+ */
+export function choosePlace({ state, mission, players, player, placeId, nowMs }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   player: PlayerRecord;
   placeId: unknown;
+  nowMs: number;
 }): StateChange {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   const place = listPlaces(mission).find((candidate) => candidate.id === placeId);
   if (!place) return { refusal: 'unknownPlace' };
-  return { state: moveOnIfAllDone({ ...state, placeByPlayer: { ...state.placeByPlayer, [player.id]: place.id } }, mission, players) };
+  const moved = { ...state, placeByPlayer: { ...state.placeByPlayer, [player.id]: place.id } };
+  const step = mission.steps[state.stepIndex];
+  const isTrappedArriving = step.type === 'cellar' && moved.cellar !== null && findRole(step, moved, player.id)?.id === step.trappedRoleId && isAtGoal(step, moved, player.id);
+  const arrived = isTrappedArriving && moved.cellar ? { ...moved, cellar: markArrived(moved.cellar, nowMs) } : moved;
+  return { state: moveOnIfAllDone(arrived, mission, players) };
 }
 
 /** Stora och små bokstäver och extra mellanslag spelar ingen roll i ett svar. */
@@ -170,7 +181,7 @@ export function normalizeAnswer(answer: string): string {
 }
 
 /** Den aktuella uppgiften, eller ett nej om gruppen är i en scen eller spelet inte är igång. */
-function findCurrentTask(state: GameState, mission: Mission): { step: TaskStep } | { refusal: GameRefusal } {
+export function findCurrentTask(state: GameState, mission: Mission): { step: TaskStep } | { refusal: GameRefusal } {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   const step = mission.steps[state.stepIndex];
   return step.type === 'scene' ? { refusal: 'notATask' } : { step };
@@ -189,53 +200,6 @@ export function submitAnswer({ state, mission, players, answer }: {
   const given = typeof answer === 'string' ? normalizeAnswer(answer) : '';
   const isRight = given !== '' && task.step.solution.answers.some((correct) => normalizeAnswer(correct) === given);
   return isRight ? { state: moveOn(state, mission, players) } : { refusal: 'wrongAnswer' };
-}
-
-/**
- * En spelares planchett i seansen. Den sista som kommer fram till skenet tar
- * bokstaven, och den som lyfter fingret får meddelandet att börja om.
- */
-export function touchBoard({ state, mission, players, player, touch, nowMs }: {
-  state: GameState;
-  mission: Mission;
-  players: readonly PlayerRecord[];
-  player: PlayerRecord;
-  touch: BoardTouch;
-  nowMs: number;
-}): StateChange {
-  const task = findCurrentTask(state, mission);
-  if ('refusal' in task) return { refusal: task.refusal };
-  if (task.step.type !== 'seance' || !state.seance) return { refusal: 'notATask' };
-  const seance = applyBoardTouch({
-    seance: state.seance,
-    message: task.step.solution.message,
-    participantIds: players.map((participant) => participant.id),
-    playerId: player.id,
-    touch,
-    nowMs,
-  });
-  return { state: { ...state, seance } };
-}
-
-/**
- * Spelaren väljer vem som stod i rummet där hon är. När alla rum har rätt
- * gäst går gruppen vidare.
- */
-export function chooseGuest({ state, mission, players, player, guest, nowMs }: {
-  state: GameState;
-  mission: Mission;
-  players: readonly PlayerRecord[];
-  player: PlayerRecord;
-  guest: unknown;
-  nowMs: number;
-}): StateChange {
-  const task = findCurrentTask(state, mission);
-  if ('refusal' in task) return { refusal: task.refusal };
-  if (task.step.type !== 'rooms' || !state.rooms) return { refusal: 'notATask' };
-  const choice = chooseGuestInRoom({ rooms: state.rooms, step: task.step, playerId: player.id, placeId: state.placeByPlayer[player.id], guest, nowMs });
-  if ('refusal' in choice) return choice;
-  const chosen = { ...state, rooms: choice.rooms };
-  return { state: isRoomsSolved(choice.rooms, task.step) ? moveOn(chosen, mission, players) : chosen };
 }
 
 /** Spelledaren ger gruppen nästa ledtråd. Alla får den samtidigt. */
@@ -286,6 +250,8 @@ export type GameView = {
     text: string;
     goTo: Place | null;
     textAtPlace: string | null;
+    /** Tillstånden som mobilen ber om när spelaren trycker Klar. */
+    asksFor: Permission[];
     /** Spelarens roll i steget och bara hennes egna bitar. */
     role: { title: string; pieces: string[] } | null;
     type: MissionStep['type'];
@@ -301,6 +267,8 @@ export type GameView = {
     seance: SeanceView | null;
     /** Spelarens rum i Rummen minns, med bitarna bara i det rum där hon står. */
     rooms: RoomsView | null;
+    /** Källaren, med bilden bara hos den instängda. */
+    cellar: CellarView | null;
   };
   /** Bara hos spelledaren: vilka som är klara med steget. */
   progress: { name: string; isMe: boolean; isDone: boolean }[] | null;
@@ -332,10 +300,19 @@ function describeStep(step: MissionStep, state: GameState, places: readonly Plac
   const isAtStepPlace = goal === step.goTo && isAtGoal(step, state, viewerId);
   return {
     text: step.text,
+    asksFor: step.type === 'scene' ? step.asksFor ?? [] : [],
     goTo: findPlace(places, goal),
     textAtPlace: isAtStepPlace ? step.textAtPlace ?? null : null,
     role: describeRole(step, state, viewerId),
   };
+}
+
+function describeCellarFor(step: CellarStep, state: GameState, players: readonly PlayerRecord[], viewerId: string): CellarView | null {
+  if (!state.cellar) return null;
+  const trappedId = Object.keys(state.roleByPlayer).find((playerId) => state.roleByPlayer[playerId].roleId === step.trappedRoleId);
+  const trappedName = players.find((player) => player.id === trappedId)?.name ?? '';
+  const isTrapped = trappedId === viewerId;
+  return describeCellar({ cellar: state.cellar, step, isTrapped, isTrappedHere: isTrapped && isAtGoal(step, state, viewerId), trappedName });
 }
 
 export function buildGameView({ game, mission, players, viewer }: {
@@ -375,6 +352,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       rooms: step.type === 'rooms' && state.rooms && isRunning
         ? describeRooms({ rooms: state.rooms, step, places, placeId: state.placeByPlayer[viewer.id], viewerId: viewer.id })
         : null,
+      cellar: step.type === 'cellar' && state.cellar && isRunning ? describeCellarFor(step, state, players, viewer.id) : null,
     },
     progress: showsLeaderTools
       ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))

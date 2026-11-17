@@ -7,6 +7,7 @@
 
 import { MAX_PLAYERS } from './lobby.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
+import { findCellarErrors } from './cellar.ts';
 import { describeRoomsSolution, findRoomsErrors } from './rooms.ts';
 import { SEANCE_LETTERS } from './seance.ts';
 
@@ -53,7 +54,17 @@ export type SceneStep = {
   textAtPlace?: string;
   /** Utan roller ser alla samma sak. */
   roles?: Role[];
+  /**
+   * Tillstånden som mobilen ber om när spelaren trycker Klar, så att ingen
+   * systemruta dyker upp mitt i en senare uppgift. Se docs/koncept.md,
+   * Mobilens funktioner.
+   */
+  asksFor?: Permission[];
 };
+
+/** Det som en mobil måste be om tillstånd för, eller låsa upp med ett tryck. */
+export const PERMISSIONS = ['sound', 'motion'] as const;
+export type Permission = (typeof PERMISSIONS)[number];
 
 /** Antal ledtrådar per uppgift, i stigande tydlighet. Se docs/koncept.md. */
 export const HINT_COUNT = 3;
@@ -115,8 +126,44 @@ export type RoomsStep = {
   solution: { guestByPlace: Partial<Record<PlaceId, string>> };
 };
 
+/**
+ * Källaren: en spelare är instängd i en mörk rundbild och de andra lotsar
+ * henne till en dold dörr. Se cellar.ts.
+ */
+export type CellarStep = {
+  id: string;
+  type: 'cellar';
+  /** Det alla ser. */
+  text: string;
+  goTo?: undefined;
+  textAtPlace?: undefined;
+  /** Den instängda rollen har en plats. De andra har bitar av beskrivningen av rummet. */
+  roles: Role[];
+  trappedRoleId: string;
+  /** Rundbilden, med sökväg från webbsidans rot. */
+  image: string;
+  /** Hur länge det tar innan det når henne, räknat från när hon kommer fram. */
+  minutes: number;
+  /** Hur många gånger de andra kan tända lampan, och hur länge den lyser. */
+  fuses: number;
+  lightMs: number;
+  /** Hur mycket närmare det kommer av ett tryck på fel ställe. */
+  wrongTapMs: number;
+  /** Det den instängda ser i rummet bakom. {name} blir hennes namn. */
+  foundText: string;
+  /** Det de andra ser när hon har hittat dörren. */
+  othersFoundText: string;
+  /** Det alla ser om det hann fram. */
+  caughtText: string;
+  /** Markeringen som senare steg och slut läser om det hann fram. */
+  markWhenCaught: string;
+  hints: string[];
+  /** Dörrens riktning i bilden, där 0 är bildens mitt och vinkeln växer åt höger. */
+  solution: { doorYawDeg: number; toleranceDeg: number };
+};
+
 /** Uppgifter är de steg som gruppen löser, med ledtrådar och facit. */
-export type TaskStep = AnswerStep | SeanceStep | RoomsStep;
+export type TaskStep = AnswerStep | SeanceStep | RoomsStep | CellarStep;
 
 export type MissionStep = SceneStep | TaskStep;
 
@@ -124,6 +171,7 @@ export type MissionStep = SceneStep | TaskStep;
 export function describeSolution(step: TaskStep, places: readonly Place[]): string {
   if (step.type === 'answer') return step.solution.answers[0];
   if (step.type === 'seance') return step.solution.message;
+  if (step.type === 'cellar') return `Dörren åt ${step.solution.doorYawDeg} grader i bilden`;
   return describeRoomsSolution(step, places);
 }
 
@@ -203,12 +251,14 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   const errors: string[] = [];
   if (!isFilledText(step.id)) errors.push('ett steg saknar id');
   const name = `steget ${String(step.id)}`;
-  if (!['scene', 'answer', 'seance', 'rooms'].includes(String(step.type))) errors.push(`${name} har en okänd typ: ${String(step.type)}`);
+  if (step.type === 'cellar') errors.push(...findHintErrors(step, name), ...findCellarErrors(step, name));
+  if (!['scene', 'answer', 'seance', 'rooms', 'cellar'].includes(String(step.type))) errors.push(`${name} har en okänd typ: ${String(step.type)}`);
   if (step.type === 'answer') errors.push(...findAnswerErrors(step, name));
   if (step.type === 'seance') errors.push(...findSeanceErrors(step, name));
   if (step.type === 'rooms') errors.push(...findHintErrors(step, name), ...findRoomsErrors(step, name, places));
   if (step.type === 'rooms' && (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined)) errors.push(`${name} har egna rum och kan inte ha plats eller roller`);
   if (step.type === 'scene' && (step.hints !== undefined || step.solution !== undefined)) errors.push(`${name} är en scen men har ledtrådar eller facit`);
+  if (step.asksFor !== undefined && !(step.type === 'scene' && Array.isArray(step.asksFor) && step.asksFor.every((item) => (PERMISSIONS as readonly unknown[]).includes(item)))) errors.push(`${name} ber om tillstånd som inte finns, eller är ingen scen`);
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);

@@ -2,7 +2,7 @@
   "format": 1,
   "id": "den-femte-gasten",
   "title": "Den femte gästen",
-  "minPlayers": 2,
+  "minPlayers": 3,
   "places": {
     "A": "Källaren",
     "B": "Hallen",
@@ -19,7 +19,11 @@
     {
       "id": "runt-bordet",
       "type": "scene",
-      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Tryck Klar när du sitter."
+      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Tryck Klar när du sitter. Frågar mobilen om rörelse, tryck Tillåt.",
+      "asksFor": [
+        "sound",
+        "motion"
+      ]
     },
     {
       "id": "seansen",
@@ -102,6 +106,64 @@
       "id": "ingen-vera",
       "type": "scene",
       "text": "Fyra gäster i fyra rum, och alla klockor stannade på kvart över nio. Men ingen såg Vera. Hon fanns inte i något av rummen när ljuset slocknade. Kom tillbaka till bordet och tryck Klar."
+    },
+    {
+      "id": "kallaren",
+      "type": "cellar",
+      "text": "Vera viskar: Det finns ett rum bakom källaren. En av er måste gå ner. Den som får källaren går till källarkortet. De andra stannar vid bordet och lotsar.",
+      "roles": [
+        {
+          "id": "instangd",
+          "title": "Du går ner i källaren",
+          "count": 1,
+          "isProminent": true,
+          "goTo": "A",
+          "pieces": [
+            "Dörren slår igen bakom dig. Stanna vid kortet. Vrid dig med mobilen och leta efter en dörr som inte finns på någon karta. Tryck på skärmen när den är mitt i ficklampan."
+          ]
+        },
+        {
+          "id": "lotsar",
+          "title": "Du lotsar från bordet",
+          "count": "rest",
+          "maxPiecesPerPlayer": 2,
+          "pieces": [
+            "Den dolda dörren sitter bakom hyllan med syltburkarna.",
+            "Hyllan med burkarna står mittemot vedtraven.",
+            "Från trappan: vänd dig åt vänster, förbi kistan, tills du ser burkarna.",
+            "Gungstolen står strax till vänster om hyllan.",
+            "Bakom hyllan drar det kallt. Där är springan.",
+            "Fönstret med galler leder ingenstans. Där finns ingen dörr.",
+            "Lyktan på tunnan lyser bara upp vedtraven.",
+            "Under trappan finns bara lådor och en tunna.",
+            "En spade lutar mot väggen bredvid hyllan."
+          ]
+        }
+      ],
+      "trappedRoleId": "instangd",
+      "image": "testsida/rundbilder/kallare-stor.webp",
+      "minutes": 4,
+      "fuses": 3,
+      "lightMs": 3000,
+      "wrongTapMs": 15000,
+      "foundText": "Bakom hyllan finns ett litet rum. På väggen står namn inristade, vart och ett överstruket och följt av nästa. Det sista är Vera. Under det håller någon på att rista in ett nytt namn: {name}. Berätta det för de andra genom dörren.",
+      "othersFoundText": "{name} har hittat något bakom hyllan. Det har blivit alldeles tyst i källaren. Fråga vad hon ser.",
+      "caughtText": "Lyktan slocknar. Något andas alldeles intill den som är i källaren. Sedan går källardörren upp av sig själv, och ingen hann se vad som fanns bakom hyllan.",
+      "markWhenCaught": "fewerNames",
+      "hints": [
+        "Den i källaren beskriver vad hon ser. Ni andra säger vart hon ska vända sig.",
+        "Slå på en säkring när hon tittar ungefär rätt, så ser hon hela väggen.",
+        "Dörren är bakom hyllan med syltburkarna, mittemot vedtraven."
+      ],
+      "solution": {
+        "doorYawDeg": -165,
+        "toleranceDeg": 20
+      }
+    },
+    {
+      "id": "vera-vill-byta",
+      "type": "scene",
+      "text": "Nu vet ni vad huset gör. Det behåller alltid en gäst, och Vera vill byta plats med en av er. Tryck Klar när ni har pratat färdigt."
     },
     {
       "id": "slut",

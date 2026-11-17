@@ -51,17 +51,44 @@
       ]
     },
     {
-      "id": "koket",
+      "id": "delas",
       "type": "scene",
-      "text": "Alla går till köket.",
-      "goTo": "C",
-      "textAtPlace": "Du står i köket. På bordet ligger en lapp där det står 42."
+      "text": "Gruppen delar på sig. Gå dit din skärm säger, och berätta inte vad du ser förrän ni är samlade igen.",
+      "roles": [
+        {
+          "id": "koket",
+          "title": "Du går till köket",
+          "count": 1,
+          "goTo": "C",
+          "pieces": [
+            "På bordet ligger en lapp. Där står det: Den första siffran är 4."
+          ]
+        },
+        {
+          "id": "hallen",
+          "title": "Du går till hallen",
+          "count": "rest",
+          "goTo": "B",
+          "pieces": [
+            "På spegeln har någon skrivit: Den sista siffran är 2.",
+            "Ytterdörren är stängd, men nyckeln sitter i.",
+            "En rock hänger på kroken och är fortfarande varm.",
+            "Det ligger lera på dörrmattan.",
+            "Lampan i taket blinkar två gånger och slocknar.",
+            "Någon har ställt ett par stövlar mot väggen.",
+            "Paraplyet i stället är blött.",
+            "Tapeten har en ljus fläck där en tavla har hängt.",
+            "Du hör steg på övervåningen, men ingen är där."
+          ],
+          "maxPiecesPerPlayer": 2
+        }
+      ]
     },
     {
-      "id": "hallen",
+      "id": "samlas",
       "type": "scene",
-      "text": "Gå till hallen. Den som läste lappen i köket säger vad det stod på den.",
-      "goTo": "B"
+      "text": "Samlas i biblioteket. Där får ni berätta för varandra vad ni såg.",
+      "goTo": "D"
     },
     {
       "id": "brevet",
@@ -99,13 +126,18 @@
     {
       "id": "lappen",
       "type": "answer",
-      "text": "Dörren till trädgården har ett kodlås. Koden är talet som stod på lappen i köket. Skriv in det.",
+      "text": "Dörren till trädgården har ett kodlås med två siffror. Den ena syntes i köket och den andra i hallen. Skriv in koden.",
       "hints": [
-        "Lappen låg på bordet i köket.",
-        "Den som läste lappen sa vad det stod på den när ni gick till hallen.",
-        "Talet är sex gånger sju."
+        "Den som var i köket såg den första siffran.",
+        "Den andra siffran stod på spegeln i hallen.",
+        "Koden är sex gånger sju."
       ],
-      "solution": { "answers": ["42", "fyrtiotvå"] }
+      "solution": {
+        "answers": [
+          "42",
+          "fyrtiotvå"
+        ]
+      }
     },
     {
       "id": "slut",

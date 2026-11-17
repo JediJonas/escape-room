@@ -32,6 +32,27 @@ function listSecrets(mission: Mission, stepIndex: number): string[] {
   ];
 }
 
+/** Platsen som spelaren ska till: rollens egen plats, annars stegets. */
+function findGoal(mission: Mission, state: GameState, player: PlayerRecord) {
+  const step = mission.steps[state.stepIndex];
+  const role = step.roles?.find((candidate) => candidate.id === state.roleByPlayer[player.id]?.roleId);
+  return role?.goTo ?? step.goTo;
+}
+
+function isAtGoal(mission: Mission, state: GameState, player: PlayerRecord): boolean {
+  const goal = findGoal(mission, state, player);
+  return goal !== undefined && state.placeByPlayer[player.id] === goal;
+}
+
+function goToGoals(mission: Mission, state: GameState, players: PlayerRecord[], movers: PlayerRecord[]): GameState {
+  let moved = state;
+  for (const player of movers) {
+    const goal = findGoal(mission, moved, player);
+    if (goal) moved = readState(choosePlace({ state: moved, mission, players, player, placeId: goal }));
+  }
+  return moved;
+}
+
 function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) {
   const game = { id: 'g', joinCode: 'BCDF', missionId: mission.id, state };
   const secrets = listSecrets(mission, state.stepIndex);
@@ -58,7 +79,10 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
   }
   // Alla bitar som behövs finns hos någon.
   for (const role of mission.steps[state.stepIndex].roles ?? []) {
-    const holders = Object.values(state.roleByPlayer).filter((assignment) => assignment.roleId === role.id).length;
+    const roleHolders = players.filter((player) => state.roleByPlayer[player.id]?.roleId === role.id);
+    // En roll med egen plats visar bitarna först där, så de räknas när alla är framme.
+    if (role.goTo !== undefined && !roleHolders.every((player) => isAtGoal(mission, state, player))) continue;
+    const holders = roleHolders.length;
     const reachable = Math.min(role.pieces.length, holders * (role.maxPiecesPerPlayer ?? role.pieces.length));
     // De viktigaste bitarna, de första, ska alltid finnas hos någon.
     assert.ok(role.pieces.slice(0, reachable).every((piece) => shown.has(piece)), `${mission.id} steg ${state.stepIndex + 1}: en bit i ${role.id} har ingen`);
@@ -73,11 +97,13 @@ for (const mission of MISSIONS) {
       let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, usesPlaceCards: true, minutes: 60, nowMs: 0 }));
       while (state.status === 'running') {
         // Var annan spelare går till rätt plats, så att både de som är där och de som inte är det kontrolleras.
-        const goTo = mission.steps[state.stepIndex].goTo;
-        if (goTo) {
-          for (const player of players.filter((_, index) => index % 2 === 0)) state = readState(choosePlace({ state, mission, players, player, placeId: goTo }));
-        }
+        state = goToGoals(mission, state, players, players.filter((_, index) => index % 2 === 0));
         checkStep(mission, state, players);
+        // När rollerna har egna platser kontrolleras vyerna igen med alla framme.
+        if (mission.steps[state.stepIndex].roles?.some((role) => role.goTo !== undefined)) {
+          state = goToGoals(mission, state, players, players);
+          checkStep(mission, state, players);
+        }
         // I en uppgift kontrolleras vyerna igen med alla ledtrådar och facit framme.
         if (mission.steps[state.stepIndex].type === 'answer') {
           while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));

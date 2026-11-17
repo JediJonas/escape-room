@@ -22,6 +22,12 @@ export type Role = {
   count: number | 'rest';
   /** En framträdande roll går i första hand till någon som inte har haft en. */
   isProminent?: boolean;
+  /**
+   * Platsen som rollen ska gå till, om den inte är densamma för alla. Då
+   * syns bitarna först när spelaren är framme, så att gruppen kan dela på sig
+   * i samma steg och var och en bara ser det som finns där den står.
+   */
+  goTo?: PlaceId;
   /** Viktigast först. Med få spelare och en gräns per spelare blir de sista över. */
   pieces: string[];
   /**
@@ -87,7 +93,7 @@ function isFilledText(value: unknown): value is string {
  * Kontrollerar rollerna i ett steg. Varje roll måste ha minst en bit per
  * spelare den kan få, även med tio spelare, så att två aldrig ser samma sak.
  */
-function findRoleErrors(roles: unknown, stepName: string, minPlayers: number): string[] {
+function findRoleErrors(roles: unknown, stepName: string, minPlayers: number, places: Record<string, unknown>): string[] {
   if (!Array.isArray(roles) || roles.length === 0) return [`${stepName} har roller som inte är en lista`];
   const errors: string[] = [];
   const fixedCount = roles.reduce((sum: number, role) => sum + (Number.isInteger(role?.count) ? role.count : 0), 0);
@@ -99,6 +105,7 @@ function findRoleErrors(roles: unknown, stepName: string, minPlayers: number): s
     if (!isFilledText(role?.id) || roleIds.has(role.id)) errors.push(`${stepName} har en roll utan id eller med samma id som en annan`);
     roleIds.add(role?.id);
     if (!isFilledText(role?.title)) errors.push(`${name} saknar titel`);
+    if (role?.goTo !== undefined && !(isPlaceId(role.goTo) && role.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(role.goTo)}`);
     const isRest = role?.count === 'rest';
     if (!isRest && !(Number.isInteger(role?.count) && role.count > 0)) errors.push(`${name} har ett ogiltigt antal`);
     if (!Array.isArray(role?.pieces) || !role.pieces.every(isFilledText)) {
@@ -131,7 +138,7 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);
-  if (step.roles !== undefined) errors.push(...findRoleErrors(step.roles, name, minPlayers));
+  if (step.roles !== undefined) errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
   return errors;
 }
 

@@ -1,13 +1,25 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { advanceStep, buildGameView, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
+import type { Mission } from './mission.ts';
 import { getMission } from './missions/index.ts';
 import { type GameRecord, type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
 const MISSION = getMission('prov')!;
 const LEADER: PlayerRecord = { id: 'p1', gameId: 'g', userId: 'u1', name: 'Ledare', isLeader: true, joinedAtMs: 1 };
 const GUEST: PlayerRecord = { ...LEADER, id: 'p2', userId: 'u2', name: 'Gäst', isLeader: false, joinedAtMs: 2 };
-const KITCHEN_STEP_INDEX = MISSION.steps.findIndex((step) => step.goTo === 'C');
+/** Ett litet uppdrag med en plats för alla, med och utan text där. */
+const PLACE_MISSION: Mission = {
+  ...MISSION,
+  steps: [
+    { id: 'start', type: 'scene', text: 'Start.' },
+    { id: 'koket', type: 'scene', text: 'Gå till köket.', goTo: 'C', textAtPlace: 'En lapp där det står 42.' },
+    { id: 'hallen', type: 'scene', text: 'Gå till hallen.', goTo: 'B' },
+    { id: 'slut', type: 'scene', text: 'Slut.' },
+  ],
+};
+const KITCHEN_STEP_INDEX = 1;
+const HALL_STEP_INDEX = 2;
 
 function readState(change: ReturnType<typeof startGame>): GameState {
   assert.ok('state' in change, JSON.stringify(change));
@@ -26,27 +38,29 @@ test('en spelare kan inte starta eller gå vidare, och spelet startar inte med f
   assert.deepEqual(advanceStep({ state: running, mission: MISSION, players: [LEADER, GUEST], player: GUEST }), { refusal: 'notLeader' });
 });
 
-test('efter sista steget är spelet slut och står kvar på sista steget', () => {
+test('spelet tar slut när gruppen kommer till sluttexten, och står kvar där', () => {
   const lastIndex = MISSION.steps.length - 1;
-  const state = readState(advanceStep({ state: { ...createInitialState(), status: 'running', stepIndex: lastIndex }, mission: MISSION, players: [LEADER, GUEST], player: LEADER }));
+  assert.equal(MISSION.steps[lastIndex].type, 'scene');
+  const state = readState(advanceStep({ state: { ...createInitialState(), status: 'running', stepIndex: lastIndex - 1 }, mission: MISSION, players: [LEADER, GUEST], player: LEADER }));
   assert.deepEqual({ status: state.status, stepIndex: state.stepIndex }, { status: 'finished', stepIndex: lastIndex });
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: 'prov', state }, mission: MISSION, players: [LEADER, GUEST], viewer: GUEST });
+  assert.deepEqual({ isFinished: view.isFinished, text: view.step.text, progress: view.progress }, { isFinished: true, text: MISSION.steps[lastIndex].text, progress: null });
 });
 
 test('platsen sparas per spelare och bara texten för den egna platsen syns', () => {
   const running: GameState = { ...createInitialState(), status: 'running', stepIndex: KITCHEN_STEP_INDEX };
-  const state = readState(choosePlace({ state: running, mission: MISSION, players: [LEADER, GUEST], player: GUEST, placeId: 'C' }));
+  const state = readState(choosePlace({ state: running, mission: PLACE_MISSION, players: [LEADER, GUEST], player: GUEST, placeId: 'C' }));
   assert.deepEqual(state.placeByPlayer, { p2: 'C' });
   const game: GameRecord = { id: 'g', joinCode: 'BCDF', missionId: 'prov', state };
-  const guestView = buildGameView({ game, mission: MISSION, players: [LEADER, GUEST], viewer: GUEST });
-  const leaderView = buildGameView({ game, mission: MISSION, players: [LEADER, GUEST], viewer: LEADER });
-  assert.equal(guestView.step.textAtPlace, MISSION.steps[KITCHEN_STEP_INDEX].textAtPlace);
+  const guestView = buildGameView({ game, mission: PLACE_MISSION, players: [LEADER, GUEST], viewer: GUEST });
+  const leaderView = buildGameView({ game, mission: PLACE_MISSION, players: [LEADER, GUEST], viewer: LEADER });
+  assert.equal(guestView.step.textAtPlace, PLACE_MISSION.steps[KITCHEN_STEP_INDEX].textAtPlace);
   assert.equal(leaderView.step.textAtPlace, null);
   assert.equal(leaderView.myPlace, null);
   // Ingen vy berättar var de andra är.
   assert.ok(!JSON.stringify(leaderView).includes('p2'));
 });
 
-const HALL_STEP_INDEX = MISSION.steps.findIndex((step) => step.goTo === 'B');
 const PLAYERS = [LEADER, GUEST];
 
 function runningAt(stepIndex: number): GameState {
@@ -67,24 +81,24 @@ test('scenen går vidare först när alla har tryckt Klar', () => {
 });
 
 test('med text på platsen trycker man Klar först när man är framme', () => {
-  assert.deepEqual(markReady({ state: runningAt(KITCHEN_STEP_INDEX), mission: MISSION, players: PLAYERS, player: GUEST }), { refusal: 'notAtPlace' });
+  assert.deepEqual(markReady({ state: runningAt(KITCHEN_STEP_INDEX), mission: PLACE_MISSION, players: PLAYERS, player: GUEST }), { refusal: 'notAtPlace' });
   let state = runningAt(KITCHEN_STEP_INDEX);
-  for (const player of PLAYERS) state = readState(choosePlace({ state, mission: MISSION, players: PLAYERS, player, placeId: 'C' }));
+  for (const player of PLAYERS) state = readState(choosePlace({ state, mission: PLACE_MISSION, players: PLAYERS, player, placeId: 'C' }));
   // Alla är framme men har inte läst lappen än.
   assert.equal(state.stepIndex, KITCHEN_STEP_INDEX);
-  for (const player of PLAYERS) state = readState(markReady({ state, mission: MISSION, players: PLAYERS, player }));
+  for (const player of PLAYERS) state = readState(markReady({ state, mission: PLACE_MISSION, players: PLAYERS, player }));
   assert.equal(state.stepIndex, KITCHEN_STEP_INDEX + 1);
 });
 
 test('en scen som bara skickar alla till en plats går vidare när den sista är framme', () => {
   let state = runningAt(HALL_STEP_INDEX);
-  state = readState(choosePlace({ state, mission: MISSION, players: PLAYERS, player: LEADER, placeId: 'B' }));
-  state = readState(choosePlace({ state, mission: MISSION, players: PLAYERS, player: GUEST, placeId: 'A' }));
+  state = readState(choosePlace({ state, mission: PLACE_MISSION, players: PLAYERS, player: LEADER, placeId: 'B' }));
+  state = readState(choosePlace({ state, mission: PLACE_MISSION, players: PLAYERS, player: GUEST, placeId: 'A' }));
   assert.equal(state.stepIndex, HALL_STEP_INDEX);
   const game: GameRecord = { id: 'g', joinCode: 'BCDF', missionId: 'prov', state };
-  const view = buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: LEADER });
+  const view = buildGameView({ game, mission: PLACE_MISSION, players: PLAYERS, viewer: LEADER });
   assert.deepEqual({ usesReadyButton: view.step.usesReadyButton, isMeDone: view.step.isMeDone }, { usesReadyButton: false, isMeDone: true });
-  state = readState(choosePlace({ state, mission: MISSION, players: PLAYERS, player: GUEST, placeId: 'B' }));
+  state = readState(choosePlace({ state, mission: PLACE_MISSION, players: PLAYERS, player: GUEST, placeId: 'B' }));
   assert.equal(state.stepIndex, HALL_STEP_INDEX + 1);
 });
 

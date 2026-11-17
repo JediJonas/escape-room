@@ -215,7 +215,9 @@ Den femte gästen är ett spökhusuppdrag på cirka 60 minuter med nio uppgifter
 
 ### Vad spelarna får veta
 
-En kväll 1962 hölls en seans i huset. Fem gäster kom, men bara fyra gick därifrån. Den femte, Vera, sågs aldrig mer. Spelarna upprepar seansen med mobilerna som instrument, och Vera svarar. Hon ber dem ta reda på vad som hände henne.
+Från början vet spelarna bara att de är ett gäng vänner som håller en seans i ett hus där det sägs spöka (Jonas 2026-11-17). Mobilerna är instrumenten. Någon svarar på brädet, säger att hon heter Vera och pekar på byrån.
+
+Resten tar de reda på själva. Av urklippen i byrån får de veta att en seans hölls i huset en kväll 1962, att fem unga gäster kom men bara fyra gick därifrån, och att den femte aldrig sågs mer. Att det var Vera förstår de när de har lagt ihop vem som var vem.
 
 ### Sann bakgrund, bara för systemet
 

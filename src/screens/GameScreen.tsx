@@ -2,8 +2,10 @@ import { type FormEvent, useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { BoardTouch } from '../../supabase/functions/game/seance.ts';
+import type { CellarMove } from '../../supabase/functions/game/cellar.ts';
 import { requestMotionPermission } from '../device/motion.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
+import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { RoomsTask } from '../tasks/RoomsTask.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
@@ -23,6 +25,7 @@ export type GameActions = {
   choosePlace: (placeId: PlaceId, source: 'scan' | 'list') => void;
   submitAnswer: (answer: string) => void;
   touchBoard: (touch: BoardTouch) => void;
+  moveInCellar: (move: CellarMove) => void;
   chooseGuest: (guest: string) => void;
   giveHint: () => void;
   showSolution: () => void;
@@ -43,7 +46,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [answer, setAnswer] = useState('');
   const [answeredStep, setAnsweredStep] = useState(view.step.number);
   const [cameraProblem, setCameraProblem] = useState('');
-  const [isSeanceMenuOpen, setIsSeanceMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const { step } = view;
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
@@ -62,22 +65,38 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (answeredStep !== view.step.number) {
     setAnsweredStep(view.step.number);
     setAnswer('');
-    setIsSeanceMenuOpen(false);
+    setIsMenuOpen(false);
     setHasLeftBoard(false);
   }
 
   // Under seansen fyller brädet skärmen. Texten, ledtrådarna och spelledarens knappar ligger i menyn.
   // När skenet har slocknat står brädet kvar tills spelaren själv lämnar det (Jonas 2026-11-17).
   const isBoardShown = step.seance !== null && !hasLeftBoard && !view.isFinished;
-  if (step.seance && isBoardShown && !isSeanceMenuOpen) {
+  if (step.seance && isBoardShown && !isMenuOpen) {
     return (
       <main className="seance-screen">
         <p className="hint game-header">
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
           {view.clock?.isPaused && <span className="paused">Pausat</span>}
-          <button type="button" className="secondary seance-menu-button" onClick={() => setIsSeanceMenuOpen(true)}>Meny</button>
+          <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
         </p>
         <SeanceBoard seance={step.seance} text={step.text} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} onLeave={() => setHasLeftBoard(true)} />
+      </main>
+    );
+  }
+  // I källaren ser den instängda bara mörkret och ficklampan. Resten ligger i menyn, som i seansen.
+  const { cellar } = step;
+  const isCellarShown = cellar?.image !== null && cellar?.image !== undefined && cellar.outcome === null && !view.isFinished;
+  const timeUpInCellar = () => game.moveInCellar({ type: 'timeUp' });
+  if (cellar?.image && isCellarShown && !isMenuOpen) {
+    return (
+      <main className="cellar-screen">
+        <p className="hint game-header">
+          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+          <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
+        </p>
+        <CellarDark cellar={cellar} image={cellar.image} clockOffsetMs={clockOffsetMs} onOpenDoor={(yawDeg) => game.moveInCellar({ type: 'openDoor', yawDeg })} onTimeUp={timeUpInCellar} />
+        <p className="error cellar-error" role="alert">{error}</p>
       </main>
     );
   }
@@ -86,7 +105,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const canAnswer = step.type === 'answer' && !view.isFinished && view.me.isPlaying;
 
   // Tillstånden måste begäras direkt i trycket, annars nekar iPhone. Svaret behövs inte här:
-  // en uppgift som använder rörelse frågar igen och har en reserv om svaret blev nej.
+  // en uppgift som använder rörelse lyssnar bara, och fingret tar över om inga värden kommer.
   function markReady() {
     if (step.asksFor.includes('sound')) gameAudio.unlock();
     if (step.asksFor.includes('motion')) void requestMotionPermission();
@@ -106,7 +125,15 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   // Knapparna ligger med huvudhandlingen underst, närmast tummen.
   const actions = [];
   if (isBoardShown) {
-    actions.push(<button key="board" type="button" onClick={() => setIsSeanceMenuOpen(false)}>Tillbaka till brädet</button>);
+    actions.push(<button key="board" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till brädet</button>);
+  }
+  if (isCellarShown) {
+    actions.push(<button key="cellar" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till källaren</button>);
+  }
+  // De andra tänder lampan i källaren. Det är deras huvudhandling medan hon letar.
+  const canFlipFuse = view.me.isPlaying && cellar !== null && !cellar.isTrapped && cellar.catchMs !== null && cellar.outcome === null && cellar.fusesLeft > 0;
+  if (canFlipFuse) {
+    actions.push(<button key="fuse" type="button" onClick={() => game.moveInCellar({ type: 'flipFuse' })} disabled={isBusy}>Tänd lampan i källaren</button>);
   }
   if (view.me.isLeader && !view.isFinished) {
     // För när någon har gått iväg och gruppen inte ska behöva vänta.
@@ -155,6 +182,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
           <input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" enterKeyHint="send" />
         </form>
       )}
+      {cellar && <CellarStatus cellar={cellar} clockOffsetMs={clockOffsetMs} onTimeUp={timeUpInCellar} />}
       {step.rooms && <RoomsTask rooms={step.rooms} clockOffsetMs={clockOffsetMs} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseGuest} />}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}

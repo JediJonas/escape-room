@@ -1,0 +1,97 @@
+/*
+ * Källaren fyller hela skärmen, som brädet i seansen. Mörkret ligger ovanpå
+ * rundbilden med ett hål i mitten, som ficklampans sken. När lampan i taket
+ * tänds försvinner mörkret en stund.
+ */
+.cellar-screen {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+  touch-action: none;
+  background: #000000;
+}
+
+.cellar-screen .game-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  margin: 0;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 1rem 0;
+  align-items: center;
+  color: rgb(230 220 200 / 0.8);
+  pointer-events: none;
+}
+
+.cellar-screen .game-header button { pointer-events: auto; }
+
+.round-view {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.round-view-canvas,
+.round-view-strip {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.round-view-canvas[hidden],
+.round-view-strip[hidden] { display: none; }
+
+.round-view-message {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  color: #e6dcc8;
+}
+
+.cellar-dark {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 0, transparent 18vmin, rgb(0 0 0 / 0.85) 30vmin, #000000 45vmin);
+  transition: opacity 0.15s;
+}
+
+.cellar-dark.is-lit { opacity: 0; }
+
+.cellar-status {
+  position: absolute;
+  left: 50%;
+  bottom: calc(0.5rem + var(--bottom-gap));
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  margin: 0;
+  padding: 0.5rem 1rem;
+  transform: translateX(-50%);
+  border-radius: 0.75rem;
+  background: rgb(0 0 0 / 0.75);
+  border: 1px solid rgb(230 220 200 / 0.25);
+  color: rgb(230 220 200 / 0.85);
+  text-align: center;
+  pointer-events: none;
+}
+
+.cellar-status p { margin: 0; }
+
+.cellar-threat { width: 100%; }
+
+/* Felet från servern, till exempel att säkringarna är slut, ligger under klockan. */
+.cellar-error {
+  position: absolute;
+  inset: calc(3.5rem + env(safe-area-inset-top)) 1rem auto;
+  z-index: 3;
+  text-align: center;
+  pointer-events: none;
+}

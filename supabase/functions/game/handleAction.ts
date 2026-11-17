@@ -8,7 +8,9 @@
 
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
-import { type StateChange, advanceStep, chooseGuest, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer, touchBoard } from './game.ts';
+import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
+import { chooseGuest, moveInCellar, touchBoard } from './taskActions.ts';
+import { readCellarMove } from './cellar.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts';
 import { getMission } from './missions/index.ts';
@@ -136,8 +138,9 @@ function findRecipients(scope: GameScope, change: StateChange): readonly PlayerR
 }
 
 async function choosePlaceAction(action: Action, context: Context): Promise<ActionResult> {
+  const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
-    const change = choosePlace({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, placeId: action.placeId });
+    const change = choosePlace({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, placeId: action.placeId, nowMs });
     // Varifrån platsen kom sparas bara i loggen. För motorn är det samma sak.
     const source = action.source === 'scan' ? 'scan' : 'list';
     return applyChange(scope, change, { action: { type: 'choosePlace', placeId: action.placeId, source }, recipients: findRecipients(scope, change) });
@@ -186,6 +189,18 @@ async function chooseGuestAction(action: Action, context: Context): Promise<Acti
   });
 }
 
+/** Allt i källaren syns hos alla: säkringarna, hur nära det är och hur det gick. */
+async function moveInCellarAction(action: Action, context: Context): Promise<ActionResult> {
+  const move = readCellarMove(action.move);
+  if (!move) return fail('unknownAction');
+  const nowMs = await context.store.readServerTimeMs();
+  return withParticipant(action, context, async (scope) => {
+    const change = moveInCellar({ state: scope.game.state, mission: scope.mission, player: scope.player, move, nowMs });
+    const isUnchanged = 'state' in change && change.state === scope.game.state;
+    return applyChange(scope, change, { action: { type: 'moveInCellar', move }, recipients: isUnchanged ? [] : undefined });
+  });
+}
+
 async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
     const change = giveHint({ state: scope.game.state, mission: scope.mission, player: scope.player });
@@ -214,6 +229,7 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   submitAnswer: submitAnswerAction,
   touchBoard: touchBoardAction,
   chooseGuest: chooseGuestAction,
+  moveInCellar: moveInCellarAction,
   giveHint: giveHintAction,
   showSolution: showSolutionAction,
   admitPlayer: (action, context) => answerPendingAction(action, context, true),

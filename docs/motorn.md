@@ -240,6 +240,18 @@ det. Bitarna syns bara för den som har rummet och står där. Ett fel val
 sparar till vilken tid rummet glömmer, och bara rummets spelare och
 spelledaren får en ny vy. Se `rooms.ts`.
 
+**Källaren** har typen `cellar`. Steget har roller som andra steg, där
+`trappedRoleId` pekar ut den instängda rollen, som har en egen plats.
+Rundbilden står i `image`, tiden i `minutes`, säkringarna i `fuses` och
+`lightMs`, och vad ett fel tryck kostar i `wrongTapMs`. Dörrens riktning i
+bilden ligger i `solution`. Tiden börjar när den instängda kommer fram, och
+servern sparar bara när det var, hur mycket fel tryck har kostat och hur
+många säkringar som är använda. När tiden har gått ut säger mobilerna till,
+och servern avgör. Hann det fram sätts `markWhenCaught` i tillståndets
+`marks`, som senare steg och slut läser. Rundbilden i spelet lyssnar på
+rörelsesensorn utan att fråga, eftersom tillståndet begärs i en scen
+tidigare (`asksFor`). Kommer inga värden styr fingret. Se `cellar.ts`.
+
 **Uppdraget väljs när spelet startar.** Spelledaren ser uppdragen i
 väntrummet och väljer ett när hon trycker Starta spelet. Spelet skapas med
 Provhuset.

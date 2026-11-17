@@ -1,87 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import type { GameStore, GameTransaction } from './gameStore.ts';
-import { handleAction } from './handleAction.ts';
-import { ROOM_FORGETS_MS } from './rooms.ts';
 import type { GameView } from './game.ts';
+import { handleAction } from './handleAction.ts';
 import type { LobbyView } from './lobby.ts';
-import type { GameRecord, PlayerRecord } from './state.ts';
-
-const SERVER_TIME = new Date('2026-11-16T20:00:00.123Z');
-
-/** En databas i minnet med samma regler som tabellerna i engine. */
-function createMemoryStore() {
-  const games: GameRecord[] = [];
-  const players: PlayerRecord[] = [];
-  const events: object[] = [];
-  const sentViews: { playerId: string; view: LobbyView | GameView }[] = [];
-  let nextId = 1;
-
-  const transaction: GameTransaction = {
-    async insertGame({ joinCode, missionId, state }) {
-      if (games.some((game) => game.joinCode === joinCode)) return null;
-      const game = { id: `game-${nextId++}`, joinCode, missionId, state };
-      games.push(game);
-      return game;
-    },
-    lockGameByCode: async (joinCode) => games.find((game) => game.joinCode === joinCode) ?? null,
-    lockGameById: async (gameId) => games.find((game) => game.id === gameId) ?? null,
-    async updateGameState(gameId, state) {
-      const game = games.find((candidate) => candidate.id === gameId);
-      if (game) game.state = state;
-    },
-    async updateGameMission(gameId, missionId) {
-      const game = games.find((candidate) => candidate.id === gameId);
-      if (game) game.missionId = missionId;
-    },
-    listPlayers: async (gameId) => players.filter((player) => player.gameId === gameId),
-    async insertPlayer({ gameId, userId, name, isLeader }) {
-      const player = { id: `player-${nextId}`, gameId, userId, name, isLeader, joinedAtMs: nextId++ };
-      players.push(player);
-      return player;
-    },
-    async deletePlayer(playerId) {
-      players.splice(players.findIndex((player) => player.id === playerId), 1);
-    },
-    async updatePlayerUser(playerId, userId) {
-      const player = players.find((candidate) => candidate.id === playerId);
-      if (player) player.userId = userId;
-    },
-    async logEvent(event) {
-      events.push(event);
-    },
-    async sendView(playerId, view) {
-      sentViews.push({ playerId, view: view as LobbyView | GameView });
-    },
-  };
-  // Testerna kan flytta klockan framåt, till exempel för att skenet i seansen ska hinna glida.
-  const clock = { nowMs: SERVER_TIME.getTime() };
-  const store: GameStore = {
-    readServerTimeMs: async () => clock.nowMs,
-    transaction: (work) => work(transaction),
-  };
-  return { store, games, players, events, sentViews, clock };
-}
-
-function createContext(store: GameStore, userId: string, joinCodes = ['BCDF']) {
-  const codes = [...joinCodes];
-  return { userId, store, createJoinCode: () => codes.shift() ?? 'ZZZZ' };
-}
-
-async function send(store: GameStore, userId: string, action: unknown) {
-  return handleAction({ action, context: createContext(store, userId) });
-}
-
-function readView(body: object): LobbyView {
-  return (body as { view: LobbyView }).view;
-}
-
-async function createGameWithPlayers(names: string[]) {
-  const memory = createMemoryStore();
-  await send(memory.store, 'user-leader', { type: 'createGame', name: 'Ledare' });
-  for (const name of names) await send(memory.store, `user-${name}`, { type: 'joinGame', joinCode: 'BCDF', name });
-  return memory;
-}
+import { SERVER_TIME, createContext, createGameWithPlayers, createMemoryStore, readGameView, readView, send } from './memoryStore.ts';
 
 test('ping svarar med databasens klocka i millisekunder', async () => {
   const result = await send(createMemoryStore().store, 'user-1', { type: 'ping' });
@@ -174,9 +96,6 @@ test('spelledaren kan inte lämna, för då står spelet', async () => {
   assert.equal(memory.players.length, 2);
 });
 
-function readGameView(body: object): GameView {
-  return (body as { view: GameView }).view;
-}
 
 test('bara spelledaren kan starta, och först när det minsta antalet spelare är med', async () => {
   const alone = await createGameWithPlayers([]);
@@ -353,7 +272,7 @@ test('spelledaren kan neka den som väntar, och kan stå utanför spelet', async
 });
 
 test('spelledaren väljer uppdrag när hon startar, och ett okänt uppdrag ger ett fel', async () => {
-  const memory = await createGameWithPlayers(['Bo']);
+  const memory = await createGameWithPlayers(['Bo', 'Cia']);
   const gameId = memory.games[0].id;
   assert.deepEqual(await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'finns-inte' }), { status: 500, body: { error: 'unknownMission' } });
   const view = readGameView((await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' })).body);
@@ -363,7 +282,7 @@ test('spelledaren väljer uppdrag när hon startar, och ett okänt uppdrag ger e
 
 /** Startar Den femte gästen med Bo och går fram till seansen. */
 async function startSeanceWithBo() {
-  const memory = await createGameWithPlayers(['Bo']);
+  const memory = await createGameWithPlayers(['Bo', 'Cia']);
   const gameId = memory.games[0].id;
   await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
   let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
@@ -379,6 +298,7 @@ test('i seansen glider skenet när alla följer, och bokstaven lyser hos alla n�
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'fuska' }), { status: 400, body: { error: 'unknownAction' } });
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'submitAnswer', gameId, answer: 'HJÄLP MIG' }), { status: 409, body: { error: 'notATask' } });
 
+  await send(memory.store, 'user-Cia', { type: 'touchBoard', gameId, touch: 'onGlow' });
   const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'onGlow' })).body);
   assert.deepEqual(leaderView.step.seance?.waitingFor, ['Bo']);
   assert.equal(leaderView.step.seance?.movesFromMs, null);
@@ -390,9 +310,9 @@ test('i seansen glider skenet när alla följer, och bokstaven lyser hos alla n�
   memory.clock.nowMs += boView.step.seance?.segment.durationMs ?? 0;
   memory.sentViews.length = 0;
   await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'arrived' });
-  // Bokstaven H är tagen, och båda får en ny vy där skenet är på väg mot nästa.
+  // Bokstaven H är tagen, och alla får en ny vy där skenet är på väg mot nästa.
   const letterIndexes = memory.sentViews.map(({ view: sent }) => (sent as GameView).step.seance?.letterIndex ?? null);
-  assert.deepEqual(letterIndexes, [1, 1]);
+  assert.deepEqual(letterIndexes, [1, 1, 1]);
 
   // Den andra mobilen som säger till ändrar ingenting, och ingen får en ny vy.
   memory.sentViews.length = 0;
@@ -410,8 +330,7 @@ test('i seansen glider skenet när alla följer, och bokstaven lyser hos alla n�
 test('när meddelandet är klart trycker alla Klar och går vidare', async () => {
   const { memory, gameId, view: start } = await startSeanceWithBo();
   assert.equal(start.step.usesReadyButton, false);
-  await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'onGlow' });
-  await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'onGlow' });
+  for (const user of ['user-leader', 'user-Bo', 'user-Cia']) await send(memory.store, user, { type: 'touchBoard', gameId, touch: 'onGlow' });
   let view = start;
   for (let letter = 0; letter < (start.step.seance?.letterCount ?? 0); letter += 1) {
     memory.clock.nowMs += GLIDE_WAIT_MS;
@@ -420,31 +339,8 @@ test('när meddelandet är klart trycker alla Klar och går vidare', async () =>
   assert.equal(view.step.seance?.isComplete, true);
   assert.equal(view.step.usesReadyButton, true);
   await send(memory.store, 'user-leader', { type: 'markReady', gameId });
+  await send(memory.store, 'user-Cia', { type: 'markReady', gameId });
   view = readGameView((await send(memory.store, 'user-Bo', { type: 'markReady', gameId })).body);
   assert.equal(view.step.number, start.step.number + 1);
   assert.equal(view.step.seance, null);
-});
-
-test('i Rummen minns får bara rummets spelare och spelledaren en ny vy efter ett fel val', async () => {
-  const memory = await createGameWithPlayers(['Bo', 'Cia']);
-  const gameId = memory.games[0].id;
-  await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
-  let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
-  while (view.step.type !== 'rooms') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
-  // Med tre spelare har Cia biblioteket ensam.
-  const cia = readGameView((await send(memory.store, 'user-Cia', { type: 'choosePlace', gameId, placeId: 'D', source: 'list' })).body);
-  assert.equal(cia.step.rooms?.current?.place.name, 'Biblioteket');
-
-  memory.sentViews.length = 0;
-  const wrong = readGameView((await send(memory.store, 'user-Cia', { type: 'chooseGuest', gameId, guest: 'Vera' })).body);
-  assert.equal(wrong.step.rooms?.current?.forgetsUntilMs, memory.clock.nowMs + ROOM_FORGETS_MS);
-  assert.equal(memory.sentViews.length, 2);
-  assert.deepEqual(await send(memory.store, 'user-Cia', { type: 'chooseGuest', gameId, guest: 'Margit' }), { status: 409, body: { error: 'roomForgets' } });
-
-  memory.clock.nowMs += ROOM_FORGETS_MS;
-  memory.sentViews.length = 0;
-  const right = readGameView((await send(memory.store, 'user-Cia', { type: 'chooseGuest', gameId, guest: 'Margit' })).body);
-  assert.equal(right.step.rooms?.current?.guest, 'Margit');
-  assert.equal(memory.sentViews.length, 3);
-  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'chooseGuest', gameId, guest: 'Sven' }), { status: 409, body: { error: 'notAtPlace' } });
 });

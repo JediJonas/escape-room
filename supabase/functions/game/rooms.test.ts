@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { buildGameView, chooseGuest, choosePlace, startGame } from './game.ts';
+import { buildGameView, choosePlace, startGame } from './game.ts';
+import { chooseGuest } from './taskActions.ts';
 import type { Mission, RoomsStep } from './mission.ts';
 import { getMission } from './missions/index.ts';
 import { ROOM_FORGETS_MS, chooseGuest as chooseGuestInRoom, dealRooms, describeRooms, readRoomsState, startRooms } from './rooms.ts';
@@ -84,7 +85,7 @@ test('gruppen går vidare när alla rum har rätt gäst, och spelledaren ser vil
   const guests = ['Elsa', 'Sven', 'Margit', 'Arvid'];
   STEP.rooms.forEach((room, index) => {
     const player = PLAYERS[index];
-    state = readState(choosePlace({ state, mission: MISSION, players: PLAYERS, player, placeId: room.place }));
+    state = readState(choosePlace({ state, mission: MISSION, players: PLAYERS, player, placeId: room.place, nowMs: 0 }));
     if (index === 0) assert.deepEqual(chooseGuest({ state, mission: MISSION, players: PLAYERS, player: PLAYERS[1], guest: 'Elsa', nowMs: 0 }), { refusal: 'notAtPlace' });
     state = readState(chooseGuest({ state, mission: MISSION, players: PLAYERS, player, guest: guests[index], nowMs: 0 }));
     if (index === 0) {

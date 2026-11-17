@@ -7,6 +7,7 @@
 import { type GameClock, readGameClock } from './clock.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import type { RoleAssignment } from './roles.ts';
+import { type CellarState, readCellarState } from './cellar.ts';
 import { type RoomsState, readRoomsState } from './rooms.ts';
 import { type SeanceState, readSeanceState } from './seance.ts';
 
@@ -44,6 +45,10 @@ export type GameState = {
   seance: SeanceState | null;
   /** Rummen och vilka som är lösta medan gruppen är i Rummen minns, annars null. */
   rooms: RoomsState | null;
+  /** Källarens läge medan gruppen är i källaren, annars null. */
+  cellar: CellarState | null;
+  /** Följder som senare steg och slut läser, till exempel att gruppen får färre namn. */
+  marks: string[];
 };
 
 export type GameRecord = {
@@ -63,7 +68,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null };
+  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null, cellar: null, marks: [] };
 }
 
 /**
@@ -96,6 +101,8 @@ export function readGameState(saved: unknown): GameState {
     clock: readGameClock(fields.clock),
     seance: readSeanceState(fields.seance),
     rooms: readRoomsState(fields.rooms),
+    cellar: readCellarState(fields.cellar),
+    marks: readStringList(fields.marks),
   };
 }
 

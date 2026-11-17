@@ -6,7 +6,8 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame, touchBoard } from './game.ts';
+import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
+import { moveInCellar, touchBoard } from './taskActions.ts';
 import { MAX_PLAYERS } from './lobby.ts';
 import { listParticipants } from './participants.ts';
 import { type Mission, listPlaces, listSolutionTexts } from './mission.ts';
@@ -22,6 +23,10 @@ function readState(change: ReturnType<typeof startGame>): GameState {
   return change.state;
 }
 
+function findLongestPartWithoutName(text: string): string {
+  return text.split('{name}').reduce((longest, part) => (part.length > longest.length ? part : longest), '');
+}
+
 /** Varje text i steget som bara vissa ska se: platsens text, alla bitar, ledtrådarna och facit. */
 function listSecrets(mission: Mission, stepIndex: number): string[] {
   const step = mission.steps[stepIndex];
@@ -31,6 +36,8 @@ function listSecrets(mission: Mission, stepIndex: number): string[] {
     ...(step.hints ?? []),
     ...listSolutionTexts(step, listPlaces(mission)),
     ...(step.type === 'rooms' ? step.rooms.flatMap((room) => room.pieces) : []),
+    // Texterna efteråt har den instängdas namn i sig, så den längsta delen utan namnet räcker.
+    ...(step.type === 'cellar' ? [step.foundText, step.othersFoundText, step.caughtText].map(findLongestPartWithoutName) : []),
   ];
 }
 
@@ -50,7 +57,7 @@ function goToGoals(mission: Mission, state: GameState, players: PlayerRecord[], 
   let moved = state;
   for (const player of movers) {
     const goal = findGoal(mission, moved, player);
-    if (goal) moved = readState(choosePlace({ state: moved, mission, players, player, placeId: goal }));
+    if (goal) moved = readState(choosePlace({ state: moved, mission, players, player, placeId: goal, nowMs: 0 }));
   }
   return moved;
 }
@@ -65,6 +72,8 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     const allowed = new Set([
       ...(view.step.role?.pieces ?? []),
       ...(view.step.rooms?.current?.pieces ?? []),
+      // Texten efteråt i källaren är bara den som spelaren själv ska se.
+      ...secrets.filter((secret) => view.step.cellar?.outcomeText?.includes(secret)),
       ...(view.step.textAtPlace ? [view.step.textAtPlace] : []),
       ...view.step.hints,
       // Facit får bara synas hos spelledaren, och bara när hon har bett om det.
@@ -105,7 +114,7 @@ function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord
   for (let round = 0; round < mostVisits; round += 1) {
     for (const player of participants) {
       const visit = state.rooms.visitsByPlayer[player.id]?.[round];
-      if (visit) visited = readState(choosePlace({ state: visited, mission, players: participants, player, placeId: visit.place }));
+      if (visit) visited = readState(choosePlace({ state: visited, mission, players: participants, player, placeId: visit.place, nowMs: 0 }));
     }
     checkStep(mission, visited, players);
     for (const viewer of participants) {
@@ -115,6 +124,18 @@ function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord
   }
   for (const room of step.rooms) for (const piece of room.pieces) assert.ok(seen.has(piece), `${mission.id}: ingen ser ${piece} med ${participants.length} spelare`);
   return visited;
+}
+
+/** Den instängda hittar dörren, och vyerna kontrolleras med det dolda rummet framme. */
+function findCellarDoor(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
+  const step = mission.steps[state.stepIndex];
+  if (step.type !== 'cellar') return state;
+  const trapped = participants.find((player) => state.roleByPlayer[player.id]?.roleId === step.trappedRoleId);
+  assert.ok(trapped, `${mission.id}: ingen är instängd med ${participants.length} spelare`);
+  const found = readState(moveInCellar({ state, mission, player: trapped, move: { type: 'openDoor', yawDeg: step.solution.doorYawDeg }, nowMs: 1 }));
+  assert.equal(found.cellar?.outcome, 'found');
+  checkStep(mission, found, players);
+  return found;
 }
 
 /** Lång nog för att skenet ska hinna fram till vilken bokstav som helst. */
@@ -153,6 +174,7 @@ for (const mission of MISSIONS) {
         // I en seans kontrolleras vyerna efter varje bokstav, när någon ser den.
         if (mission.steps[state.stepIndex].type === 'seance') state = followWholeSeance(mission, state, players, participants);
         state = visitAllRooms(mission, state, players, participants);
+        state = findCellarDoor(mission, state, players, participants);
         // I en uppgift kontrolleras vyerna igen med alla ledtrådar och facit framme.
         if (mission.steps[state.stepIndex].type !== 'scene') {
           while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));

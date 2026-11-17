@@ -62,7 +62,7 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
     const [saved] = await sql`select state from engine.games where id = ${gameId}`;
     // Klockan startar med databasens tid, så den jämförs för sig.
     const { clock, ...rest } = saved.state;
-    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], seance: null, rooms: null });
+    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], seance: null, rooms: null, cellar: null, marks: [] });
     assert.equal(clock.durationMs, 60 * 60_000);
     assert.equal(clock.pausedAtMs, null);
 
@@ -78,7 +78,9 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
   test('spelledaren väljer uppdrag när hon startar, och valet sparas', async () => {
     const created = await send(LEADER, { type: 'createGame', name: 'Ledare' }, ['HJKL']);
     const { gameId } = (created.body as { view: LobbyView }).view;
+    // Den femte gästen kräver tre spelare.
     await send(GUEST, { type: 'joinGame', joinCode: 'HJKL', name: 'Gäst' });
+    await send(NEW_PHONE, { type: 'joinGame', joinCode: 'HJKL', name: 'Tredje' });
     assert.equal((await send(LEADER, { type: 'startGame', gameId, missionId: 'den-femte-gasten' })).status, 200);
     const [game] = await sql`select mission_id, state->'seance'->>'letterIndex' as letter_index from engine.games where id = ${gameId}`;
     assert.deepEqual({ ...game }, { mission_id: 'den-femte-gasten', letter_index: null });

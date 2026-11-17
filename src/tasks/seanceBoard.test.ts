@@ -13,7 +13,6 @@ const VIEW: SeanceView = {
   letterCount: 5,
   waitingFor: ['Bo', 'Cia'],
   isMeOnGlow: false,
-  myLetter: null,
   isComplete: false,
   brokenBy: null,
 };

@@ -28,7 +28,7 @@ function describeLetterTurn(seance: SeanceView): string {
  */
 export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: {
   seance: SeanceView;
-  /** Uppgiftens text. Den står där bokstaven visas, så länge ingen bokstav syns. */
+  /** Uppgiftens text, ovanför brädet. */
   text: string;
   clockOffsetMs: number;
   /** Spelledaren som står utanför ser brädet men har ingen planchett. */
@@ -137,17 +137,7 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
   const isWaiting = !seance.isComplete && seance.movesFromMs === null;
   return (
     <section className="seance" aria-label="Seansen">
-      {/* Raden har fast höjd, så att brädet inte flyttar sig under fingret när en bokstav dyker upp. */}
-      <p className="seance-letter" role="status">
-        {seance.myLetter
-          ? (
-            <>
-              <span className="seance-letter-hint">{seance.myLetter.startsWord && seance.letterIndex > 1 ? 'Nytt ord. Säg högt:' : 'Säg högt:'}</span>
-              {seance.myLetter.letter}
-            </>
-          )
-          : <span className="seance-instruction">{text}</span>}
-      </p>
+      <p className="seance-instruction">{text}</p>
       <div
         className={`seance-board${seance.isComplete ? ' is-complete' : ''}`}
         aria-label={canTouch ? 'Brädet. Håll fingret på planchetten och följ skenet.' : 'Brädet'}

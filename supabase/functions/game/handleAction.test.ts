@@ -373,7 +373,7 @@ async function startSeanceWithBo() {
 /** Lång nog för att skenet ska hinna fram till vilken bokstav som helst. */
 const GLIDE_WAIT_MS = 60_000;
 
-test('i seansen glider skenet när alla följer, och bokstaven förstoras bara hos en mobil', async () => {
+test('i seansen glider skenet när alla följer, och bokstaven lyser hos alla när skenet når den', async () => {
   const { memory, gameId } = await startSeanceWithBo();
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'fuska' }), { status: 400, body: { error: 'unknownAction' } });
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'submitAnswer', gameId, answer: 'HJÄLP MIG' }), { status: 409, body: { error: 'notATask' } });
@@ -389,8 +389,9 @@ test('i seansen glider skenet när alla följer, och bokstaven förstoras bara h
   memory.clock.nowMs += boView.step.seance?.segment.durationMs ?? 0;
   memory.sentViews.length = 0;
   await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'arrived' });
-  const letters = memory.sentViews.map(({ view: sent }) => (sent as GameView).step.seance?.myLetter?.letter ?? null);
-  assert.deepEqual(letters, ['H', null]);
+  // Bokstaven H är tagen, och båda får en ny vy där skenet står på den.
+  const takenCells = memory.sentViews.map(({ view: sent }) => (sent as GameView).step.seance?.takenCell ?? null);
+  assert.deepEqual(takenCells, [7, 7]);
 
   // Den andra mobilen som säger till ändrar ingenting, och ingen får en ny vy.
   memory.sentViews.length = 0;

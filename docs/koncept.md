@@ -245,7 +245,7 @@ Varje plats finns i två tider: som den är nu och som den var kvällen 1962 (Jo
 
 Alla platser är rundbilder, i båda tiderna (Jonas 2026-11-17). En del saker i bilden går att trycka på, som seansbordet och golvuret i salongen eller byrån i biblioteket, och då öppnas en vy där spelaren gör något. Uppgiftens skärm är alltså en vy som man kommer till från rundbilden.
 
-- **Hittat.** Under bilden finns en lista med det gruppen har hittat. Den fylls på i takt med att något hittas och är gemensam för hela gruppen. Seansen finns där från början. Urklippen kommer in när någon har hittat dem i byrån, golvuret när någon har vridit det första gången och källardörren när den är hittad (Jonas 2026-11-17).
+- **Hittat.** Under bilden finns en lista med det gruppen har hittat. Den fylls på i takt med att något hittas och är gemensam för hela gruppen. Seansen finns där från början. Urklippen kommer in när någon har hittat dem i byrån, golvuret när någon har vridit det första gången och källardörren när någon har hittat den i hallen (Jonas 2026-11-17).
 - **Lätt att komma tillbaka.** Det som står i listan går att öppna var spelaren än står. Att hitta något första gången kräver att man står vid rätt kort.
 - **Reserv.** Listan är också reserven för den som inte hittar i bilden eller inte klarar rundvisaren.
 
@@ -258,6 +258,10 @@ Varje uppgift ger vägen till nästa (Jonas 2026-11-17).
 3. Golvuret tar gruppen till minnet.
 4. I minnet visar Rummen minns var gästerna var.
 
+### Källardörren och nyckeln
+
+Källardörren finns i hallens rundbild (Jonas 2026-11-17). Den går att hitta tidigt, och då hamnar den i Hittat, men den som försöker öppna den får veta att den är låst. Nyckeln behövs för att komma ner i uppgift 7 (Jonas 2026-11-17). Ritningen visar var nyckeln ligger, i en lönnlåda i byrån, så att gruppen inte kan hoppa direkt till källaren.
+
 ### Flöde
 
 | Nr | Uppgift | Typ | Tempo | Vad gruppen får veta |
@@ -265,9 +269,9 @@ Varje uppgift ger vägen till nästa (Jonas 2026-11-17).
 | 1 | Seansen | Samtidigt | Lugnt | Vera finns kvar i huset och vill ha hjälp |
 | 2 | Tidningsurklippen | Dokumentet, Delat vittnesmål | Lugnt | Vilka de fem gästerna var och hur man känner igen dem |
 | 3 | Rummen minns | Splittrade rum | Lugnt | Vera fanns inte i något rum när ljuset slocknade |
-| 4 | Pianot | Orkestern, Ett öra | Realtid | Melodin som spelades under seansen öppnar biblioteket |
+| 4 | Pianot | Orkestern, Ett öra | Realtid | Melodin som spelades när ljuset slocknade kallar fram Vera |
 | 5 | Vera minns | Tystad | Lugnt | De fyra gästerna låste källardörren själva |
-| 6 | Ritningen | Skärmar ihop | Lugnt | Det finns ett rum bakom källaren |
+| 6 | Ritningen | Skärmar ihop | Lugnt | Det finns ett rum bakom källaren, och var nyckeln ligger |
 | 7 | Källaren | Instängd, Lotsen | Realtid | Vändningen: Vera vill byta plats med en av dem |
 | 8 | Hon letar | Lotsen, i hela huset | Realtid | Namnen på alla som huset har tagit |
 | 9 | Bryta kedjan | Samtidigt, med ett val | Realtid | Slutet |
@@ -282,13 +286,13 @@ Akt 1 är uppgift 1–2, akt 2 är uppgift 3–7 och akt 3 är uppgift 8–9.
 
 **3. Rummen minns.** Urklippen leder till golvuret (se Kedjan genom akt 1). När någon har vridit tillbaka tiden går spelarna till var sitt platskort och ser minnet. Rummen är hallen, köket, biblioteket och sovrummet. Källaren sparas till uppgift 7. I minnet syns en gäst utan namn, med ett kännetecken som en röd sjal eller ett pärlhalsband, och en detalj som en stannad klocka. Inga röster säger några namn (Jonas 2026-11-17). Vem gästen är vet gruppen bara från Tidningsurklippen, så spelarna måste ropa mellan rummen och lägga ihop vad de ser med vad de har läst. Sedan samlas gruppen och anger var alla fem gästerna stod, med Vera "ingenstans", i ett enda svar. Ett fel svar kostar tid. Det går därför inte att gissa sig fram rum för rum. Vid tre spelare tar en spelare två rum och går mellan dem. Vid fem eller fler delar flera på ett rum och ser olika delar av det. Rummen visas som text tills mekaniken är provad och får sedan bilder från Gemini. Den första versionen, med röster och ett val per rum, var för lätt vid provspel.
 
-**4. Pianot.** En spelare hör en melodi i sin mobil och ingen annan hör den. De övriga har några tangenter var. Lyssnaren nynnar och dirigerar, och gruppen spelar melodin ton för ton i rätt ordning. Ett fel ger en falsk ton och ett nytt försök.
+**4. Pianot.** En spelare hör en melodi i sin mobil och ingen annan hör den. De övriga har några tangenter var. Lyssnaren nynnar och dirigerar, och gruppen spelar melodin ton för ton i rätt ordning. Ett fel ger en falsk ton och ett nytt försök. Pianot står i hallen, och i minnet av hallen står det öppet med noter på. Melodin är den som spelades när ljuset slocknade 1962, och när gruppen spelar den kommer Vera så nära att hon kan ta över en mobil.
 
-**5. Vera minns.** Vera tar över en mobil. Den spelaren ser ett minne från källartrappan men får inte prata, bara knacka en gång för ja och två för nej. De andra frågar sig fram till vad som hände: gästerna låste dörren och sprang.
+**5. Vera minns.** Vera tar över en mobil. Den spelaren ser ett minne från källartrappan men får inte prata, bara knacka en gång för ja och två för nej. De andra frågar sig fram till vad som hände: gästerna låste dörren och sprang. Sist knackar hon fram sovrummet, där ritningen finns.
 
-**6. Ritningen.** Varje mobil visar en bit av husets ritning. Spelarna lägger mobilerna bredvid varandra på bordet och vrider dem tills väggarna möts. Den färdiga ritningen visar ett rum bakom källaren som inte finns på någon annan karta.
+**6. Ritningen.** Varje mobil visar en bit av husets ritning. Spelarna lägger mobilerna bredvid varandra på bordet och vrider dem tills väggarna möts. Den färdiga ritningen visar ett rum bakom källaren som inte finns på någon annan karta, och en lönnlåda i byrån där nyckeln till källardörren ligger.
 
-**7. Källaren.** Vera ber en spelare gå ner och skanna källarkortet. Dörren slår igen. Den instängdas mobil blir en ficklampa i ett mörkt rum, och hon ser sig omkring genom att vrida på mobilen, med fingret som reserv. De andra stannar vid bordet. De har var sin bit av en beskrivning av källaren, till exempel att den dolda dörren sitter bakom hyllan med syltburkarna, och lotsar henne mot det dolda rummet medan något kommer närmare. De har också proppskåpet: tre säkringar som tänder källarlampan i tre sekunder hos den instängda. När dörren är mitt i ficklampan trycker hon på skärmen. Ett tryck på fel ställe hörs och för det närmare. Bakom dörren hittar hon namnen på väggen, och bara hon ser dem. Hinner det fram släpps hon ändå ut, men med färre namn till finalen. Första versionen använder källarbilden från testsidan och en beskrivning i text, eftersom Ritningen inte är byggd. En ny och läskigare källare tas fram med Gemini när mekaniken är provad.
+**7. Källaren.** Gruppen låser upp källardörren i hallen med nyckeln, och Vera ber en spelare gå ner och skanna källarkortet. Dörren slår igen. Den instängdas mobil blir en ficklampa i ett mörkt rum, och hon ser sig omkring genom att vrida på mobilen, med fingret som reserv. De andra stannar vid bordet. De har var sin bit av en beskrivning av källaren, till exempel att den dolda dörren sitter bakom hyllan med syltburkarna, och lotsar henne mot det dolda rummet medan något kommer närmare. De har också proppskåpet i köket: tre säkringar som tänder källarlampan i tre sekunder hos den instängda. När dörren är mitt i ficklampan trycker hon på skärmen. Ett tryck på fel ställe hörs och för det närmare. Bakom dörren hittar hon namnen på väggen, och bara hon ser dem. Hinner det fram släpps hon ändå ut, men med färre namn till finalen. Första versionen använder källarbilden från testsidan och en beskrivning i text, eftersom Ritningen inte är byggd. En ny och läskigare källare tas fram med Gemini när mekaniken är provad.
 
 **8. Hon letar.** Vera söker nu igenom huset. Spelarna ska hämta en sak vid varje platskort, men får bara röra sig när hon tittar åt ett annat håll. En utkik ser på sin skärm vart hon vänder sig och ropar "stilla!". Mobilen känner av den som rör sig för sent, och den spelaren får börja om från salongen. Reserv om rörelsesensorn saknas: spelaren håller in en knapp medan hon står stilla.
 

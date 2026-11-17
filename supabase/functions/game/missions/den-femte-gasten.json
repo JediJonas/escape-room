@@ -19,7 +19,11 @@
     {
       "id": "runt-bordet",
       "type": "scene",
-      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Tryck Klar när du sitter."
+      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Tryck Klar när du sitter. Frågar mobilen om rörelse, tryck Tillåt.",
+      "asksFor": [
+        "sound",
+        "motion"
+      ]
     },
     {
       "id": "seansen",

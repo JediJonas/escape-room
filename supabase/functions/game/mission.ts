@@ -53,7 +53,17 @@ export type SceneStep = {
   textAtPlace?: string;
   /** Utan roller ser alla samma sak. */
   roles?: Role[];
+  /**
+   * Tillstånden som mobilen ber om när spelaren trycker Klar, så att ingen
+   * systemruta dyker upp mitt i en senare uppgift. Se docs/koncept.md,
+   * Mobilens funktioner.
+   */
+  asksFor?: Permission[];
 };
+
+/** Det som en mobil måste be om tillstånd för, eller låsa upp med ett tryck. */
+export const PERMISSIONS = ['sound', 'motion'] as const;
+export type Permission = (typeof PERMISSIONS)[number];
 
 /** Antal ledtrådar per uppgift, i stigande tydlighet. Se docs/koncept.md. */
 export const HINT_COUNT = 3;
@@ -209,6 +219,7 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   if (step.type === 'rooms') errors.push(...findHintErrors(step, name), ...findRoomsErrors(step, name, places));
   if (step.type === 'rooms' && (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined)) errors.push(`${name} har egna rum och kan inte ha plats eller roller`);
   if (step.type === 'scene' && (step.hints !== undefined || step.solution !== undefined)) errors.push(`${name} är en scen men har ledtrådar eller facit`);
+  if (step.asksFor !== undefined && !(step.type === 'scene' && Array.isArray(step.asksFor) && step.asksFor.every((item) => (PERMISSIONS as readonly unknown[]).includes(item)))) errors.push(`${name} ber om tillstånd som inte finns, eller är ingen scen`);
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);

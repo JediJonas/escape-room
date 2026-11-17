@@ -119,3 +119,10 @@ test('rummen måste ha bitar nog för tio spelare och en gäst i facit', () => {
   assert.match(findMissionErrors(rooms({ guests: ['Elsa', 'Elsa'] })).join(), /minst två gäster med olika namn/);
   assert.match(findMissionErrors(rooms({ goTo: 'B' })).join(), /kan inte ha plats eller roller/);
 });
+
+test('bara en scen kan be om tillstånd, och bara om ljud och rörelse', () => {
+  const scene = (fields: object) => ({ ...VALID, steps: [{ ...VALID.steps[0], ...fields }] });
+  assert.deepEqual(findMissionErrors(scene({ asksFor: ['sound', 'motion'] })), []);
+  assert.match(findMissionErrors(scene({ asksFor: ['camera'] })).join(), /ber om tillstånd som inte finns/);
+  assert.match(findMissionErrors(scene({ asksFor: 'motion' })).join(), /ber om tillstånd som inte finns/);
+});

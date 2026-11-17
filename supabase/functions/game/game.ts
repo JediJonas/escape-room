@@ -5,7 +5,7 @@
  */
 
 import { type ClockView, describeClock, pauseClock, resumeClock, startClock } from './clock.ts';
-import { type Mission, type MissionStep, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
+import { type Mission, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
@@ -286,6 +286,8 @@ export type GameView = {
     text: string;
     goTo: Place | null;
     textAtPlace: string | null;
+    /** Tillstånden som mobilen ber om när spelaren trycker Klar. */
+    asksFor: Permission[];
     /** Spelarens roll i steget och bara hennes egna bitar. */
     role: { title: string; pieces: string[] } | null;
     type: MissionStep['type'];
@@ -332,6 +334,7 @@ function describeStep(step: MissionStep, state: GameState, places: readonly Plac
   const isAtStepPlace = goal === step.goTo && isAtGoal(step, state, viewerId);
   return {
     text: step.text,
+    asksFor: step.type === 'scene' ? step.asksFor ?? [] : [],
     goTo: findPlace(places, goal),
     textAtPlace: isAtStepPlace ? step.textAtPlace ?? null : null,
     role: describeRole(step, state, viewerId),

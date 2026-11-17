@@ -2,6 +2,8 @@ import { type FormEvent, useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { BoardTouch } from '../../supabase/functions/game/seance.ts';
+import { requestMotionPermission } from '../device/motion.ts';
+import { gameAudio } from '../sound/gameAudio.ts';
 import { RoomsTask } from '../tasks/RoomsTask.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
@@ -83,6 +85,14 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   // Spelledaren som står utanför svarar inte och trycker inte Klar.
   const canAnswer = step.type === 'answer' && !view.isFinished && view.me.isPlaying;
 
+  // Tillstånden måste begäras direkt i trycket, annars nekar iPhone. Svaret behövs inte här:
+  // en uppgift som använder rörelse frågar igen och har en reserv om svaret blev nej.
+  function markReady() {
+    if (step.asksFor.includes('sound')) gameAudio.unlock();
+    if (step.asksFor.includes('motion')) void requestMotionPermission();
+    game.markReady();
+  }
+
   function submitAnswer(event: FormEvent) {
     event.preventDefault();
     if (answer.trim()) game.submitAnswer(answer);
@@ -109,7 +119,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     actions.push(<button key="scan" type="button" className={shownInput === 'list' ? 'secondary' : undefined} onClick={() => setPlaceInput('scan')}>Skanna platskortet</button>);
   }
   if (view.me.isPlaying && !needsPlace && step.usesReadyButton && !step.isMeDone && !view.isFinished) {
-    actions.push(<button key="ready" type="button" onClick={game.markReady} disabled={isBusy}>Klar</button>);
+    actions.push(<button key="ready" type="button" onClick={markReady} disabled={isBusy}>Klar</button>);
   }
   if (canAnswer) {
     actions.push(<button key="answer" type="submit" form={ANSWER_FORM_ID} disabled={isBusy || !answer.trim()}>Svara</button>);

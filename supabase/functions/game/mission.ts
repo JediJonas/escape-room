@@ -8,6 +8,7 @@
 import { MAX_PLAYERS } from './lobby.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import { findCellarErrors } from './cellar.ts';
+import { type House, findHouseErrors } from './house.ts';
 import { describeRoomsSolution, findRoomsErrors } from './rooms.ts';
 import { SEANCE_LETTERS } from './seance.ts';
 
@@ -200,6 +201,8 @@ export type Mission = {
   /** Konceptet säger tre, men ett provuppdrag får ange färre (Jonas 2026-11-17). */
   minPlayers: number;
   places: Partial<Record<PlaceId, string>>;
+  /** Rummen i mobilen. Utan hus väljer spelarna plats på kortet eller i listan. */
+  house?: House;
   steps: MissionStep[];
 };
 
@@ -316,6 +319,7 @@ export function findMissionErrors(data: unknown): string[] {
     stepIds.add(stepFields.id);
     errors.push(...findStepErrors(stepFields, places ?? {}, Number.isInteger(minPlayers) ? minPlayers as number : 0));
   }
+  if (mission.house !== undefined) errors.push(...findHouseErrors(mission.house, places ?? {}, [...stepIds]));
   return errors;
 }
 

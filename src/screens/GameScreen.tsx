@@ -12,6 +12,7 @@ import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
 import { PlaceScanner } from './PlaceScanner.tsx';
 import { DocumentList, FoundView } from './FoundDocuments.tsx';
+import { RoomList, ThingContent } from './HouseView.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
@@ -27,6 +28,8 @@ export type GameActions = {
   submitAnswer: (answer: string) => void;
   touchBoard: (touch: BoardTouch) => void;
   moveInCellar: (move: CellarMove) => void;
+  walk: (placeId: PlaceId) => void;
+  searchRoom: () => void;
   chooseGuest: (guest: string) => void;
   giveHint: () => void;
   showSolution: () => void;
@@ -50,6 +53,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const [isFoundOpen, setIsFoundOpen] = useState(false);
+  const [openThingId, setOpenThingId] = useState<string | null>(null);
   const { step } = view;
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
   // I Rummen minns kan spelaren ha ett rum kvar att gå till fast hon står i ett annat.
@@ -70,12 +74,49 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     setIsMenuOpen(false);
     setHasLeftBoard(false);
     setIsFoundOpen(false);
+    setOpenThingId(null);
   }
 
   if (isFoundOpen) {
     return (
       <ScreenLayout actions={<button type="button" onClick={() => setIsFoundOpen(false)}>Tillbaka</button>}>
         <FoundView found={view.found} />
+      </ScreenLayout>
+    );
+  }
+
+  // I huset öppnar en sak alltid en vy, och Tillbaka går till rummet (Jonas 2026-11-17).
+  const { house } = view;
+  const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
+  const closeThing = <button key="close" type="button" className="secondary" onClick={() => setOpenThingId(null)}>Tillbaka</button>;
+  if (openThing && !openThing.opensCurrentStep) {
+    return (
+      <ScreenLayout actions={closeThing}>
+        <ThingContent thing={openThing} found={view.found} />
+      </ScreenLayout>
+    );
+  }
+  // Ett steg som öppnas från en sak, som seansen från ouijabrädet, syns först när spelaren har öppnat saken.
+  const showsStep = step.opensFrom === null || openThing !== null || view.isFinished || !house;
+  if (!showsStep && house) {
+    const houseActions = [];
+    if (view.me.isLeader) houseActions.push(<button key="skip" type="button" className="secondary" onClick={game.nextStep} disabled={isBusy}>Hoppa över uppgiften</button>);
+    if (view.me.isPlaying && house.canSearch) houseActions.push(<button key="search" type="button" onClick={game.searchRoom} disabled={isBusy}>Leta i rummet</button>);
+    return (
+      <ScreenLayout actions={houseActions.length > 0 ? houseActions : <p className="hint">Gå runt i huset och leta.</p>}>
+        <p className="hint game-header">
+          <span>{view.missionTitle} · steg {step.number} av {step.count}</span>
+          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+        </p>
+        {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
+        <RoomList house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
+        {step.hints.length > 0 && (
+          <section className="hint-card" aria-label="Ledtrådar">
+            {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
+          </section>
+        )}
+        <LeaderPanel view={view} isBusy={isBusy} onSetPaused={game.setPaused} onGiveHint={game.giveHint} onShowSolution={game.showSolution} onAnswerPending={game.answerPending} />
+        <p className="error" role="alert">{error}</p>
       </ScreenLayout>
     );
   }
@@ -135,6 +176,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
 
   // Knapparna ligger med huvudhandlingen underst, närmast tummen.
   const actions = [];
+  if (openThing) actions.push(closeThing);
   if (isBoardShown) {
     actions.push(<button key="board" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till brädet</button>);
   }
@@ -174,7 +216,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
       </p>
       {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
-      {view.found.length > 0 && <button type="button" className="secondary small found-button" onClick={() => setIsFoundOpen(true)}>Hittat</button>}
+      {view.found.length > 0 && !house && <button type="button" className="secondary small found-button" onClick={() => setIsFoundOpen(true)}>Hittat</button>}
       <p className="scene-text">{step.text}</p>
       <DocumentList documents={step.documents} />
       {step.role && (

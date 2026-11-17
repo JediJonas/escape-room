@@ -278,6 +278,15 @@ hamnar steget i Hittat när gruppen lämnar det: servern sparar vem som hade
 vilka bitar i tillståndets `found`, och varje spelare ser sedan dokumenten
 och bara sina egna bitar. Se `found.ts`.
 
+**Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
+rum dörrarna och sakerna. En sak har en text att visa eller ett steg som den
+öppnar (`opensStep`), och kan hittas först från ett visst steg (`fromStep`).
+Var spelaren är sparas i `placeByPlayer`, som platskorten använder, och det
+gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr,
+och `searchRoom` hittar det som berättelsen har kommit till i rummet. Ett
+steg som öppnas från en sak syns i mobilen först när spelaren har öppnat
+saken. Dörrarna kontrolleras så att de går åt båda hållen. Se `house.ts`.
+
 **Uppdraget väljs när spelet startar.** Spelledaren ser uppdragen i
 väntrummet och väljer ett när hon trycker Starta spelet. Spelet skapas med
 Provhuset.

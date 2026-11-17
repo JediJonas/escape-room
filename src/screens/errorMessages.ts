@@ -26,6 +26,7 @@ const MESSAGES: Record<ActionError, string> = {
   wrongAnswer: 'Det stämmer inte. Försök igen.',
   notTrapped: 'Det kan bara den andra sidan av källardörren göra.',
   noMoreFuses: 'Säkringarna är slut.',
+  noDoor: 'Det finns ingen dörr dit härifrån.',
   roomForgets: 'Rummet minns inte just nu. Vänta en stund.',
   noMoreHints: 'Uppgiften har inga fler ledtrådar.',
   unknownMission: 'Uppdraget finns inte längre. Starta ett nytt spel.',

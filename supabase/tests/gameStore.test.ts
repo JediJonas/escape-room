@@ -54,6 +54,12 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
 
     const reloaded = await send(GUEST, { type: 'getView', gameId });
     assert.deepEqual((reloaded.body as { view: LobbyView }).view, guestView);
+
+    // Tillståndet sparas och läses tillbaka när spelet startar och spelaren väljer plats.
+    assert.equal((await send(LEADER, { type: 'startGame', gameId, usesPlaceCards: false })).status, 200);
+    assert.equal((await send(GUEST, { type: 'choosePlace', gameId, placeId: 'C', source: 'list' })).status, 200);
+    const [saved] = await sql`select state from engine.games where id = ${gameId}`;
+    assert.deepEqual(saved.state, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' } });
   });
 
   test('en kod som redan används byts, och ett id som inte är ett uuid ger inget fel', async () => {

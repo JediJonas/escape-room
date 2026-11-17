@@ -101,3 +101,20 @@ button.secondary {
 
 .viewport-probe div { display: flex; gap: 0.5rem; justify-content: space-between; }
 .viewport-probe dd { margin: 0; }
+
+.checkbox-field { display: flex; gap: 0.6rem; align-items: flex-start; }
+.checkbox-field input { width: 1.5rem; height: 1.5rem; margin: 0.1rem 0 0; flex: none; accent-color: var(--accent); }
+
+.scene-text { font-size: 1.2rem; line-height: 1.45; }
+
+/* Det som bara den som står på platsen ser. */
+.place-text {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--accent);
+  border-radius: 0.4rem;
+  background: var(--surface);
+}
+
+.place-list { display: grid; gap: 0.5rem; margin: 0 0 0.75rem; padding: 0; border: 0; }
+.place-list legend { margin-bottom: 0.5rem; padding: 0; font-weight: 600; }
+.place-list button { width: 100%; }

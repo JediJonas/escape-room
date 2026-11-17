@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { LobbyView } from '../../supabase/functions/game/lobby.ts';
+import type { PlaceId } from '../../supabase/functions/game/places.ts';
+import type { PlayerView } from '../../supabase/functions/game/views.ts';
 import { CreateGameScreen } from '../screens/CreateGameScreen.tsx';
 import { getErrorMessage } from '../screens/errorMessages.ts';
+import { GameScreen } from '../screens/GameScreen.tsx';
 import { JoinGameScreen } from '../screens/JoinGameScreen.tsx';
 import { LobbyScreen } from '../screens/LobbyScreen.tsx';
 import { StartScreen } from '../screens/StartScreen.tsx';
@@ -15,7 +17,7 @@ type Screen =
   | { name: 'start' }
   | { name: 'create' }
   | { name: 'join'; joinCode: string }
-  | { name: 'lobby'; view: LobbyView };
+  | { name: 'game'; view: PlayerView };
 
 const SHOWS_VIEWPORT_PROBE = new URLSearchParams(location.search).has('matt');
 
@@ -25,14 +27,14 @@ function getScreenWithoutGame(): Screen {
   return joinCode ? { name: 'join', joinCode } : { name: 'start' };
 }
 
-/** Startsidan: skapa ett spel eller gå med, och sedan väntrummet. */
+/** Startsidan: skapa ett spel eller gå med, väntrummet och sedan spelet. */
 export function App() {
   const [screen, setScreen] = useState<Screen>(() => (readSavedGameId() ? { name: 'loading' } : getScreenWithoutGame()));
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState('');
-  const lobbyView = screen.name === 'lobby' ? screen.view : null;
-  const playerId = lobbyView?.me.playerId ?? null;
-  const gameId = lobbyView?.gameId ?? null;
+  const currentView = screen.name === 'game' ? screen.view : null;
+  const playerId = currentView?.me.playerId ?? null;
+  const gameId = currentView?.gameId ?? null;
 
   const showScreen = useCallback((next: Screen) => {
     setError('');
@@ -48,7 +50,7 @@ export function App() {
     if (!response.view) return;
     saveGameId(response.view.gameId);
     history.replaceState(null, '', removeJoinCodeFromUrl(location.href));
-    showScreen({ name: 'lobby', view: response.view });
+    showScreen({ name: 'game', view: response.view });
   }, [showScreen]);
 
   // Efter en omladdning hämtas spelet som mobilen var med i.
@@ -66,13 +68,13 @@ export function App() {
     });
   }, [showResponse, showScreen]);
 
-  // I väntrummet kommer nya vyer i spelarens kanal. När kanalen öppnas och
+  // Nya vyer kommer i spelarens kanal. När kanalen öppnas och
   // när mobilen vaknar hämtas vyn, ifall något har missats under tiden.
   useEffect(() => {
     if (!playerId || !gameId) return;
     const refresh = () => {
       callGame({ type: 'getView', gameId }).then((response) => {
-        if (response.ok && response.view) setScreen({ name: 'lobby', view: response.view });
+        if (response.ok && response.view) setScreen({ name: 'game', view: response.view });
       });
     };
     const refreshWhenVisible = () => {
@@ -80,7 +82,7 @@ export function App() {
     };
     let stopListening: (() => void) | null = null;
     let isCurrent = true;
-    listenToPlayerView({ playerId, onView: (view) => setScreen({ name: 'lobby', view }), onListening: refresh })
+    listenToPlayerView({ playerId, onView: (view) => setScreen({ name: 'game', view }), onListening: refresh })
       .then((stop) => {
         if (isCurrent) stopListening = stop;
         else stop();
@@ -123,6 +125,23 @@ export function App() {
     showScreen({ name: 'start' });
   }
 
+  /** Skickar en handling i spelet och visar den nya vyn, eller felet. */
+  async function sendInGame(action: { type: string } & Record<string, unknown>) {
+    if (!gameId) return;
+    const response = await send({ ...action, gameId });
+    if (!response.ok) setError(getErrorMessage(response.error));
+    else if (response.view) setScreen({ name: 'game', view: response.view });
+  }
+
+  const startGame = (usesPlaceCards: boolean) => sendInGame({ type: 'startGame', usesPlaceCards });
+  const nextStep = () => sendInGame({ type: 'nextStep' });
+  const choosePlace = (placeId: PlaceId, source: 'scan' | 'list') => sendInGame({ type: 'choosePlace', placeId, source });
+
+  function leaveFinishedGame() {
+    saveGameId(null);
+    showScreen({ name: 'start' });
+  }
+
   const goToStart = () => showScreen({ name: 'start' });
 
   return (
@@ -137,8 +156,11 @@ export function App() {
       {screen.name === 'join' && (
         <JoinGameScreen initialCode={screen.joinCode} initialName={readSavedPlayerName()} isBusy={isBusy} error={error} onJoin={joinGame} onBack={goToStart} />
       )}
-      {screen.name === 'lobby' && (
-        <LobbyScreen view={screen.view} joinUrl={buildJoinUrl(location.href, screen.view.joinCode)} isBusy={isBusy} error={error} onLeave={leaveGame} />
+      {screen.name === 'game' && screen.view.type === 'lobby' && (
+        <LobbyScreen view={screen.view} joinUrl={buildJoinUrl(location.href, screen.view.joinCode)} isBusy={isBusy} error={error} onLeave={leaveGame} onStart={startGame} />
+      )}
+      {screen.name === 'game' && screen.view.type === 'game' && (
+        <GameScreen view={screen.view} isBusy={isBusy} error={error} onNextStep={nextStep} onChoosePlace={choosePlace} onLeave={leaveFinishedGame} />
       )}
       {SHOWS_VIEWPORT_PROBE && <ViewportProbe />}
     </>

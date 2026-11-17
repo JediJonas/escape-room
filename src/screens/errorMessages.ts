@@ -15,6 +15,11 @@ const MESSAGES: Record<ActionError, string> = {
   leaderCannotLeave: 'Spelledaren kan inte lämna spelet.',
   noFreeJoinCode: 'Det gick inte att skapa ett spel just nu. Försök igen.',
   unknownAction: 'Sidan och servern förstår inte varandra. Ladda om sidan.',
+  notLeader: 'Bara spelledaren kan göra det.',
+  tooFewPlayers: 'Det är för få spelare för att starta.',
+  notRunning: 'Spelet är inte igång.',
+  unknownPlace: 'Den platsen finns inte i uppdraget.',
+  unknownMission: 'Uppdraget finns inte längre. Starta ett nytt spel.',
 };
 
 export function getErrorMessage(code: string): string {

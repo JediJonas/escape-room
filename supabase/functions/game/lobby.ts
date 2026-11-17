@@ -3,32 +3,14 @@
  * spelet startar. Rena funktioner utan databas, se docs/motorn.md.
  */
 
+import type { Mission } from './mission.ts';
+import type { GameRecord, GameState, PlayerRecord } from './state.ts';
+
 export const MAX_PLAYERS = 10;
 export const MAX_NAME_LENGTH = 20;
 
 /** Uppdraget som nya spel får tills spelledaren kan välja (steg 4). */
-export const DEFAULT_MISSION_ID = 'den-femte-gasten';
-
-/** Spelets hela tillstånd. Motorn äger formen och fyller på i senare steg. */
-export type GameState = {
-  status: 'lobby' | 'running';
-};
-
-export type GameRecord = {
-  id: string;
-  joinCode: string;
-  missionId: string;
-  state: GameState;
-};
-
-export type PlayerRecord = {
-  id: string;
-  gameId: string;
-  userId: string;
-  name: string;
-  isLeader: boolean;
-  joinedAtMs: number;
-};
+export const DEFAULT_MISSION_ID = 'prov';
 
 /**
  * Det enda en mobil får veta i väntrummet. Andra spelares id skickas inte,
@@ -38,15 +20,13 @@ export type LobbyView = {
   type: 'lobby';
   gameId: string;
   joinCode: string;
+  missionTitle: string;
+  minPlayers: number;
   me: { playerId: string; name: string; isLeader: boolean };
   players: { name: string; isLeader: boolean; isMe: boolean }[];
 };
 
 export type JoinRefusal = 'invalidName' | 'gameStarted' | 'gameFull' | 'nameTaken';
-
-export function createInitialState(): GameState {
-  return { status: 'lobby' };
-}
 
 /** Tar bort mellanslag runt namnet och slår ihop flera mellanslag till ett. */
 export function cleanPlayerName(input: unknown): string | null {
@@ -78,13 +58,28 @@ export function findJoinRefusal({ state, players, name }: {
   return null;
 }
 
-export function buildLobbyView(game: GameRecord, players: readonly PlayerRecord[], viewer: PlayerRecord): LobbyView {
-  const playersInJoinOrder = [...players].sort((first, second) => first.joinedAtMs - second.joinedAtMs);
+export function sortByJoinOrder(players: readonly PlayerRecord[]): PlayerRecord[] {
+  return [...players].sort((first, second) => first.joinedAtMs - second.joinedAtMs);
+}
+
+export function describeViewer(viewer: PlayerRecord) {
+  return { playerId: viewer.id, name: viewer.name, isLeader: viewer.isLeader };
+}
+
+export function buildLobbyView({ game, mission, players, viewer }: {
+  game: GameRecord;
+  mission: Mission;
+  players: readonly PlayerRecord[];
+  viewer: PlayerRecord;
+}): LobbyView {
+  const playersInJoinOrder = sortByJoinOrder(players);
   return {
     type: 'lobby',
     gameId: game.id,
     joinCode: game.joinCode,
-    me: { playerId: viewer.id, name: viewer.name, isLeader: viewer.isLeader },
+    missionTitle: mission.title,
+    minPlayers: mission.minPlayers,
+    me: describeViewer(viewer),
     players: playersInJoinOrder.map((player) => ({
       name: player.name,
       isLeader: player.isLeader,

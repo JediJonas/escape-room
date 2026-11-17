@@ -230,9 +230,10 @@ Det som skiljer:
   och skicka vyer genom PeerJS. Här gör serverfunktionen det. Motorn körs
   därför i Supabase och i testerna, men inte i mobilen. Mobilen hämtar bara
   typerna och några små delade funktioner därifrån, som koden att ansluta med.
-- **Uppdragsfilerna ligger utanför `src/`,** i `missions/`, så att bygget
-  aldrig tar med dem. Ett test kontrollerar att ingen fil i webbsidan
-  importerar dem.
+- **Uppdragsfilerna ligger utanför `src/`,** i
+  `supabase/functions/game/missions/`, så att bygget aldrig tar med dem och
+  Supabase lägger ut dem med serverfunktionen (Jonas 2026-11-17). Ett test
+  kontrollerar att ingen fil i webbsidan importerar dem.
 - **Rörelser går förbi React.** Lutning och riktning kommer många gånger i
   sekunden och ritas direkt, som rundvisaren gör i dag. React ritar skärmarna
   runt omkring.
@@ -298,7 +299,13 @@ och 5 miljoner per månad, och projektet pausas aldrig.
    inte spelledaren, eftersom spelet då står utan ledare.
 3. **Plats och roll.** Spelarna väljer plats med kort eller lista. Ett
    provuppdrag med några scener ger olika spelare olika texter, så att
-   rollfördelning och privata vyer går att se med flera mobiler.
+   rollfördelning och privata vyer går att se med flera mobiler. Byggs i två
+   delar. Den första ger spelledaren knappen Starta spelet, där platskorten
+   kan väljas bort, och en tillfällig knapp Nästa som ersätts i steg 4. En
+   scen kan skicka spelarna till en plats, och texten där syns bara hos den
+   som har kommit fram. Uppdragsfilen anger sitt minsta antal spelare, och
+   provuppdraget Provhuset tillåter två (Jonas 2026-11-17). Den andra delen
+   ger roller och bitar.
 4. **Spelledarvyn.** Starta, pausa, ge ledtråd, hoppa över, visa facit på
    begäran och låta en mobil ta över en spelare.
 

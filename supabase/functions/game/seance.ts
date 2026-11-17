@@ -223,9 +223,26 @@ export function findGlowProgress(seance: SeanceView, serverNowMs: number): numbe
 }
 
 /** Punkten på sträckan, där 0 är början och 1 är bokstaven. */
+/**
+ * Hur stor del av skenets fart som är jämn. Resten följer en mjuk kurva, så
+ * att skenet börjar sakta, går fortast mitt på sträckan och bromsar in mot
+ * bokstaven (Jonas 2026-11-17). Det börjar då med 30 procent av medelfarten
+ * och går som fortast med 135 procent.
+ */
+const STEADY_SHARE = 0.3;
+const SMOOTHSTEP_SQUARE = 3;
+
+/** Var på sträckan skenet syns, när en viss del av tiden har gått. Tiden går jämnt, men farten varierar. */
+export function easeGlow(progress: number): number {
+  // Kurvan smoothstep: 3p² − 2p³.
+  const smooth = progress * progress * (SMOOTHSTEP_SQUARE - 2 * progress);
+  return STEADY_SHARE * progress + (1 - STEADY_SHARE) * smooth;
+}
+
 export function findPointOnSegment(segment: GlowSegment, progress: number): BoardPoint {
   const { from, to } = segment;
-  return { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress };
+  const share = easeGlow(progress);
+  return { x: from.x + (to.x - from.x) * share, y: from.y + (to.y - from.y) * share };
 }
 
 export function findGlowPoint(seance: SeanceView, serverNowMs: number): { point: BoardPoint; hasArrived: boolean } {

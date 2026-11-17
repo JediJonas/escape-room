@@ -132,6 +132,9 @@
   left: 50%;
   right: auto;
   bottom: calc(0.5rem + var(--bottom-gap));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   width: max-content;
   max-width: calc(100% - 2rem);
   transform: translateX(-50%);
@@ -141,6 +144,9 @@
   border: 1px solid rgb(230 220 200 / 0.25);
   text-shadow: none;
 }
+
+.seance-status p { margin: 0; }
+.seance-status button { pointer-events: auto; }
 
 /* Instruktionen står mitt på brädet tills spelaren lägger fingret på det. Den finns också i menyn. */
 .seance-instruction {

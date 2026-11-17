@@ -7,7 +7,7 @@
  * sparad. En vy kan därför aldrig gå ut för ett tillstånd som inte finns.
  */
 
-import { VIEW_EVENT, getPlayerTopic } from './channels.ts';
+import { SEANCE_EVENT, VIEW_EVENT, getGroupTopic, getPlayerTopic } from './channels.ts';
 import { type GameRecord, type GameState, type PlayerRecord, readGameState } from './state.ts';
 
 /** Den del av postgres-bibliotekets sql som spelet använder. */
@@ -32,6 +32,8 @@ export type GameTransaction = {
   updatePlayerUser(playerId: string, userId: string): Promise<void>;
   logEvent(event: { gameId: string; playerId: string | null; action: object }): Promise<void>;
   sendView(playerId: string, view: object): Promise<void>;
+  /** Skickar seansens läge en gång till alla i spelet. */
+  sendSeance(gameId: string, update: object): Promise<void>;
 };
 
 export type GameStore = {
@@ -129,6 +131,9 @@ function createTransaction(sql: Sql): GameTransaction {
     async sendView(playerId, view) {
       // Sista argumentet gör meddelandet privat, så att kanalens regler gäller.
       await sql`select realtime.send(${toJsonText(view)}::text::jsonb, ${VIEW_EVENT}, ${getPlayerTopic(playerId)}, true)`;
+    },
+    async sendSeance(gameId, update) {
+      await sql`select realtime.send(${toJsonText(update)}::text::jsonb, ${SEANCE_EVENT}, ${getGroupTopic(gameId)}, true)`;
     },
   };
 }

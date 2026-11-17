@@ -116,7 +116,7 @@ test('ingen vy innehåller meddelandet, och alla ser samma sak utom sin egen pla
   let round = { seance: startSeance(), nowMs: 0 };
   while (!describe(round.seance, 'p0').isComplete) {
     round = takeNextLetter(round.seance, round.nowMs);
-    const views = IDS.map((id) => JSON.stringify({ ...describe(round.seance, id), isMeOnGlow: null }));
+    const views = IDS.map((id) => JSON.stringify({ ...describe(round.seance, id), isMeOnGlow: null, myFollowOrder: null }));
     assert.equal(new Set(views).size, 1);
     assert.ok(!views[0].includes(MESSAGE) && !views[0].includes('JANEJ'));
   }

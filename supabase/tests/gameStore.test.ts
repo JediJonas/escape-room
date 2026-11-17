@@ -86,6 +86,14 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
     assert.deepEqual({ ...game }, { mission_id: 'den-femte-gasten', letter_index: null });
   });
 
+  test('seansens läge skickas en gång i gruppens kanal', async () => {
+    const created = await send(LEADER, { type: 'createGame', name: 'Ledare' }, ['MNPQ']);
+    const { gameId } = (created.body as { view: LobbyView }).view;
+    await store.transaction((transaction) => transaction.sendSeance(gameId, { stepNumber: 2 }));
+    const messages = await sql`select event, payload from realtime.messages where topic = ${`group:${gameId}`}`;
+    assert.deepEqual(messages.map((row) => ({ ...row })), [{ event: 'seance', payload: { stepNumber: 2 } }]);
+  });
+
   test('en kod som redan används byts, och ett id som inte är ett uuid ger inget fel', async () => {
     const created = await send(LEADER, { type: 'createGame', name: 'Igen' }, ['QRST', 'LMNP']);
     assert.equal((created.body as { view: LobbyView }).view.joinCode, 'LMNP');

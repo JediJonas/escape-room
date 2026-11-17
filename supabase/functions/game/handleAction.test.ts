@@ -309,15 +309,24 @@ test('i seansen glider skenet när alla följer, och bokstaven lyser hos alla n�
   // Precis så länge som skenet behöver för att nå första bokstaven, så att det inte hinner vidare.
   memory.clock.nowMs += boView.step.seance?.segment.durationMs ?? 0;
   memory.sentViews.length = 0;
+  memory.sentSeances.length = 0;
   await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'arrived' });
-  // Bokstaven H är tagen, och alla får en ny vy där skenet är på väg mot nästa.
-  const letterIndexes = memory.sentViews.map(({ view: sent }) => (sent as GameView).step.seance?.letterIndex ?? null);
-  assert.deepEqual(letterIndexes, [1, 1, 1]);
+  // Bokstaven H är tagen. Läget skickas en gång i gruppens kanal, inte som en vy till var och en.
+  assert.equal(memory.sentViews.length, 0);
+  assert.deepEqual(memory.sentSeances.map(({ update }) => [update.gameId, update.stepNumber, update.seance.letterIndex]), [[gameId, boView.step.number, 1]]);
+  // Läget i kanalen är det som spelaren själv ser, utom om hennes egen planchett räknas.
+  const boNow = readGameView((await send(memory.store, 'user-Bo', { type: 'getView', gameId })).body);
+  assert.ok(boNow.step.seance);
+  const { isMeOnGlow, myFollowOrder, ...shared } = boNow.step.seance;
+  assert.deepEqual([isMeOnGlow, myFollowOrder], [true, 2]);
+  assert.deepEqual(memory.sentSeances[0].update.seance, shared);
+  assert.deepEqual(shared.followers, ['Cia', 'Ledare', 'Bo']);
 
-  // Den andra mobilen som säger till ändrar ingenting, och ingen får en ny vy.
-  memory.sentViews.length = 0;
+  // Den andra mobilen som säger till ändrar ingenting, och ingenting skickas.
+  memory.sentSeances.length = 0;
   await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'arrived' });
   assert.equal(memory.sentViews.length, 0);
+  assert.equal(memory.sentSeances.length, 0);
 
   const broken = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'lifted' })).body);
   assert.equal(broken.step.seance?.letterIndex, 0);
@@ -338,6 +347,9 @@ test('när meddelandet är klart trycker alla Klar och går vidare', async () =>
   }
   assert.equal(view.step.seance?.isComplete, true);
   assert.equal(view.step.usesReadyButton, true);
+  // När meddelandet är klart får alla en ny vy, eftersom de då ska trycka Klar.
+  const lastViews = memory.sentViews.slice(-3).map(({ view: sent }) => (sent as GameView).step);
+  assert.deepEqual(lastViews.map((step) => [step.seance?.isComplete, step.usesReadyButton]), [[true, true], [true, true], [true, true]]);
   await send(memory.store, 'user-leader', { type: 'markReady', gameId });
   await send(memory.store, 'user-Cia', { type: 'markReady', gameId });
   view = readGameView((await send(memory.store, 'user-Bo', { type: 'markReady', gameId })).body);

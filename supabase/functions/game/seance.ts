@@ -161,11 +161,16 @@ export function hasSeanceChanged(before: SeanceState, after: SeanceState): boole
     || [...before.followerIds].sort().join() !== [...after.followerIds].sort().join();
 }
 
-/** Det en spelare ser av seansen. Meddelandet finns inte med, bara rutan där skenet står. */
-export type SeanceView = {
+/**
+ * Det alla ser av seansen. Meddelandet finns inte med, bara rutan där skenet
+ * står. Det är samma för alla, så servern kan skicka det en gång i gruppens
+ * kanal i stället för en vy till varje spelare (Jonas 2026-11-17).
+ */
+export type SharedSeanceView = {
   segment: GlowSegment;
   /** Hur långt skenet har kommit mot bokstaven vid serverns tid anchorMs. */
   progress: number;
+  /** Serverns tid för läget. Den växer med varje ändring, så mobilen kan se vilket läge som är nyast. */
   anchorMs: number;
   /** Serverns tid då skenet börjar röra sig, eller null om det står still och väntar. */
   movesFromMs: number | null;
@@ -173,26 +178,38 @@ export type SeanceView = {
   letterCount: number;
   /** Namnen på dem som skenet väntar på, så att gruppen kan ropa på dem (Jonas 2026-11-17). */
   waitingFor: string[];
-  isMeOnGlow: boolean;
+  /**
+   * Namnen på dem vars planchett är på skenet, i den ordning de kom dit. Varje
+   * mobil ser själv om hennes namn finns med. Namnen är unika i ett spel, och
+   * ingen vy får innehålla någon annans id.
+   */
+  followers: string[];
   isComplete: boolean;
   /** Namnet på den som bröt kontakten senast, och när. */
   brokenBy: { name: string; atMs: number } | null;
 };
 
-export function describeSeance({ seance, message, players, participantIds, viewerId }: {
+/** Det en spelare ser av seansen: det alla ser och om hennes egen planchett räknas. */
+export type SeanceView = SharedSeanceView & {
+  isMeOnGlow: boolean;
+  /** Var i ordningen spelaren kom till skenet, från 0, eller null om hon inte följer. */
+  myFollowOrder: number | null;
+};
+
+export function describeSharedSeance({ seance, message, players, participantIds }: {
   seance: SeanceState;
   message: string;
   /** Alla i spelet, för namnet på den som bröt kontakten. */
   players: readonly PlayerRecord[];
   participantIds: readonly string[];
-  viewerId: string;
-}): SeanceView {
+}): SharedSeanceView {
   const letters = splitMessage(message);
   const isComplete = isSeanceComplete(seance, message);
   // När meddelandet är klart står skenet kvar på sista bokstaven.
   const segment = findSegment(letters, isComplete ? letters.length - 1 : seance.letterIndex);
   const isMoving = !isComplete && isEveryoneFollowing(seance, participantIds);
   const breaker = players.find((player) => player.id === seance.brokenBy?.playerId);
+  const findName = (id: string) => players.find((player) => player.id === id)?.name ?? '';
   return {
     segment,
     progress: isComplete ? 1 : seance.progress,
@@ -202,12 +219,23 @@ export function describeSeance({ seance, message, players, participantIds, viewe
     letterCount: letters.length,
     waitingFor: participantIds
       .filter((id) => !seance.followerIds.includes(id))
-      .map((id) => players.find((player) => player.id === id)?.name ?? '')
+      .map(findName)
       .filter((name) => name !== ''),
-    isMeOnGlow: seance.followerIds.includes(viewerId),
+    followers: seance.followerIds.map(findName).filter((name) => name !== ''),
     isComplete,
     brokenBy: seance.brokenBy && breaker ? { name: breaker.name, atMs: seance.brokenBy.atMs } : null,
   };
+}
+
+/** Det spelaren ser, räknat ur det alla ser. Mobilen gör samma sak när läget kommer i gruppens kanal. */
+export function viewSeanceAs(shared: SharedSeanceView, viewerName: string): SeanceView {
+  const order = shared.followers.indexOf(viewerName);
+  return { ...shared, isMeOnGlow: order >= 0, myFollowOrder: order >= 0 ? order : null };
+}
+
+export function describeSeance(input: Parameters<typeof describeSharedSeance>[0] & { viewerId: string }): SeanceView {
+  const viewerName = input.players.find((player) => player.id === input.viewerId)?.name ?? '';
+  return viewSeanceAs(describeSharedSeance(input), viewerName);
 }
 
 /**

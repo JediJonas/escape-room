@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { PlayerView } from '../../supabase/functions/game/views.ts';
+import type { PlayerView, SeanceUpdate } from '../../supabase/functions/game/views.ts';
 import { CreateGameScreen } from '../screens/CreateGameScreen.tsx';
 import { getErrorMessage } from '../screens/errorMessages.ts';
 import { type GameActions, GameScreen } from '../screens/GameScreen.tsx';
@@ -8,7 +8,8 @@ import { LobbyScreen, type StartChoices } from '../screens/LobbyScreen.tsx';
 import { WaitingScreen } from '../screens/WaitingScreen.tsx';
 import { StartScreen } from '../screens/StartScreen.tsx';
 import { ViewportProbe } from '../screens/ViewportProbe.tsx';
-import { type GameResponse, callGame, listenToPlayerView, measureClockOffsetMs } from '../sync/gameServer.ts';
+import { type GameResponse, callGame, listenToGroup, listenToPlayerView, measureClockOffsetMs } from '../sync/gameServer.ts';
+import { applySeanceUpdate, keepNewerSeance } from '../sync/seanceUpdate.ts';
 import { buildJoinUrl, readJoinCodeFromUrl, removeJoinCodeFromUrl } from './joinLink.ts';
 import { readSavedGameId, readSavedPlayerName, saveGameId, savePlayerName } from './savedGame.ts';
 
@@ -108,33 +109,40 @@ export function App() {
     return () => clearInterval(timer);
   }, [isWaiting, gameId]);
 
-  // Nya vyer kommer i spelarens kanal. När kanalen öppnas och
-  // när mobilen vaknar hämtas vyn, ifall något har missats under tiden.
+  /** Visar en ny vy, men behåller seansens läge om gruppens kanal redan har gett ett nyare. */
+  const showGameView = useCallback((view: PlayerView) => {
+    setScreen((previous) => ({ name: 'game', view: keepNewerSeance(previous.name === 'game' ? previous.view : null, view) }));
+  }, []);
+
+  // Nya vyer kommer i spelarens kanal och seansens läge i gruppens kanal. När
+  // kanalen öppnas och när mobilen vaknar hämtas vyn, ifall något har missats under tiden.
   useEffect(() => {
     if (!playerId || !gameId) return;
     const refresh = () => {
       callGame({ type: 'getView', gameId }).then((response) => {
-        if (response.ok && response.view) setScreen({ name: 'game', view: response.view });
+        if (response.ok && response.view) showGameView(response.view);
       });
     };
     const refreshWhenVisible = () => {
       if (document.visibilityState === 'visible') refresh();
     };
-    let stopListening: (() => void) | null = null;
+    const stops: (() => void)[] = [];
     let isCurrent = true;
-    listenToPlayerView({ playerId, onView: (view) => setScreen({ name: 'game', view }), onListening: refresh })
-      .then((stop) => {
-        if (isCurrent) stopListening = stop;
-        else stop();
-      })
-      .catch(() => setError(getErrorMessage('network')));
+    const keep = (stop: () => void) => {
+      if (isCurrent) stops.push(stop);
+      else stop();
+    };
+    const showError = () => setError(getErrorMessage('network'));
+    listenToPlayerView({ playerId, onView: showGameView, onListening: refresh }).then(keep).catch(showError);
+    const onSeance = (update: SeanceUpdate) => setScreen((previous) => (previous.name === 'game' ? { name: 'game', view: applySeanceUpdate(previous.view, update) } : previous));
+    listenToGroup({ gameId, onSeance }).then(keep).catch(showError);
     document.addEventListener('visibilitychange', refreshWhenVisible);
     return () => {
       isCurrent = false;
-      stopListening?.();
+      for (const stop of stops) stop();
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
-  }, [playerId, gameId]);
+  }, [playerId, gameId, showGameView]);
 
   async function send(action: { type: string } & Record<string, unknown>) {
     setIsBusy(true);
@@ -175,7 +183,7 @@ export function App() {
     }
     // Ett gammalt fel, som ett fel svar, ska inte stå kvar efter ett lyckat anrop.
     setError('');
-    if (response.view) setScreen({ name: 'game', view: response.view });
+    if (response.view) showGameView(response.view);
   }
 
   const startGame = (choices: StartChoices) => sendInGame({ type: 'startGame', ...choices });

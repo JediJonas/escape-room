@@ -1,12 +1,10 @@
 import { type PointerEvent, useEffect, useRef, useState } from 'react';
 import { BOARD_LETTERS, type BoardPoint, type BoardTouch, START_CELL, type SeanceView, findGlowProgress, findPointOnSegment } from '../../supabase/functions/game/seance.ts';
-import { LIFT_GRACE_MS, clampToBoard, describeSeanceStatus, CATCH_UP_SPEED, holdGlowProgress, isPlanchetteOnGlow } from './seanceBoard.ts';
+import { LIFT_GRACE_MS, clampToBoard, describeSeanceStatus, CATCH_UP_SPEED, holdGlowProgress, isPlanchetteOnGlow, shouldReportArrival } from './seanceBoard.ts';
 import './seance.css';
 
 /** Raden under brädet uppdateras så här ofta, så att meddelandet om vem som släppte försvinner. */
 const STATUS_TICK_MS = 1000;
-/** Hur ofta mobilen säger till igen att skenet har nått bokstaven, om servern inte höll med. */
-const ARRIVED_RETRY_MS = 1000;
 const PERCENT = 100;
 /** Startrutan har en måne i stället för en bokstav. */
 const START_SYMBOL = '☽';
@@ -67,7 +65,7 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
   useEffect(() => {
     let frame = 0;
     let shown: { turn: string; progress: number; atMs: number } | null = null;
-    let arrived = { turn: '', atMs: 0 };
+    let arrival: { turn: string; reachedAtMs: number; sentAtMs: number | null } = { turn: '', reachedAtMs: 0, sentAtMs: null };
     const draw = () => {
       const { seance: current, clockOffsetMs: offset, onTouch: send } = latest.current;
       const turn = describeLetterTurn(current);
@@ -100,12 +98,14 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
           send(isOn ? 'onGlow' : 'offGlow');
         }
         // Servern tickar inte, så den som ser skenet nå bokstaven säger till. Det som räknas är
-        // serverns läge, inte det som visas. Går klockorna lite olika frågar mobilen igen om en stund.
+        // serverns läge, inte det som visas. Mobilerna turas om, i den ordning de kom till skenet.
         const nowMs = Date.now();
-        const canAskAgain = arrived.turn !== turn || nowMs - arrived.atMs > ARRIVED_RETRY_MS;
-        if (computed >= 1 && current.movesFromMs !== null && isOn && canAskAgain) {
-          arrived = { turn, atMs: nowMs };
-          send('arrived');
+        if (computed >= 1 && current.movesFromMs !== null && isOn && current.myFollowOrder !== null) {
+          if (arrival.turn !== turn) arrival = { turn, reachedAtMs: nowMs, sentAtMs: null };
+          if (shouldReportArrival({ nowMs, reachedAtMs: arrival.reachedAtMs, sentAtMs: arrival.sentAtMs, followOrder: current.myFollowOrder })) {
+            arrival.sentAtMs = nowMs;
+            send('arrived');
+          }
         }
       }
       frame = requestAnimationFrame(draw);

@@ -47,6 +47,8 @@ insert into realtime.messages (topic, extension) values
   ('player:20000000-0000-0000-0000-00000000000b', 'broadcast'),
   ('game:10000000-0000-0000-0000-000000000001', 'broadcast'),
   ('game:10000000-0000-0000-0000-000000000002', 'broadcast'),
+  ('group:10000000-0000-0000-0000-000000000001', 'broadcast'),
+  ('group:10000000-0000-0000-0000-000000000002', 'broadcast'),
   ('testsida:1234', 'broadcast'),
   ('player:inte-ett-id', 'broadcast');
 
@@ -69,6 +71,10 @@ select pg_temp.expect('Anna lyssnar på sitt spels kanal',
   pg_temp.can('a', 'game:10000000-0000-0000-0000-000000000001', 'listen'), true);
 select pg_temp.expect('Anna lyssnar inte på ett annat spels kanal',
   pg_temp.can('a', 'game:10000000-0000-0000-0000-000000000002', 'listen'), false);
+select pg_temp.expect('Anna lyssnar på sitt spels gruppkanal',
+  pg_temp.can('a', 'group:10000000-0000-0000-0000-000000000001', 'listen'), true);
+select pg_temp.expect('Anna lyssnar inte på ett annat spels gruppkanal',
+  pg_temp.can('a', 'group:10000000-0000-0000-0000-000000000002', 'listen'), false);
 select pg_temp.expect('Anna lyssnar på testsidans kanal',
   pg_temp.can('a', 'testsida:1234', 'listen'), true);
 select pg_temp.expect('Ett trasigt id ger nej och inget fel',
@@ -82,6 +88,8 @@ select pg_temp.expect('Anna skickar inte i ett annat spels kanal',
   pg_temp.can('a', 'game:10000000-0000-0000-0000-000000000002', 'send'), false);
 select pg_temp.expect('Anna skickar inte i sin egen spelarkanal, bara servern gör det',
   pg_temp.can('a', 'player:20000000-0000-0000-0000-00000000000a', 'send'), false);
+select pg_temp.expect('Anna skickar inte i sitt spels gruppkanal, bara servern gör det',
+  pg_temp.can('a', 'group:10000000-0000-0000-0000-000000000001', 'send'), false);
 select pg_temp.expect('Anna skickar i testsidans kanal',
   pg_temp.can('a', 'testsida:1234', 'send'), true);
 rollback;

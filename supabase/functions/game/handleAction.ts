@@ -17,7 +17,7 @@ import { getMission } from './missions/index.ts';
 import { type PlayerRecord, createInitialState } from './state.ts';
 import { answerPendingAction, joinAfterStart } from './latecomers.ts';
 import { hasSeanceChanged, readBoardTouch } from './seance.ts';
-import { buildPlayerView } from './views.ts';
+import { buildPlayerView, buildSeanceUpdate } from './views.ts';
 
 export type { ActionError } from './actionKit.ts';
 
@@ -154,17 +154,28 @@ async function submitAnswerAction(action: Action, context: Context): Promise<Act
   });
 }
 
+/**
+ * Planchetten i seansen. En ändring skickas en gång i gruppens kanal i
+ * stället för som en vy till varje spelare, eftersom den är lika för alla
+ * och kommer ofta (Jonas 2026-11-17). När meddelandet är klart får alla en
+ * ny vy, eftersom de då ska trycka Klar.
+ */
 async function touchBoardAction(action: Action, context: Context): Promise<ActionResult> {
   const touch = readBoardTouch(action.touch);
   if (!touch) return fail('unknownAction');
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
     const change = touchBoard({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, touch, nowMs });
-    // Flera mobiler säger till när skenet når bokstaven. Bara den första ändrar något, och bara då behöver alla en ny vy.
+    if ('refusal' in change) return fail(change.refusal);
+    // Flera mobiler kan säga till när skenet når bokstaven. Bara en ändring behöver skickas.
     const before = scope.game.state.seance;
-    const after = 'state' in change ? change.state.seance : null;
+    const after = change.state.seance;
     const isUnchanged = before !== null && after !== null && !hasSeanceChanged(before, after);
-    return applyChange(scope, change, { action: { type: 'touchBoard', touch }, recipients: isUnchanged ? [] : undefined });
+    const update = isUnchanged ? null : buildSeanceUpdate({ game: { ...scope.game, state: change.state }, mission: scope.mission, players: scope.players });
+    const isSharedOnly = isUnchanged || (update !== null && !update.seance.isComplete);
+    const result = await applyChange(scope, change, { action: { type: 'touchBoard', touch }, recipients: isSharedOnly ? [] : undefined });
+    if (update && !update.seance.isComplete) await scope.transaction.sendSeance(scope.game.id, update);
+    return result;
   });
 }
 

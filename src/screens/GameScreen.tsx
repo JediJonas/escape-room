@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
+import { Countdown } from './Countdown.tsx';
+import { LeaderPanel } from './LeaderPanel.tsx';
 import { PlaceScanner } from './PlaceScanner.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
@@ -8,15 +10,30 @@ import { ScreenLayout } from './ScreenLayout.tsx';
 /** Hur spelaren anger platsen just nu. Utan platskort finns bara listan. */
 type PlaceInput = 'none' | 'scan' | 'list';
 
-export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onLeave }: {
+/** Allt mobilen kan be servern om under spelet. */
+export type GameActions = {
+  nextStep: () => void;
+  markReady: () => void;
+  setPaused: (isPaused: boolean) => void;
+  choosePlace: (placeId: PlaceId, source: 'scan' | 'list') => void;
+  submitAnswer: (answer: string) => void;
+  giveHint: () => void;
+  showSolution: () => void;
+  leave: () => void;
+};
+
+const ANSWER_FORM_ID = 'answer-form';
+
+export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }: {
   view: GameView;
+  clockOffsetMs: number;
   isBusy: boolean;
   error: string;
-  onNextStep: () => void;
-  onChoosePlace: (placeId: PlaceId, source: 'scan' | 'list') => void;
-  onLeave: () => void;
+  actions: GameActions;
 }) {
   const [placeInput, setPlaceInput] = useState<PlaceInput>('none');
+  const [answer, setAnswer] = useState('');
+  const [answeredStep, setAnsweredStep] = useState(view.step.number);
   const [cameraProblem, setCameraProblem] = useState('');
   const { step } = view;
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
@@ -26,7 +43,19 @@ export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onL
 
   function choose(placeId: PlaceId, source: 'scan' | 'list') {
     setPlaceInput('none');
-    onChoosePlace(placeId, source);
+    game.choosePlace(placeId, source);
+  }
+
+  // Ett nytt steg börjar med ett tomt svarsfält.
+  if (answeredStep !== view.step.number) {
+    setAnsweredStep(view.step.number);
+    setAnswer('');
+  }
+  const isTask = step.type !== 'scene' && !view.isFinished;
+
+  function submitAnswer(event: FormEvent) {
+    event.preventDefault();
+    if (answer.trim()) game.submitAnswer(answer);
   }
 
   function showList(reason: string) {
@@ -34,32 +63,53 @@ export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onL
     setPlaceInput('list');
   }
 
+  // Knapparna ligger med huvudhandlingen underst, närmast tummen.
   const actions = [];
-  if (needsPlace && view.usesPlaceCards && shownInput !== 'scan') {
-    actions.push(<button key="scan" type="button" className={shownInput === 'list' ? 'secondary' : undefined} onClick={() => setPlaceInput('scan')}>Skanna platskortet</button>);
+  if (view.me.isLeader && !view.isFinished) {
+    // För när någon har gått iväg och gruppen inte ska behöva vänta.
+    actions.push(<button key="skip" type="button" className="secondary" onClick={game.nextStep} disabled={isBusy}>{isTask ? 'Hoppa över uppgiften' : 'Gå vidare ändå'}</button>);
   }
   if (needsPlace && view.usesPlaceCards && shownInput === 'scan') {
     actions.push(<button key="list" type="button" className="secondary" onClick={() => showList('')}>Välj i listan i stället</button>);
   }
-  if (view.isFinished) {
-    actions.push(<button key="leave" type="button" onClick={onLeave}>Till startsidan</button>);
-  } else if (view.me.isLeader) {
-    // Tillfällig knapp tills uppgifterna och spelledarvyn finns (steg 4). När
-    // spelaren ska till en plats är skanningen huvudhandlingen och ligger underst.
-    const nextButton = <button key="next" type="button" className={needsPlace ? 'secondary' : undefined} onClick={onNextStep} disabled={isBusy}>Nästa</button>;
-    if (needsPlace) actions.unshift(nextButton);
-    else actions.push(nextButton);
+  if (needsPlace && view.usesPlaceCards && shownInput !== 'scan') {
+    actions.push(<button key="scan" type="button" className={shownInput === 'list' ? 'secondary' : undefined} onClick={() => setPlaceInput('scan')}>Skanna platskortet</button>);
   }
+  if (!needsPlace && step.usesReadyButton && !step.isMeDone && !view.isFinished) {
+    actions.push(<button key="ready" type="button" onClick={game.markReady} disabled={isBusy}>Klar</button>);
+  }
+  if (isTask) {
+    actions.push(<button key="answer" type="submit" form={ANSWER_FORM_ID} disabled={isBusy || !answer.trim()}>Svara</button>);
+  }
+  if (view.isFinished) {
+    actions.push(<button key="leave" type="button" onClick={game.leave}>Till startsidan</button>);
+  }
+  const waitingText = step.isMeDone ? 'Väntar på att alla ska bli klara.' : '';
 
   return (
-    <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint">Spelledaren går vidare när alla är klara.</p>}>
-      <p className="hint">{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</p>
+    <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint">{waitingText}</p>}>
+      <p className="hint game-header">
+        <span>{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</span>
+        {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+      </p>
+      {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
       <p className="scene-text">{step.text}</p>
       {step.role && (
         <section className="role-card" aria-label="Bara du ser det här">
           <h2>{step.role.title}</h2>
           {step.role.pieces.map((piece) => <p key={piece}>{piece}</p>)}
         </section>
+      )}
+      {step.hints.length > 0 && (
+        <section className="hint-card" aria-label="Ledtrådar">
+          {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
+        </section>
+      )}
+      {isTask && (
+        <form id={ANSWER_FORM_ID} className="field" onSubmit={submitAnswer}>
+          <label htmlFor="answer">Ert svar</label>
+          <input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" enterKeyHint="send" />
+        </form>
       )}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}
@@ -73,6 +123,8 @@ export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onL
           ))}
         </fieldset>
       )}
+      {step.isMeDone && view.me.isLeader && <p className="hint">{waitingText}</p>}
+      <LeaderPanel view={view} isBusy={isBusy} onSetPaused={game.setPaused} onGiveHint={game.giveHint} onShowSolution={game.showSolution} />
       <p className="error" role="alert">{error}</p>
     </ScreenLayout>
   );

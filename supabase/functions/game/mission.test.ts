@@ -83,3 +83,12 @@ test('webbsidan hämtar aldrig uppdragen, så att facit inte hamnar i bygget', (
     }
   }
 });
+
+test('en uppgift med svar måste ha tre ledtrådar och ett facit', () => {
+  const task = (fields: object) => ({ ...VALID, steps: [{ id: 'kod', type: 'answer', text: 'Vad är koden?', hints: ['a', 'b', 'c'], solution: { answers: ['42'] }, ...fields }] });
+  assert.deepEqual(findMissionErrors(task({})), []);
+  assert.match(findMissionErrors(task({ hints: ['a', 'b'] })).join(), /ska ha 3 ledtrådar/);
+  assert.match(findMissionErrors(task({ solution: { answers: [] } })).join(), /saknar svar i facit/);
+  assert.match(findMissionErrors(task({ solution: undefined })).join(), /saknar svar i facit/);
+  assert.match(findMissionErrors({ ...VALID, steps: [{ ...VALID.steps[0], hints: ['a', 'b', 'c'] }] }).join(), /är en scen men har ledtrådar/);
+});

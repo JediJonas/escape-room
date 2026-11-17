@@ -6,7 +6,8 @@
  * texter som visas ligger i webbsidan eller i uppdragsfilen.
  */
 
-import { type GameRefusal, type StateChange, advanceStep, choosePlace, startGame } from './game.ts';
+import { readGameMinutes } from './clock.ts';
+import { type GameRefusal, type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
 import type { GameStore, GameTransaction } from './gameStore.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, type JoinRefusal, cleanPlayerName, findJoinRefusal } from './lobby.ts';
@@ -51,6 +52,10 @@ const STATUS_FOR_ERROR: Record<ActionError, number> = {
   leaderCannotLeave: HTTP_CONFLICT,
   tooFewPlayers: HTTP_CONFLICT,
   notRunning: HTTP_CONFLICT,
+  notAtPlace: HTTP_CONFLICT,
+  notATask: HTTP_CONFLICT,
+  wrongAnswer: HTTP_CONFLICT,
+  noMoreHints: HTTP_CONFLICT,
   unknownMission: HTTP_SERVER_ERROR,
   noFreeJoinCode: HTTP_UNAVAILABLE,
 };
@@ -187,10 +192,28 @@ async function leaveGame(action: Action, context: Context): Promise<ActionResult
 }
 
 async function startGameAction(action: Action, context: Context): Promise<ActionResult> {
+  const nowMs = await context.store.readServerTimeMs();
   return withOwnPlayer(action, context, async (scope) => {
     const usesPlaceCards = action.usesPlaceCards !== false;
-    const change = startGame({ state: scope.game.state, mission: scope.mission, players: scope.players, starter: scope.player, usesPlaceCards });
-    return applyChange(scope, change, { action: { type: 'startGame', usesPlaceCards } });
+    const minutes = readGameMinutes(action.minutes);
+    const change = startGame({ state: scope.game.state, mission: scope.mission, players: scope.players, starter: scope.player, usesPlaceCards, minutes, nowMs });
+    return applyChange(scope, change, { action: { type: 'startGame', usesPlaceCards, minutes } });
+  });
+}
+
+async function markReadyAction(action: Action, context: Context): Promise<ActionResult> {
+  return withOwnPlayer(action, context, async (scope) => {
+    const change = markReady({ state: scope.game.state, mission: scope.mission, players: scope.players, player: scope.player });
+    return applyChange(scope, change, { action: { type: 'markReady', stepIndex: scope.game.state.stepIndex }, recipients: findRecipients(scope, change) });
+  });
+}
+
+async function setPausedAction(action: Action, context: Context): Promise<ActionResult> {
+  const nowMs = await context.store.readServerTimeMs();
+  return withOwnPlayer(action, context, async (scope) => {
+    const isPaused = action.isPaused === true;
+    const change = setPaused({ state: scope.game.state, player: scope.player, isPaused, nowMs });
+    return applyChange(scope, change, { action: { type: 'setPaused', isPaused } });
   });
 }
 
@@ -201,13 +224,45 @@ async function nextStep(action: Action, context: Context): Promise<ActionResult>
   });
 }
 
+/**
+ * Den som är klar eller har kommit fram syns bara hos sig själv och hos
+ * spelledaren. Går gruppen vidare får alla sin nya vy.
+ */
+function findRecipients(scope: GameScope, change: StateChange): readonly PlayerRecord[] {
+  if ('refusal' in change) return [];
+  const before = scope.game.state;
+  if (change.state.stepIndex !== before.stepIndex || change.state.status !== before.status) return scope.players;
+  return scope.players.filter((player) => player.id === scope.player.id || player.isLeader);
+}
+
 async function choosePlaceAction(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
-    const change = choosePlace({ state: scope.game.state, mission: scope.mission, player: scope.player, placeId: action.placeId });
+    const change = choosePlace({ state: scope.game.state, mission: scope.mission, players: scope.players, player: scope.player, placeId: action.placeId });
     // Varifrån platsen kom sparas bara i loggen. För motorn är det samma sak.
     const source = action.source === 'scan' ? 'scan' : 'list';
-    // Bara spelaren själv ser sin plats, så de andra får ingen ny vy.
-    return applyChange(scope, change, { action: { type: 'choosePlace', placeId: action.placeId, source }, recipients: [scope.player] });
+    return applyChange(scope, change, { action: { type: 'choosePlace', placeId: action.placeId, source }, recipients: findRecipients(scope, change) });
+  });
+}
+
+async function submitAnswerAction(action: Action, context: Context): Promise<ActionResult> {
+  return withOwnPlayer(action, context, async (scope) => {
+    const change = submitAnswer({ state: scope.game.state, mission: scope.mission, players: scope.players, answer: action.answer });
+    return applyChange(scope, change, { action: { type: 'submitAnswer', answer: action.answer, stepIndex: scope.game.state.stepIndex } });
+  });
+}
+
+async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
+  return withOwnPlayer(action, context, async (scope) => {
+    const change = giveHint({ state: scope.game.state, mission: scope.mission, player: scope.player });
+    return applyChange(scope, change, { action: { type: 'giveHint', stepIndex: scope.game.state.stepIndex } });
+  });
+}
+
+async function showSolutionAction(action: Action, context: Context): Promise<ActionResult> {
+  return withOwnPlayer(action, context, async (scope) => {
+    const change = showSolution({ state: scope.game.state, mission: scope.mission, player: scope.player });
+    // Facit syns bara hos spelledaren, så ingen annan får en ny vy.
+    return applyChange(scope, change, { action: { type: 'showSolution', stepIndex: scope.game.state.stepIndex }, recipients: [scope.player] });
   });
 }
 
@@ -219,6 +274,11 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   startGame: startGameAction,
   nextStep,
   choosePlace: choosePlaceAction,
+  markReady: markReadyAction,
+  setPaused: setPausedAction,
+  submitAnswer: submitAnswerAction,
+  giveHint: giveHintAction,
+  showSolution: showSolutionAction,
 };
 
 export async function handleAction({ action, context }: { action: unknown; context: Context }): Promise<ActionResult> {

@@ -15,7 +15,7 @@
     {
       "id": "valkommen",
       "type": "scene",
-      "text": "Välkommen till provhuset. Det här är ett prov av spelets motor, inte ett riktigt uppdrag. Spelledaren går vidare med knappen Nästa."
+      "text": "Välkommen till provhuset. Det här är ett prov av spelets motor, inte ett riktigt uppdrag. Tryck Klar när du har läst. Spelet går vidare när alla har tryckt."
     },
     {
       "id": "vittnen",
@@ -61,8 +61,7 @@
       "id": "hallen",
       "type": "scene",
       "text": "Gå till hallen. Den som läste lappen i köket säger vad det stod på den.",
-      "goTo": "B",
-      "textAtPlace": "Du är i hallen. Det är tyst här, och ytterdörren är stängd."
+      "goTo": "B"
     },
     {
       "id": "brevet",
@@ -96,6 +95,17 @@
           "maxPiecesPerPlayer": 2
         }
       ]
+    },
+    {
+      "id": "lappen",
+      "type": "answer",
+      "text": "Dörren till trädgården har ett kodlås. Koden är talet som stod på lappen i köket. Skriv in det.",
+      "hints": [
+        "Lappen låg på bordet i köket.",
+        "Den som läste lappen sa vad det stod på den när ni gick till hallen.",
+        "Talet är sex gånger sju."
+      ],
+      "solution": { "answers": ["42", "fyrtiotvå"] }
     },
     {
       "id": "slut",

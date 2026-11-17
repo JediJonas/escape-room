@@ -33,6 +33,9 @@ export type Role = {
 
 /** Berättelsen mellan uppgifterna. Kan skicka spelarna till en plats. */
 export type SceneStep = {
+  /* Fälten som bara uppgifter har saknas, så att alla steg kan läsas på samma sätt. */
+  hints?: undefined;
+  solution?: undefined;
   id: string;
   type: 'scene';
   text: string;
@@ -44,7 +47,27 @@ export type SceneStep = {
   roles?: Role[];
 };
 
-export type MissionStep = SceneStep;
+/** Antal ledtrådar per uppgift, i stigande tydlighet. Se docs/koncept.md. */
+export const HINT_COUNT = 3;
+
+/**
+ * En uppgift där gruppen skriver in ett svar. Den enklaste uppgiftstypen,
+ * byggd för att prova ledtrådar, att hoppa över och facit (steg 4).
+ */
+export type AnswerStep = {
+  id: string;
+  type: 'answer';
+  /** Frågan, som alla ser. */
+  text: string;
+  goTo?: undefined;
+  textAtPlace?: undefined;
+  roles?: Role[];
+  hints: string[];
+  /** Lämnar aldrig servern, utom till spelledaren som ber om facit. */
+  solution: { answers: string[] };
+};
+
+export type MissionStep = SceneStep | AnswerStep;
 
 export type Mission = {
   format: typeof MISSION_FORMAT;
@@ -89,11 +112,22 @@ function findRoleErrors(roles: unknown, stepName: string, minPlayers: number): s
   return errors;
 }
 
+function findAnswerErrors(step: Record<string, unknown>, name: string): string[] {
+  const errors: string[] = [];
+  if (!Array.isArray(step.hints) || step.hints.length !== HINT_COUNT || !step.hints.every(isFilledText)) errors.push(`${name} ska ha ${HINT_COUNT} ledtrådar`);
+  const answers = (step.solution as { answers?: unknown } | undefined)?.answers;
+  if (!Array.isArray(answers) || answers.length === 0 || !answers.every(isFilledText)) errors.push(`${name} saknar svar i facit`);
+  if (step.goTo !== undefined || step.textAtPlace !== undefined) errors.push(`${name} är en uppgift och kan inte skicka till en plats än`);
+  return errors;
+}
+
 function findStepErrors(step: Record<string, unknown>, places: Record<string, unknown>, minPlayers: number): string[] {
   const errors: string[] = [];
   if (!isFilledText(step.id)) errors.push('ett steg saknar id');
   const name = `steget ${String(step.id)}`;
-  if (step.type !== 'scene') errors.push(`${name} har en okänd typ: ${String(step.type)}`);
+  if (step.type !== 'scene' && step.type !== 'answer') errors.push(`${name} har en okänd typ: ${String(step.type)}`);
+  if (step.type === 'answer') errors.push(...findAnswerErrors(step, name));
+  if (step.type === 'scene' && (step.hints !== undefined || step.solution !== undefined)) errors.push(`${name} är en scen men har ledtrådar eller facit`);
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);

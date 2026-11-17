@@ -204,7 +204,7 @@ test('spelledaren går vidare steg för steg, och efter sista steget är spelet 
   assert.deepEqual(await send(memory.store, 'user-leader', { type: 'nextStep', gameId }), { status: 409, body: { error: 'notRunning' } });
 });
 
-test('texten på platsen syns bara hos den som är där, och bara hon får en ny vy', async () => {
+test('texten på platsen syns bara hos den som är där, och bara hon och spelledaren får en ny vy', async () => {
   const memory = await createGameWithPlayers(['Bo']);
   const gameId = memory.games[0].id;
   await send(memory.store, 'user-leader', { type: 'startGame', gameId });
@@ -218,12 +218,54 @@ test('texten på platsen syns bara hos den som är där, och bara hon får en ny
   const boView = readGameView(result.body);
   assert.deepEqual(boView.myPlace, goTo);
   assert.ok(boView.step.textAtPlace);
-  assert.deepEqual(memory.sentViews.map(({ view }) => view.me.name), ['Bo']);
+  // Spelledaren får veta att Bo är framme, men inte vad som står där.
+  assert.deepEqual(memory.sentViews.map(({ view }) => view.me.name).sort(), ['Bo', 'Ledare']);
   assert.deepEqual(memory.events.at(-1), { gameId, playerId: boView.me.playerId, action: { type: 'choosePlace', placeId: goTo.id, source: 'scan' } });
 
   const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
   assert.equal(leaderView.step.textAtPlace, null);
   assert.ok(!JSON.stringify(leaderView).includes(boView.step.textAtPlace));
+});
+
+test('när alla har tryckt Klar får alla nästa steg', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId, minutes: 45 });
+  memory.sentViews.length = 0;
+  await send(memory.store, 'user-Bo', { type: 'markReady', gameId });
+  assert.deepEqual(memory.sentViews.map(({ view }) => view.me.name).sort(), ['Bo', 'Ledare']);
+  memory.sentViews.length = 0;
+  const view = readGameView((await send(memory.store, 'user-leader', { type: 'markReady', gameId })).body);
+  assert.equal(view.step.number, 2);
+  assert.equal(memory.sentViews.length, 2);
+  assert.deepEqual(memory.events.at(-1), { gameId, playerId: view.me.playerId, action: { type: 'markReady', stepIndex: 0 } });
+});
+
+test('spelledaren pausar med databasens klocka', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  const started = readGameView((await send(memory.store, 'user-leader', { type: 'startGame', gameId, minutes: 45 })).body);
+  assert.deepEqual(started.clock, { isPaused: false, endsAtMs: SERVER_TIME.getTime() + 45 * 60_000 });
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'setPaused', gameId, isPaused: true }), { status: 403, body: { error: 'notLeader' } });
+  const paused = readGameView((await send(memory.store, 'user-leader', { type: 'setPaused', gameId, isPaused: true })).body);
+  assert.deepEqual(paused.clock, { isPaused: true, remainingMs: 45 * 60_000 });
+});
+
+test('facit går bara till spelledaren, och ett rätt svar ger alla nästa steg', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId });
+  let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
+  while (view.step.type !== 'answer') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  memory.sentViews.length = 0;
+  const shown = readGameView((await send(memory.store, 'user-leader', { type: 'showSolution', gameId })).body);
+  assert.equal(shown.step.solution, '42');
+  assert.deepEqual(memory.sentViews.map(({ view: sent }) => sent.me.name), ['Ledare']);
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'submitAnswer', gameId, answer: '24' }), { status: 409, body: { error: 'wrongAnswer' } });
+  memory.sentViews.length = 0;
+  const after = readGameView((await send(memory.store, 'user-Bo', { type: 'submitAnswer', gameId, answer: '42' })).body);
+  assert.equal(after.step.number, shown.step.number + 1);
+  assert.equal(memory.sentViews.length, 2);
 });
 
 test('en plats som uppdraget saknar, eller en plats före start, godtas inte', async () => {

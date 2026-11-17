@@ -9,7 +9,7 @@ import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 export const MAX_PLAYERS = 10;
 export const MAX_NAME_LENGTH = 20;
 
-/** Uppdraget som nya spel får tills spelledaren kan välja (steg 4). */
+/** Uppdraget som nya spel får. Spelledaren kan välja ett annat när hon startar. */
 export const DEFAULT_MISSION_ID = 'prov';
 
 /**
@@ -20,8 +20,11 @@ export type LobbyView = {
   type: 'lobby';
   gameId: string;
   joinCode: string;
+  missionId: string;
   missionTitle: string;
   minPlayers: number;
+  /** Bara hos spelledaren: uppdragen hon kan välja mellan. */
+  missionChoices: { id: string; title: string; minPlayers: number }[] | null;
   me: { playerId: string; name: string; isLeader: boolean };
   players: { name: string; isLeader: boolean; isMe: boolean }[];
 };
@@ -66,9 +69,11 @@ export function describeViewer(viewer: PlayerRecord) {
   return { playerId: viewer.id, name: viewer.name, isLeader: viewer.isLeader };
 }
 
-export function buildLobbyView({ game, mission, players, viewer }: {
+export function buildLobbyView({ game, mission, missions, players, viewer }: {
   game: GameRecord;
   mission: Mission;
+  /** Alla uppdrag. Skickas in, så att den här filen inte hämtar dem och mobilen kan använda den. */
+  missions: readonly Mission[];
   players: readonly PlayerRecord[];
   viewer: PlayerRecord;
 }): LobbyView {
@@ -77,8 +82,10 @@ export function buildLobbyView({ game, mission, players, viewer }: {
     type: 'lobby',
     gameId: game.id,
     joinCode: game.joinCode,
+    missionId: mission.id,
     missionTitle: mission.title,
     minPlayers: mission.minPlayers,
+    missionChoices: viewer.isLeader ? missions.map(({ id, title, minPlayers }) => ({ id, title, minPlayers })) : null,
     me: describeViewer(viewer),
     players: playersInJoinOrder.map((player) => ({
       name: player.name,

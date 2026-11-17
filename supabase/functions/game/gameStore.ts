@@ -23,6 +23,8 @@ export type GameTransaction = {
   lockGameByCode(joinCode: string): Promise<GameRecord | null>;
   lockGameById(gameId: string): Promise<GameRecord | null>;
   updateGameState(gameId: string, state: GameState): Promise<void>;
+  /** Spelledaren väljer uppdrag när hon startar spelet. */
+  updateGameMission(gameId: string, missionId: string): Promise<void>;
   listPlayers(gameId: string): Promise<PlayerRecord[]>;
   insertPlayer(player: { gameId: string; userId: string; name: string; isLeader: boolean }): Promise<PlayerRecord>;
   deletePlayer(playerId: string): Promise<void>;
@@ -96,6 +98,9 @@ function createTransaction(sql: Sql): GameTransaction {
       await sql`
         update engine.games set state = ${toJsonText(state)}::text::jsonb, updated_at = now()
         where id = ${gameId}`;
+    },
+    async updateGameMission(gameId, missionId) {
+      await sql`update engine.games set mission_id = ${missionId}, updated_at = now() where id = ${gameId}`;
     },
     async listPlayers(gameId) {
       const rows = await sql`

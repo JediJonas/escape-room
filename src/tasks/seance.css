@@ -1,0 +1,81 @@
+/*
+ * Brädet i seansen. Det är mörkt i både ljust och mörkt läge, eftersom
+ * seansen ska kännas som ett nedsläckt rum. Brädet har inga bokstäver, bara
+ * svaga märken, så att ingen kan läsa meddelandet ur skenets väg.
+ */
+
+.seance { margin-bottom: 0.75rem; }
+
+.seance-board {
+  position: relative;
+  /* Brädet är fem rutor brett och sex högt, och lämnar plats åt texten och knapparna. */
+  width: min(100%, calc(50dvh * 5 / 6));
+  aspect-ratio: 5 / 6;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 1rem;
+  background-color: #0d0b10;
+  background-image:
+    radial-gradient(circle, rgb(255 255 255 / 0.14) 0 2px, transparent 3px),
+    radial-gradient(ellipse at center, #2b2335, #0d0b10 75%);
+  background-size: 20% calc(100% / 6), 100% 100%;
+  /* Fingret ska flytta planchetten, inte rulla sidan, markera text eller öppna en meny. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.seance-board.is-complete { opacity: 0.5; }
+
+.seance-glow,
+.seance-planchette {
+  position: absolute;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.seance-glow {
+  width: 24%;
+  background: radial-gradient(circle, rgb(255 226 160 / 0.95), rgb(255 176 80 / 0.4) 45%, transparent 70%);
+}
+
+/* Skenet flimrar medan det väntar på någon. */
+.seance-glow.is-waiting { animation: seance-flicker 1.4s ease-in-out infinite; }
+
+@keyframes seance-flicker {
+  0%, 100% { opacity: 1; }
+  40% { opacity: 0.55; }
+  60% { opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seance-glow.is-waiting { animation: none; opacity: 0.75; }
+}
+
+.seance-planchette {
+  /* Större än fingret, så att skenet syns runt det. */
+  width: 28%;
+  border: 3px solid rgb(240 230 210 / 0.85);
+  box-shadow: 0 0 12px rgb(0 0 0 / 0.6);
+}
+
+.seance-planchette[hidden] { display: none; }
+
+.seance-status { text-align: center; }
+
+.seance-letter {
+  display: grid;
+  align-content: end;
+  min-height: 5.5rem;
+  margin: 0 0 0.5rem;
+  text-align: center;
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.seance-letter-hint { font-size: 1rem; font-weight: 600; color: var(--muted); }

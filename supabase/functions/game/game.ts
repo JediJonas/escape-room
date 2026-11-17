@@ -5,11 +5,12 @@
  */
 
 import { type ClockView, describeClock, pauseClock, resumeClock, startClock } from './clock.ts';
-import { type AnswerStep, type Mission, type MissionStep, type Place, type Role, listPlaces } from './mission.ts';
+import { type Mission, type MissionStep, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
 import { dealRoles } from './roles.ts';
+import { type BoardTouch, type SeanceView, applyBoardTouch, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
 export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints';
@@ -18,15 +19,16 @@ export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
 /** Gruppen kommer till ett steg: rollerna delas ut på nytt, eller tas bort om steget saknar roller. */
 function enterStep(state: GameState, mission: Mission, players: readonly PlayerRecord[], stepIndex: number): GameState {
-  const cleared = { ...state, stepIndex, readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false };
-  const roles = mission.steps[stepIndex].roles;
+  const step = mission.steps[stepIndex];
+  const cleared = { ...state, stepIndex, readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, seance: step.type === 'seance' ? startSeance(sortByJoinOrder(players)) : null };
+  const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
   const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory });
   return { ...cleared, roleByPlayer: deal.roleByPlayer, prominentHistory: deal.prominentHistory };
 }
 
 function finish(state: GameState): GameState {
-  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [] };
+  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null };
 }
 
 /**
@@ -70,14 +72,19 @@ function isDoneWhenArrived(step: MissionStep): boolean {
   return step.goTo !== undefined && step.textAtPlace === undefined && !hasRolesWithOwnPlace;
 }
 
-/** En scen utan plats att gå till, eller med text på platsen, klaras med Klar. En uppgift klaras genom att lösas. */
-function usesReadyButton(step: MissionStep): boolean {
+/**
+ * En scen utan plats att gå till, eller med text på platsen, klaras med Klar.
+ * En seans också, när meddelandet är klart, så att gruppen hinner prata om
+ * det innan skärmen byts. En uppgift med svar klaras genom att lösas.
+ */
+function usesReadyButton(step: MissionStep, state: GameState): boolean {
+  if (step.type === 'seance') return state.seance !== null && isSeanceComplete(state.seance, step.solution.message);
   return step.type === 'scene' && !isDoneWhenArrived(step);
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
-  if (step.type !== 'scene') return false;
-  return isDoneWhenArrived(step) ? isAtGoal(step, state, playerId) : state.readyPlayerIds.includes(playerId);
+  if (step.type === 'scene' && isDoneWhenArrived(step)) return isAtGoal(step, state, playerId);
+  return usesReadyButton(step, state) && state.readyPlayerIds.includes(playerId);
 }
 
 /** Går vidare när alla är klara, så att ingen behöver vänta på spelledaren. */
@@ -127,7 +134,7 @@ export function markReady({ state, mission, players, player }: {
 }): StateChange {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   const step = mission.steps[state.stepIndex];
-  if (!usesReadyButton(step)) return { state };
+  if (!usesReadyButton(step, state)) return { state };
   if (findGoal(step, state, player.id) !== undefined && !isAtGoal(step, state, player.id)) return { refusal: 'notAtPlace' };
   if (state.readyPlayerIds.includes(player.id)) return { state };
   return { state: moveOnIfAllDone({ ...state, readyPlayerIds: [...state.readyPlayerIds, player.id] }, mission, players) };
@@ -153,10 +160,10 @@ export function normalizeAnswer(answer: string): string {
 }
 
 /** Den aktuella uppgiften, eller ett nej om gruppen är i en scen eller spelet inte är igång. */
-function findCurrentTask(state: GameState, mission: Mission): { step: AnswerStep } | { refusal: GameRefusal } {
+function findCurrentTask(state: GameState, mission: Mission): { step: TaskStep } | { refusal: GameRefusal } {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   const step = mission.steps[state.stepIndex];
-  return step.type === 'answer' ? { step } : { refusal: 'notATask' };
+  return step.type === 'scene' ? { refusal: 'notATask' } : { step };
 }
 
 /** Vem som helst i gruppen kan svara. Ett rätt svar för alla vidare. */
@@ -168,9 +175,38 @@ export function submitAnswer({ state, mission, players, answer }: {
 }): StateChange {
   const task = findCurrentTask(state, mission);
   if ('refusal' in task) return { refusal: task.refusal };
+  if (task.step.type !== 'answer') return { refusal: 'notATask' };
   const given = typeof answer === 'string' ? normalizeAnswer(answer) : '';
   const isRight = given !== '' && task.step.solution.answers.some((correct) => normalizeAnswer(correct) === given);
   return isRight ? { state: moveOn(state, mission, players) } : { refusal: 'wrongAnswer' };
+}
+
+/**
+ * En spelares planchett i seansen. Den sista som kommer fram till skenet tar
+ * bokstaven, och den som lyfter fingret får meddelandet att börja om.
+ */
+export function touchBoard({ state, mission, players, player, touch, letterIndex, nowMs }: {
+  state: GameState;
+  mission: Mission;
+  players: readonly PlayerRecord[];
+  player: PlayerRecord;
+  touch: BoardTouch;
+  letterIndex: unknown;
+  nowMs: number;
+}): StateChange {
+  const task = findCurrentTask(state, mission);
+  if ('refusal' in task) return { refusal: task.refusal };
+  if (task.step.type !== 'seance' || !state.seance) return { refusal: 'notATask' };
+  const seance = applyBoardTouch({
+    seance: state.seance,
+    message: task.step.solution.message,
+    participantIds: players.map((participant) => participant.id),
+    playerId: player.id,
+    touch,
+    letterIndex: Number.isInteger(letterIndex) ? letterIndex as number : -1,
+    nowMs,
+  });
+  return { state: { ...state, seance } };
 }
 
 /** Spelledaren ger gruppen nästa ledtråd. Alla får den samtidigt. */
@@ -232,6 +268,8 @@ export type GameView = {
     hintCount: number;
     /** Bara hos spelledaren och bara när hon har bett om det. */
     solution: string | null;
+    /** Brädet i en seans, med bokstaven bara hos den som ska läsa den. */
+    seance: SeanceView | null;
   };
   /** Bara hos spelledaren: vilka som är klara med steget. */
   progress: { name: string; isMe: boolean; isDone: boolean }[] | null;
@@ -295,11 +333,14 @@ export function buildGameView({ game, mission, players, viewer }: {
       count: mission.steps.length,
       ...describeStep(step, state, places, viewer.id),
       type: step.type,
-      usesReadyButton: usesReadyButton(step),
+      usesReadyButton: usesReadyButton(step, state),
       isMeDone: isPlayerDone(step, state, viewer.id),
       hints: step.hints?.slice(0, state.hintsGiven) ?? [],
       hintCount: step.hints?.length ?? 0,
-      solution: viewer.isLeader && state.isSolutionShown && step.solution ? step.solution.answers[0] : null,
+      solution: viewer.isLeader && state.isSolutionShown && step.type !== 'scene' ? describeSolution(step) : null,
+      seance: step.type === 'seance' && state.seance && isRunning
+        ? describeSeance({ seance: state.seance, stepId: step.id, message: step.solution.message, players, participantCount: participants.length, viewerId: viewer.id })
+        : null,
     },
     progress: showsLeaderTools
       ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))

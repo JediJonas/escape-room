@@ -93,3 +93,13 @@ test('en uppgift med svar måste ha tre ledtrådar och ett facit', () => {
   assert.match(findMissionErrors(task({ solution: undefined })).join(), /saknar svar i facit/);
   assert.match(findMissionErrors({ ...VALID, steps: [{ ...VALID.steps[0], hints: ['a', 'b', 'c'] }] }).join(), /är en scen men har ledtrådar/);
 });
+
+test('en seans måste ha tre ledtrådar och ett meddelande med versaler', () => {
+  const seance = (fields: object) => ({ ...VALID, steps: [{ id: 'seansen', type: 'seance', text: 'Följ skenet.', hints: ['a', 'b', 'c'], solution: { message: 'HJÄLP MIG' }, ...fields }] });
+  assert.deepEqual(findMissionErrors(seance({})), []);
+  assert.match(findMissionErrors(seance({ hints: [] })).join(), /ska ha 3 ledtrådar/);
+  for (const message of ['hjälp', 'HJÄLP  MIG', ' HJÄLP', 'HJÄLP!', '', 42]) {
+    assert.match(findMissionErrors(seance({ solution: { message } })).join(), /ska ha ett meddelande/, String(message));
+  }
+  assert.match(findMissionErrors(seance({ goTo: 'A' })).join(), /kan inte ha plats eller roller/);
+});

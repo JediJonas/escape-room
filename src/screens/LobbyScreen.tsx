@@ -6,7 +6,7 @@ import { JoinQrCode } from './JoinQrCode.tsx';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
 /** Det spelledaren väljer när hon startar. */
-export type StartChoices = { usesPlaceCards: boolean; leaderPlays: boolean; minutes: number };
+export type StartChoices = { missionId: string; usesPlaceCards: boolean; leaderPlays: boolean; minutes: number };
 
 export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: {
   view: LobbyView;
@@ -19,14 +19,16 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
   const [usesPlaceCards, setUsesPlaceCards] = useState(true);
   const [leaderPlays, setLeaderPlays] = useState(true);
   const [minutes, setMinutes] = useState<number>(DEFAULT_GAME_MINUTES);
+  const [missionId, setMissionId] = useState(view.missionId);
   const isLeader = view.me.isLeader;
+  const mission = view.missionChoices?.find((choice) => choice.id === missionId) ?? { id: view.missionId, title: view.missionTitle, minPlayers: view.minPlayers };
   // Spelledaren som står utanför räknas inte som spelare.
-  const missingPlayers = view.minPlayers - view.players.length + (isLeader && !leaderPlays ? 1 : 0);
+  const missingPlayers = mission.minPlayers - view.players.length + (isLeader && !leaderPlays ? 1 : 0);
   return (
     <ScreenLayout
       actions={
         isLeader
-          ? <button type="button" onClick={() => onStart({ usesPlaceCards, leaderPlays, minutes })} disabled={isBusy || missingPlayers > 0}>{isBusy ? 'Startar …' : 'Starta spelet'}</button>
+          ? <button type="button" onClick={() => onStart({ missionId: mission.id, usesPlaceCards, leaderPlays, minutes })} disabled={isBusy || missingPlayers > 0}>{isBusy ? 'Startar …' : 'Starta spelet'}</button>
           : <button type="button" className="secondary" onClick={onLeave} disabled={isBusy}>Lämna spelet</button>
       }
     >
@@ -50,7 +52,18 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
           </li>
         ))}
       </ul>
-      {missingPlayers > 0 && <p className="hint">Det behövs minst {view.minPlayers} spelare för {view.missionTitle}.</p>}
+      {missingPlayers > 0 && <p className="hint">Det behövs minst {mission.minPlayers} spelare för {mission.title}.</p>}
+      {view.missionChoices && (
+        <fieldset className="choice-field">
+          <legend>Uppdrag</legend>
+          {view.missionChoices.map((choice) => (
+            <label key={choice.id}>
+              <input type="radio" name="mission" value={choice.id} checked={missionId === choice.id} onChange={() => setMissionId(choice.id)} />
+              {choice.title}
+            </label>
+          ))}
+        </fieldset>
+      )}
       {isLeader && (
         <fieldset className="choice-field">
           <legend>Speltid</legend>

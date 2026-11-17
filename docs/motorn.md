@@ -322,7 +322,8 @@ och 5 miljoner per månad, och projektet pausas aldrig.
    Klar, och gruppen går vidare när alla har tryckt. En scen som bara skickar
    alla till en plats går vidare när den sista är framme. Har platsen en text
    trycker spelaren Klar efter att ha läst den (Jonas 2026-11-17). En uppgift
-   går vidare när den är löst. Spelledaren ser vilka som är klara och kan gå
+   går vidare när den är löst. Är sista steget en scen är det slutet, och
+   spelet tar slut när gruppen kommer dit. Spelledaren ser vilka som är klara och kan gå
    vidare ändå om någon har gått iväg. Hon väljer speltid, 45, 60 eller 75
    minuter, när hon startar, och kan pausa. Den andra delen ger ledtrådar,
    att hoppa över och facit, med uppgiftstypen `answer` där gruppen skriver

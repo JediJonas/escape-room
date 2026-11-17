@@ -26,10 +26,13 @@ test('en spelare kan inte starta eller gå vidare, och spelet startar inte med f
   assert.deepEqual(advanceStep({ state: running, mission: MISSION, players: [LEADER, GUEST], player: GUEST }), { refusal: 'notLeader' });
 });
 
-test('efter sista steget är spelet slut och står kvar på sista steget', () => {
+test('spelet tar slut när gruppen kommer till sluttexten, och står kvar där', () => {
   const lastIndex = MISSION.steps.length - 1;
-  const state = readState(advanceStep({ state: { ...createInitialState(), status: 'running', stepIndex: lastIndex }, mission: MISSION, players: [LEADER, GUEST], player: LEADER }));
+  assert.equal(MISSION.steps[lastIndex].type, 'scene');
+  const state = readState(advanceStep({ state: { ...createInitialState(), status: 'running', stepIndex: lastIndex - 1 }, mission: MISSION, players: [LEADER, GUEST], player: LEADER }));
   assert.deepEqual({ status: state.status, stepIndex: state.stepIndex }, { status: 'finished', stepIndex: lastIndex });
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: 'prov', state }, mission: MISSION, players: [LEADER, GUEST], viewer: GUEST });
+  assert.deepEqual({ isFinished: view.isFinished, text: view.step.text, progress: view.progress }, { isFinished: true, text: MISSION.steps[lastIndex].text, progress: null });
 });
 
 test('platsen sparas per spelare och bara texten för den egna platsen syns', () => {

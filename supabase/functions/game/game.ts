@@ -24,11 +24,21 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
   return { ...cleared, roleByPlayer: deal.roleByPlayer, prominentHistory: deal.prominentHistory };
 }
 
-/** Nästa steg, eller slut efter det sista. */
+function finish(state: GameState): GameState {
+  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [] };
+}
+
+/**
+ * Nästa steg, eller slut efter det sista. Är sista steget en scen är den
+ * slutet: spelet tar slut när gruppen kommer dit, så att ingen behöver
+ * trycka Klar på sluttexten.
+ */
 function moveOn(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
   const nextIndex = state.stepIndex + 1;
-  if (nextIndex >= mission.steps.length) return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [] };
-  return enterStep(state, mission, players, nextIndex);
+  if (nextIndex >= mission.steps.length) return finish(state);
+  const entered = enterStep(state, mission, players, nextIndex);
+  const isEnding = nextIndex === mission.steps.length - 1 && mission.steps[nextIndex].type === 'scene';
+  return isEnding ? finish(entered) : entered;
 }
 
 function isAtGoal(step: MissionStep, state: GameState, playerId: string): boolean {

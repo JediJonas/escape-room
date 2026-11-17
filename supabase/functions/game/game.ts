@@ -5,10 +5,10 @@
  */
 
 import { type ClockView, describeClock, pauseClock, resumeClock, startClock } from './clock.ts';
-import { type AnswerStep, type Mission, type MissionStep, type Place, listPlaces } from './mission.ts';
+import { type AnswerStep, type Mission, type MissionStep, type Place, type Role, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
-import { type RoleAssignment, dealRoles } from './roles.ts';
+import { dealRoles } from './roles.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
 export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints';
@@ -41,17 +41,32 @@ function moveOn(state: GameState, mission: Mission, players: readonly PlayerReco
   return isEnding ? finish(entered) : entered;
 }
 
+function findRole(step: MissionStep, state: GameState, playerId: string): Role | undefined {
+  const roleId = state.roleByPlayer[playerId]?.roleId;
+  return step.roles?.find((role) => role.id === roleId);
+}
+
+/**
+ * Platsen som spelaren ska till i steget. En roll kan ha en egen plats, så
+ * att gruppen delar på sig. Annars gäller stegets plats, om det har någon.
+ */
+function findGoal(step: MissionStep, state: GameState, playerId: string): PlaceId | undefined {
+  return findRole(step, state, playerId)?.goTo ?? step.goTo;
+}
+
 function isAtGoal(step: MissionStep, state: GameState, playerId: string): boolean {
-  return step.goTo !== undefined && state.placeByPlayer[playerId] === step.goTo;
+  const goal = findGoal(step, state, playerId);
+  return goal !== undefined && state.placeByPlayer[playerId] === goal;
 }
 
 /**
  * En scen som bara skickar spelarna till en plats är klar när spelaren är
- * framme. Annars trycker spelaren Klar när hon har läst och gjort sitt
- * (Jonas 2026-11-17).
+ * framme. Finns något att läsa där trycker spelaren Klar när hon har läst och
+ * gjort sitt (Jonas 2026-11-17).
  */
 function isDoneWhenArrived(step: MissionStep): boolean {
-  return step.goTo !== undefined && step.textAtPlace === undefined;
+  const hasRolesWithOwnPlace = step.roles?.some((role) => role.goTo !== undefined) ?? false;
+  return step.goTo !== undefined && step.textAtPlace === undefined && !hasRolesWithOwnPlace;
 }
 
 /** En scen utan plats att gå till, eller med text på platsen, klaras med Klar. En uppgift klaras genom att lösas. */
@@ -108,7 +123,7 @@ export function markReady({ state, mission, players, player }: {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   const step = mission.steps[state.stepIndex];
   if (!usesReadyButton(step)) return { state };
-  if (step.goTo !== undefined && !isAtGoal(step, state, player.id)) return { refusal: 'notAtPlace' };
+  if (findGoal(step, state, player.id) !== undefined && !isAtGoal(step, state, player.id)) return { refusal: 'notAtPlace' };
   if (state.readyPlayerIds.includes(player.id)) return { state };
   return { state: moveOnIfAllDone({ ...state, readyPlayerIds: [...state.readyPlayerIds, player.id] }, mission, players) };
 }
@@ -225,16 +240,25 @@ function findPlace(places: readonly Place[], placeId: PlaceId | undefined): Plac
   return places.find((place) => place.id === placeId) ?? null;
 }
 
-function describeRole(step: MissionStep, assignment: RoleAssignment | undefined) {
-  const role = step.roles?.find((candidate) => candidate.id === assignment?.roleId);
+/** Spelarens roll och bitar. En roll med egen plats visar bitarna först när spelaren är där. */
+function describeRole(step: MissionStep, state: GameState, viewerId: string) {
+  const role = findRole(step, state, viewerId);
+  const assignment = state.roleByPlayer[viewerId];
   if (!role || !assignment) return null;
-  return { title: role.title, pieces: assignment.pieceIndexes.map((index) => role.pieces[index]).filter((piece) => piece !== undefined) };
+  const isHidden = role.goTo !== undefined && !isAtGoal(step, state, viewerId);
+  const pieces = isHidden ? [] : assignment.pieceIndexes.map((index) => role.pieces[index]).filter((piece) => piece !== undefined);
+  return { title: role.title, pieces };
 }
 
-function describeStep(step: MissionStep, places: readonly Place[], myPlace: Place | null, assignment: RoleAssignment | undefined) {
-  const goTo = findPlace(places, step.goTo);
-  const isAtPlace = goTo !== null && myPlace?.id === goTo.id;
-  return { text: step.text, goTo, textAtPlace: isAtPlace ? step.textAtPlace ?? null : null, role: describeRole(step, assignment) };
+function describeStep(step: MissionStep, state: GameState, places: readonly Place[], viewerId: string) {
+  const goal = findGoal(step, state, viewerId);
+  const isAtStepPlace = goal === step.goTo && isAtGoal(step, state, viewerId);
+  return {
+    text: step.text,
+    goTo: findPlace(places, goal),
+    textAtPlace: isAtStepPlace ? step.textAtPlace ?? null : null,
+    role: describeRole(step, state, viewerId),
+  };
 }
 
 export function buildGameView({ game, mission, players, viewer }: {
@@ -259,7 +283,7 @@ export function buildGameView({ game, mission, players, viewer }: {
     step: {
       number: stepIndex + 1,
       count: mission.steps.length,
-      ...describeStep(step, places, myPlace, state.roleByPlayer[viewer.id]),
+      ...describeStep(step, state, places, viewer.id),
       type: step.type,
       usesReadyButton: usesReadyButton(step),
       isMeDone: isPlayerDone(step, state, viewer.id),

@@ -52,6 +52,7 @@ test('roller som inte räcker till tio spelare eller kräver för många syns i 
   assert.match(findMissionErrors(withRoles([role({ count: 0 })])).join(), /ogiltigt antal/);
   assert.match(findMissionErrors(withRoles([])).join(), /inte är en lista/);
   assert.match(findMissionErrors(withRoles([role({ maxPiecesPerPlayer: 0 })])).join(), /ogiltig gräns/);
+  assert.match(findMissionErrors(withRoles([role({ goTo: 'F' })])).join(), /plats som uppdraget saknar: F/);
 });
 
 test('platserna listas i ordningen A till F', () => {

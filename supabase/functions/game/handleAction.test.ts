@@ -204,27 +204,32 @@ test('spelledaren går vidare steg för steg, och efter sista steget är spelet 
   assert.deepEqual(await send(memory.store, 'user-leader', { type: 'nextStep', gameId }), { status: 409, body: { error: 'notRunning' } });
 });
 
-test('texten på platsen syns bara hos den som är där, och bara hon och spelledaren får en ny vy', async () => {
+test('när gruppen delar på sig syns bitarna först på platsen, och bara hos den som är där', async () => {
   const memory = await createGameWithPlayers(['Bo']);
   const gameId = memory.games[0].id;
   await send(memory.store, 'user-leader', { type: 'startGame', gameId });
-  let leaderStep = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
-  while (!leaderStep.step.goTo) leaderStep = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
-  const goTo = leaderStep.step.goTo;
+  let boStep = readGameView((await send(memory.store, 'user-Bo', { type: 'getView', gameId })).body);
+  while (!boStep.step.goTo) {
+    await send(memory.store, 'user-leader', { type: 'nextStep', gameId });
+    boStep = readGameView((await send(memory.store, 'user-Bo', { type: 'getView', gameId })).body);
+  }
+  const goTo = boStep.step.goTo;
   assert.ok(goTo);
+  assert.deepEqual(boStep.step.role?.pieces, []);
   memory.sentViews.length = 0;
 
   const result = await send(memory.store, 'user-Bo', { type: 'choosePlace', gameId, placeId: goTo.id, source: 'scan' });
   const boView = readGameView(result.body);
   assert.deepEqual(boView.myPlace, goTo);
-  assert.ok(boView.step.textAtPlace);
-  // Spelledaren får veta att Bo är framme, men inte vad som står där.
+  const [piece] = boView.step.role?.pieces ?? [];
+  assert.ok(piece);
+  // Spelledaren får veta att Bo är framme, men inte vad han ser.
   assert.deepEqual(memory.sentViews.map(({ view }) => view.me.name).sort(), ['Bo', 'Ledare']);
   assert.deepEqual(memory.events.at(-1), { gameId, playerId: boView.me.playerId, action: { type: 'choosePlace', placeId: goTo.id, source: 'scan' } });
 
   const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
-  assert.equal(leaderView.step.textAtPlace, null);
-  assert.ok(!JSON.stringify(leaderView).includes(boView.step.textAtPlace));
+  assert.notDeepEqual(leaderView.step.goTo, goTo);
+  assert.ok(!JSON.stringify(leaderView).includes(piece));
 });
 
 test('när alla har tryckt Klar får alla nästa steg', async () => {

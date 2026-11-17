@@ -194,6 +194,10 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   ingen får samma skärm som en annan. Så fungerar samma uppgift med två och
   med tio spelare. En roll har minst lika många bitar som den kan få
   spelare, och testerna kontrollerar det för varje uppdrag.
+- **En roll kan ha en egen plats** med `goTo`. Då delar gruppen på sig i
+  samma steg, och spelaren ser sina bitar först när hon är framme. Det är så
+  Splittrade rum och Rummen minns byggs. Ett steg utan roller med egen plats
+  samlar alla på samma plats eller ingen.
 - **Högst antal bitar per spelare.** Med `maxPiecesPerPlayer` får ingen fler
   bitar än så. Är spelarna få blir då vissa bitar kvar hos ingen. Utan gränsen
   fick en ensam gäst i Provhuset nio rader att läsa upp. Uppgifter som

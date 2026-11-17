@@ -45,11 +45,14 @@ test('raden under brädet visar vem skenet väntar på, vem som släppte och nä
 });
 
 test('skenet flyttar sig aldrig bakåt, och hoppar inte när det stannar', () => {
-  assert.equal(holdGlowProgress({ computed: 0.3, shown: null, isHeld: false }), 0.3);
+  const maxStep = 0.05;
+  assert.equal(holdGlowProgress({ computed: 0.3, shown: null, isHeld: false, maxStep }), 0.3);
   // Servern ligger efter det som syns medan skenet rör sig: det står kvar tills servern kommer ikapp.
-  assert.equal(holdGlowProgress({ computed: 0.4, shown: 0.5, isHeld: false }), 0.5);
-  assert.equal(holdGlowProgress({ computed: 0.6, shown: 0.5, isHeld: false }), 0.6);
+  assert.equal(holdGlowProgress({ computed: 0.4, shown: 0.5, isHeld: false, maxStep }), 0.5);
+  assert.equal(holdGlowProgress({ computed: 0.53, shown: 0.5, isHeld: false, maxStep }), 0.53);
+  // Ligger skenet långt efter servern glider det ikapp i stället för att hoppa.
+  assert.equal(holdGlowProgress({ computed: 0.8, shown: 0.5, isHeld: false, maxStep }), 0.55);
   // Står skenet still hoppar det varken bakåt eller framåt.
-  assert.equal(holdGlowProgress({ computed: 0.6, shown: 0.5, isHeld: true }), 0.5);
-  assert.equal(holdGlowProgress({ computed: 0.4, shown: 0.5, isHeld: true }), 0.5);
+  assert.equal(holdGlowProgress({ computed: 0.6, shown: 0.5, isHeld: true, maxStep }), 0.5);
+  assert.equal(holdGlowProgress({ computed: 0.4, shown: 0.5, isHeld: true, maxStep }), 0.5);
 });

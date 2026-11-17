@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import {
   BOARD_LETTERS, GLOW_PAUSE_MS, START_CELL, type BoardTouch, type SeanceState,
-  advanceSeance, applyBoardTouch, describeSeance, findCellCenter, findGlowPoint, findSegment, hasSeanceChanged, splitMessage, startSeance,
+  advanceSeance, applyBoardTouch, describeSeance, easeGlow, findCellCenter, findGlowPoint, findSegment, hasSeanceChanged, splitMessage, startSeance,
 } from './seance.ts';
 import type { PlayerRecord } from './state.ts';
 
@@ -83,6 +83,16 @@ test('mobilen räknar fram samma läge för skenet som servern', () => {
   // Står skenet still syns det där det stannade, hur lång tid som än går.
   const stopped = touch(seance, 'p2', 'offGlow', durationMs / 2);
   assert.ok(Math.abs(findGlowPoint(describe(stopped, 'p0'), 10 * durationMs).point.x - (from.x + to.x) / 2) < 1e-9);
+});
+
+test('skenet börjar sakta, går fortast i mitten och bromsar in', () => {
+  assert.equal(easeGlow(0), 0);
+  assert.equal(easeGlow(0.5), 0.5);
+  assert.equal(easeGlow(1), 1);
+  const step = 0.01;
+  const speedAt = (progress: number) => (easeGlow(progress + step) - easeGlow(progress)) / step;
+  assert.ok(speedAt(0) < 0.4 && speedAt(0.99) < 0.4);
+  assert.ok(speedAt(0.5) > 1.3);
 });
 
 test('när skenet når bokstaven står det kvar där hos alla, och glider sedan mot nästa', () => {

@@ -40,6 +40,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [answeredStep, setAnsweredStep] = useState(view.step.number);
   const [cameraProblem, setCameraProblem] = useState('');
   const [isSeanceMenuOpen, setIsSeanceMenuOpen] = useState(false);
+  const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const { step } = view;
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
   const needsPlace = view.me.isPlaying && step.goTo !== null && !isAtGoal && !view.isFinished;
@@ -56,10 +57,12 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     setAnsweredStep(view.step.number);
     setAnswer('');
     setIsSeanceMenuOpen(false);
+    setHasLeftBoard(false);
   }
 
-  // Medan skenet rör sig fyller brädet skärmen. Texten, ledtrådarna och spelledarens knappar ligger i menyn.
-  const isBoardShown = step.seance !== null && !step.seance.isComplete && !view.isFinished;
+  // Under seansen fyller brädet skärmen. Texten, ledtrådarna och spelledarens knappar ligger i menyn.
+  // När skenet har slocknat står brädet kvar tills spelaren själv lämnar det (Jonas 2026-11-17).
+  const isBoardShown = step.seance !== null && !hasLeftBoard && !view.isFinished;
   if (step.seance && isBoardShown && !isSeanceMenuOpen) {
     return (
       <main className="seance-screen">
@@ -68,7 +71,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
           {view.clock?.isPaused && <span className="paused">Pausat</span>}
           <button type="button" className="secondary seance-menu-button" onClick={() => setIsSeanceMenuOpen(true)}>Meny</button>
         </p>
-        <SeanceBoard seance={step.seance} text={step.text} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} />
+        <SeanceBoard seance={step.seance} text={step.text} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} onLeave={() => setHasLeftBoard(true)} />
       </main>
     );
   }

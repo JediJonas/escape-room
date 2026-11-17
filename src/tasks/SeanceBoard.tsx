@@ -1,6 +1,6 @@
 import { type PointerEvent, useEffect, useRef, useState } from 'react';
 import { BOARD_LETTERS, type BoardPoint, type BoardTouch, START_CELL, type SeanceView, findGlowProgress, findPointOnSegment } from '../../supabase/functions/game/seance.ts';
-import { LIFT_GRACE_MS, clampToBoard, describeSeanceStatus, holdGlowProgress, isPlanchetteOnGlow } from './seanceBoard.ts';
+import { LIFT_GRACE_MS, clampToBoard, describeSeanceStatus, CATCH_UP_SPEED, holdGlowProgress, isPlanchetteOnGlow } from './seanceBoard.ts';
 import './seance.css';
 
 /** Raden under brädet uppdateras så här ofta, så att meddelandet om vem som släppte försvinner. */
@@ -28,7 +28,7 @@ function describeLetterTurn(seance: SeanceView): string {
  * till servern, och när skenet når en bokstav. Se docs/motorn.md, Rörelser
  * går förbi React.
  */
-export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: {
+export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, onLeave }: {
   seance: SeanceView;
   /** Uppgiftens text, ovanför brädet. */
   text: string;
@@ -36,6 +36,8 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
   /** Spelledaren som står utanför ser brädet men har ingen planchett. */
   canTouch: boolean;
   onTouch: (touch: BoardTouch) => void;
+  /** Spelaren lämnar själv brädet när skenet har slocknat. */
+  onLeave: () => void;
 }) {
   const glowRef = useRef<HTMLDivElement>(null);
   const planchetteRef = useRef<HTMLDivElement>(null);
@@ -64,7 +66,7 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
 
   useEffect(() => {
     let frame = 0;
-    let shown: { turn: string; progress: number } | null = null;
+    let shown: { turn: string; progress: number; atMs: number } | null = null;
     let arrived = { turn: '', atMs: 0 };
     const draw = () => {
       const { seance: current, clockOffsetMs: offset, onTouch: send } = latest.current;
@@ -72,13 +74,17 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
       // Min egen planchett har lämnat skenet: jag stoppar det här direkt, utan att vänta på servern.
       const isMeOff = current.isMeOnGlow && !reportedOn.current;
       const isHeld = current.movesFromMs === null || isMeOff;
-      const computed = findGlowProgress(current, Date.now() + offset);
+      const frameMs = Date.now();
+      const computed = findGlowProgress(current, frameMs + offset);
+      const { durationMs } = current.segment;
+      const sinceLastMs = shown ? frameMs - shown.atMs : 0;
       const progress = holdGlowProgress({
         computed,
         shown: shown?.turn === turn ? shown.progress : null,
         isHeld,
+        maxStep: durationMs > 0 ? (CATCH_UP_SPEED * sinceLastMs) / durationMs : 1,
       });
-      shown = { turn, progress };
+      shown = { turn, progress, atMs: frameMs };
       const glow = { point: findPointOnSegment(current.segment, progress), hasArrived: progress >= 1 };
       if (glowRef.current) Object.assign(glowRef.current.style, toPercent(glow.point));
       if (planchetteRef.current) {
@@ -165,8 +171,11 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
         <div ref={glowRef} className={`seance-glow${isWaiting ? ' is-waiting' : ''}`} />
         <div ref={planchetteRef} className="seance-planchette" hidden />
       </div>
-      {canTouch && !hasTouched && <p className="seance-instruction">{text}</p>}
-      <p className="seance-status" role="status">{describeSeanceStatus(seance, nowMs + clockOffsetMs, canTouch)}</p>
+      {canTouch && !hasTouched && !seance.isComplete && <p className="seance-instruction">{text}</p>}
+      <div className="seance-status">
+        <p role="status">{describeSeanceStatus(seance, nowMs + clockOffsetMs, canTouch)}</p>
+        {seance.isComplete && <button type="button" onClick={onLeave}>Lämna brädet</button>}
+      </div>
     </section>
   );
 }

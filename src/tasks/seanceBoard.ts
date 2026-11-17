@@ -33,14 +33,23 @@ export function isPlanchetteOnGlow({ planchette, glow, wasOn }: {
 }
 
 /**
+ * Hur mycket fortare än vanligt skenet glider när det ska komma ikapp
+ * servern. Den som själv tappade stoppade skenet tidigare än servern, och när
+ * skenet sedan rör sig igen ska det glida ikapp i stället för att hoppa
+ * (Jonas 2026-11-17).
+ */
+export const CATCH_UP_SPEED = 3;
+
+/**
  * Hur långt skenet ska visas. Servern får veta först efter en stund att någon
  * har tappat, och då har mobilen redan låtit skenet glida lite för långt.
  * Därför flyttas skenet aldrig bakåt på skärmen, och den som själv har
  * tappat stoppar skenet direkt hos sig (Jonas 2026-11-17). Det som visas kan
  * alltså ligga en bit före servern, och då står skenet still tills servern
- * har kommit ikapp.
+ * har kommit ikapp. Ligger det i stället efter servern glider det ikapp,
+ * högst maxStep åt gången.
  */
-export function holdGlowProgress({ computed, shown, isHeld }: {
+export function holdGlowProgress({ computed, shown, isHeld, maxStep }: {
   /** Det som servern och mobilen räknar fram. */
   computed: number;
   /** Det som visades senast på samma sträcka, eller null på en ny sträcka. */
@@ -51,9 +60,12 @@ export function holdGlowProgress({ computed, shown, isHeld }: {
    * hoppar framåt heller när servern stoppade det lite senare än mobilen.
    */
   isHeld: boolean;
+  /** Hur långt skenet högst får glida sedan förra bilden, när det ska komma ikapp. */
+  maxStep: number;
 }): number {
   if (shown === null) return computed;
-  return isHeld ? shown : Math.max(shown, computed);
+  if (isHeld || computed <= shown) return shown;
+  return Math.min(computed, shown + maxStep);
 }
 
 /** Håller planchetten på brädet, även när fingret glider utanför. */

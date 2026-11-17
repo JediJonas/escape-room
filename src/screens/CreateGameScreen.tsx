@@ -15,8 +15,8 @@ export function CreateGameScreen({ initialName, isBusy, error, onCreate, onBack 
       onSubmit={() => onCreate(name)}
       actions={
         <>
-          <button type="submit" disabled={isBusy}>{isBusy ? 'Skapar spelet …' : 'Skapa spelet'}</button>
           <button type="button" className="secondary" onClick={onBack}>Tillbaka</button>
+          <button type="submit" disabled={isBusy}>{isBusy ? 'Skapar spelet …' : 'Skapa spelet'}</button>
         </>
       }
     >

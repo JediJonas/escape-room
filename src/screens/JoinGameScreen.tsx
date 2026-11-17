@@ -18,8 +18,8 @@ export function JoinGameScreen({ initialCode, initialName, isBusy, error, onJoin
       onSubmit={() => onJoin(joinCode, name)}
       actions={
         <>
-          <button type="submit" disabled={isBusy}>{isBusy ? 'Går med …' : 'Gå med'}</button>
           <button type="button" className="secondary" onClick={onBack}>Tillbaka</button>
+          <button type="submit" disabled={isBusy}>{isBusy ? 'Går med …' : 'Gå med'}</button>
         </>
       }
     >

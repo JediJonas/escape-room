@@ -4,6 +4,9 @@ import type { FormEvent, ReactNode } from 'react';
  * En skärm med innehåll överst och knapparna längst ner, nära tummen. Med mus
  * står knapparna direkt under innehållet. Se start.css och skillen
  * knappar-i-mobilen.
+ *
+ * Efter startsidan ligger huvudhandlingen underst, närmast tummen
+ * (Jonas 2026-11-17). Startsidan har sina två val i den ordning de har.
  */
 export function ScreenLayout({ children, actions, onSubmit }: {
   children: ReactNode;

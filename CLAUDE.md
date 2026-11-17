@@ -59,9 +59,13 @@ Se README.md för mapparna. Det viktigaste:
   direkt under innehållet med mus. Mönstret står i skillen
   `knappar-i-mobilen` och i `src/start/start.css`. All luft nertill kommer
   från `--bottom-gap`.
+- Huvudhandlingen ligger underst, närmast tummen, till exempel Skapa spelet
+  under Tillbaka. Startsidan är ett undantag med Gå med i spel överst
+  (Jonas 2026-11-17).
 - Lägg till `?matt` i adressen för att se mätrutan. Avståndet till Safaris
   verktygsfält går bara att mäta på en riktig iPhone. Med iPhone 14 och iOS 26
   lämnar Safari själv cirka 17 px ovanför fältet, så `--bottom-gap` är då 0.
+  Avståndet är provat och godkänt på startsidan (Jonas 2026-11-17).
 
 ## Rundbilder och Gemini
 

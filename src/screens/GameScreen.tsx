@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import { PlaceScanner } from './PlaceScanner.tsx';
+import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
 /** Hur spelaren anger platsen just nu. Utan platskort finns bara listan. */
@@ -54,11 +55,7 @@ export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onL
     <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint">Spelledaren går vidare när alla är klara.</p>}>
       <p className="hint">{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</p>
       <p className="scene-text">{step.text}</p>
-      {step.goTo && (
-        <p className="status">
-          {isAtGoal ? `Du är i ${step.goTo.name.toLowerCase()}.` : `Gå till ${step.goTo.name.toLowerCase()}.`}
-        </p>
-      )}
+      {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}
       {shownInput === 'scan' && <PlaceScanner onPlace={(placeId) => choose(placeId, 'scan')} onCameraFailed={(reason) => showList(`${reason} Välj platsen i listan.`)} />}
       {shownInput === 'list' && (

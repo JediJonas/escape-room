@@ -196,7 +196,7 @@ async function startGameAction(action: Action, context: Context): Promise<Action
 
 async function nextStep(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
-    const change = advanceStep({ state: scope.game.state, mission: scope.mission, player: scope.player });
+    const change = advanceStep({ state: scope.game.state, mission: scope.mission, players: scope.players, player: scope.player });
     return applyChange(scope, change, { action: { type: 'nextStep', fromStepIndex: scope.game.state.stepIndex } });
   });
 }

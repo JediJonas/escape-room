@@ -55,6 +55,12 @@ export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onL
     <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint">Spelledaren går vidare när alla är klara.</p>}>
       <p className="hint">{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</p>
       <p className="scene-text">{step.text}</p>
+      {step.role && (
+        <section className="role-card" aria-label="Bara du ser det här">
+          <h2>{step.role.title}</h2>
+          {step.role.pieces.map((piece) => <p key={piece}>{piece}</p>)}
+        </section>
+      )}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}
       {shownInput === 'scan' && <PlaceScanner onPlace={(placeId) => choose(placeId, 'scan')} onCameraFailed={(reason) => showList(`${reason} Välj platsen i listan.`)} />}

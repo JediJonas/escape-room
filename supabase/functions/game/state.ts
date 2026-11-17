@@ -5,6 +5,7 @@
  */
 
 import { type PlaceId, isPlaceId } from './places.ts';
+import type { RoleAssignment } from './roles.ts';
 
 /** Om spelaren skannade kortet eller valde i listan. Sparas för felsökningens skull. */
 export type PlaceSource = 'scan' | 'list';
@@ -17,6 +18,10 @@ export type GameState = {
   stepIndex: number;
   /** Var varje spelare är, efter spelarens id. */
   placeByPlayer: Record<string, PlaceId>;
+  /** Rollerna i det aktuella steget, efter spelarens id. Delas ut när gruppen kommer till steget. */
+  roleByPlayer: Record<string, RoleAssignment>;
+  /** Vilka som har haft en framträdande roll, äldst först. */
+  prominentHistory: string[];
 };
 
 export type GameRecord = {
@@ -36,7 +41,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {} };
+  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [] };
 }
 
 /**
@@ -56,8 +61,25 @@ export function readGameState(saved: unknown): GameState {
   }
   return {
     status,
+    roleByPlayer: readRoleByPlayer(fields.roleByPlayer),
+    prominentHistory: Array.isArray(fields.prominentHistory) ? fields.prominentHistory.filter((id): id is string => typeof id === 'string') : [],
     usesPlaceCards: typeof fields.usesPlaceCards === 'boolean' ? fields.usesPlaceCards : initial.usesPlaceCards,
     stepIndex: Number.isInteger(fields.stepIndex) ? fields.stepIndex as number : initial.stepIndex,
     placeByPlayer,
   };
+}
+
+function isRoleAssignment(value: unknown): value is RoleAssignment {
+  if (!value || typeof value !== 'object') return false;
+  const assignment = value as Record<string, unknown>;
+  return typeof assignment.roleId === 'string' && Array.isArray(assignment.pieceIndexes) && assignment.pieceIndexes.every(Number.isInteger);
+}
+
+function readRoleByPlayer(saved: unknown): Record<string, RoleAssignment> {
+  const roleByPlayer: Record<string, RoleAssignment> = {};
+  if (!saved || typeof saved !== 'object') return roleByPlayer;
+  for (const [playerId, assignment] of Object.entries(saved)) {
+    if (isRoleAssignment(assignment)) roleByPlayer[playerId] = assignment;
+  }
+  return roleByPlayer;
 }

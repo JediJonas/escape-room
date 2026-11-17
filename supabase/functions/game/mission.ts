@@ -10,6 +10,27 @@ import { type PlaceId, isPlaceId } from './places.ts';
 
 export const MISSION_FORMAT = 1;
 
+/**
+ * En roll säger vem spelaren är i steget. Antalet är ett tal eller "rest"
+ * för alla övriga. Bitarna fördelas över dem som delar rollen, så att ingen
+ * får samma skärm som en annan. Se docs/koncept.md, Tre till tio spelare.
+ */
+export type Role = {
+  id: string;
+  /** Visas överst hos spelaren, till exempel "Du är siaren". */
+  title: string;
+  count: number | 'rest';
+  /** En framträdande roll går i första hand till någon som inte har haft en. */
+  isProminent?: boolean;
+  /** Viktigast först. Med få spelare och en gräns per spelare blir de sista över. */
+  pieces: string[];
+  /**
+   * Högst så här många bitar per spelare, så att skärmen bara får några rader
+   * även när få delar rollen. Utan gräns får rollen alla bitar.
+   */
+  maxPiecesPerPlayer?: number;
+};
+
 /** Berättelsen mellan uppgifterna. Kan skicka spelarna till en plats. */
 export type SceneStep = {
   id: string;
@@ -19,6 +40,8 @@ export type SceneStep = {
   goTo?: PlaceId;
   /** Det som bara den som har kommit fram till platsen ser. */
   textAtPlace?: string;
+  /** Utan roller ser alla samma sak. */
+  roles?: Role[];
 };
 
 export type MissionStep = SceneStep;
@@ -37,7 +60,36 @@ function isFilledText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function findStepErrors(step: Record<string, unknown>, places: Record<string, unknown>): string[] {
+/**
+ * Kontrollerar rollerna i ett steg. Varje roll måste ha minst en bit per
+ * spelare den kan få, även med tio spelare, så att två aldrig ser samma sak.
+ */
+function findRoleErrors(roles: unknown, stepName: string, minPlayers: number): string[] {
+  if (!Array.isArray(roles) || roles.length === 0) return [`${stepName} har roller som inte är en lista`];
+  const errors: string[] = [];
+  const fixedCount = roles.reduce((sum: number, role) => sum + (Number.isInteger(role?.count) ? role.count : 0), 0);
+  if (fixedCount > minPlayers) errors.push(`${stepName} kräver ${fixedCount} spelare men uppdraget tillåter ${minPlayers}`);
+  if (roles.filter((role) => role?.count === 'rest').length > 1) errors.push(`${stepName} har mer än en roll med resten`);
+  const roleIds = new Set<unknown>();
+  for (const role of roles) {
+    const name = `rollen ${String(role?.id)} i ${stepName}`;
+    if (!isFilledText(role?.id) || roleIds.has(role.id)) errors.push(`${stepName} har en roll utan id eller med samma id som en annan`);
+    roleIds.add(role?.id);
+    if (!isFilledText(role?.title)) errors.push(`${name} saknar titel`);
+    const isRest = role?.count === 'rest';
+    if (!isRest && !(Number.isInteger(role?.count) && role.count > 0)) errors.push(`${name} har ett ogiltigt antal`);
+    if (!Array.isArray(role?.pieces) || !role.pieces.every(isFilledText)) {
+      errors.push(`${name} saknar bitar`);
+      continue;
+    }
+    if (role.maxPiecesPerPlayer !== undefined && !(Number.isInteger(role.maxPiecesPerPlayer) && role.maxPiecesPerPlayer > 0)) errors.push(`${name} har en ogiltig gräns för bitar`);
+    const mostPlayers = isRest ? MAX_PLAYERS - fixedCount : role.count;
+    if (role.pieces.length < mostPlayers) errors.push(`${name} har ${role.pieces.length} bitar men kan få ${mostPlayers} spelare`);
+  }
+  return errors;
+}
+
+function findStepErrors(step: Record<string, unknown>, places: Record<string, unknown>, minPlayers: number): string[] {
   const errors: string[] = [];
   if (!isFilledText(step.id)) errors.push('ett steg saknar id');
   const name = `steget ${String(step.id)}`;
@@ -45,6 +97,7 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);
+  if (step.roles !== undefined) errors.push(...findRoleErrors(step.roles, name, minPlayers));
   return errors;
 }
 
@@ -74,7 +127,7 @@ export function findMissionErrors(data: unknown): string[] {
     const stepFields = step as Record<string, unknown>;
     if (stepIds.has(stepFields.id)) errors.push(`steget ${String(stepFields.id)} finns två gånger`);
     stepIds.add(stepFields.id);
-    errors.push(...findStepErrors(stepFields, places ?? {}));
+    errors.push(...findStepErrors(stepFields, places ?? {}, Number.isInteger(minPlayers) ? minPlayers as number : 0));
   }
   return errors;
 }

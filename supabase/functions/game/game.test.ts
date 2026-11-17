@@ -23,12 +23,12 @@ test('en spelare kan inte starta eller gå vidare, och spelet startar inte med f
   assert.deepEqual(startGame({ state: createInitialState(), mission: MISSION, players: [LEADER, GUEST], starter: GUEST, usesPlaceCards: true }), { refusal: 'notLeader' });
   assert.deepEqual(startGame({ state: createInitialState(), mission: MISSION, players: [LEADER], starter: LEADER, usesPlaceCards: true }), { refusal: 'tooFewPlayers' });
   const running: GameState = { ...createInitialState(), status: 'running' };
-  assert.deepEqual(advanceStep({ state: running, mission: MISSION, player: GUEST }), { refusal: 'notLeader' });
+  assert.deepEqual(advanceStep({ state: running, mission: MISSION, players: [LEADER, GUEST], player: GUEST }), { refusal: 'notLeader' });
 });
 
 test('efter sista steget är spelet slut och står kvar på sista steget', () => {
   const lastIndex = MISSION.steps.length - 1;
-  const state = readState(advanceStep({ state: { ...createInitialState(), status: 'running', stepIndex: lastIndex }, mission: MISSION, player: LEADER }));
+  const state = readState(advanceStep({ state: { ...createInitialState(), status: 'running', stepIndex: lastIndex }, mission: MISSION, players: [LEADER, GUEST], player: LEADER }));
   assert.deepEqual({ status: state.status, stepIndex: state.stepIndex }, { status: 'finished', stepIndex: lastIndex });
 });
 

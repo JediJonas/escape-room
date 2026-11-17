@@ -1,11 +1,11 @@
 /**
  * Brädet i seansen så som mobilen ritar det: när spelarens planchett räknas
- * som på skenet, vilken bokstav som lyser och raden under brädet. Rena
+ * som på skenet, hur långt skenet ska visas och raden under brädet. Rena
  * funktioner utan DOM och klocka. Var skenet är räknas ut på samma sätt som
  * på servern, se supabase/functions/game/seance.ts.
  */
 
-import { type BoardPoint, type SeanceView, findCellCenter, measureDistanceInCells } from '../../supabase/functions/game/seance.ts';
+import { type BoardPoint, type SeanceView, measureDistanceInCells } from '../../supabase/functions/game/seance.ts';
 
 /**
  * Planchetten räknas som på skenet när den är närmare än en halv ruta, och
@@ -15,9 +15,6 @@ import { type BoardPoint, type SeanceView, findCellCenter, measureDistanceInCell
  */
 const ON_GLOW_CELLS = 0.5;
 const OFF_GLOW_CELLS = 0.8;
-
-/** Skenet räknas som stående på en bokstav så länge det är så här nära rutans mitt. */
-const ON_LETTER_CELLS = 0.3;
 
 /** Hur länge ett lyft finger får vara borta innan kontakten bryts, så att ett finger som glider inte förstör allt. */
 export const LIFT_GRACE_MS = 500;
@@ -35,10 +32,28 @@ export function isPlanchetteOnGlow({ planchette, glow, wasOn }: {
   return measureDistanceInCells(planchette, glow) < (wasOn ? OFF_GLOW_CELLS : ON_GLOW_CELLS);
 }
 
-/** Bokstaven som skenet står på, för att lysa upp den hos alla. När skenet glider vidare slocknar den. */
-export function findLitCell(seance: SeanceView, glow: BoardPoint): number | null {
-  if (seance.takenCell === null) return null;
-  return measureDistanceInCells(glow, findCellCenter(seance.takenCell)) < ON_LETTER_CELLS ? seance.takenCell : null;
+/**
+ * Hur långt skenet ska visas. Servern får veta först efter en stund att någon
+ * har tappat, och då har mobilen redan låtit skenet glida lite för långt.
+ * Därför flyttas skenet aldrig bakåt på skärmen, och den som själv har
+ * tappat stoppar skenet direkt hos sig (Jonas 2026-11-17). Det som visas kan
+ * alltså ligga en bit före servern, och då står skenet still tills servern
+ * har kommit ikapp.
+ */
+export function holdGlowProgress({ computed, shown, isHeld }: {
+  /** Det som servern och mobilen räknar fram. */
+  computed: number;
+  /** Det som visades senast på samma sträcka, eller null på en ny sträcka. */
+  shown: number | null;
+  /**
+   * Om skenet står still: servern har stoppat det, eller spelarens egen
+   * planchett har lämnat det. Då står det kvar där det syns, så att det inte
+   * hoppar framåt heller när servern stoppade det lite senare än mobilen.
+   */
+  isHeld: boolean;
+}): number {
+  if (shown === null) return computed;
+  return isHeld ? shown : Math.max(shown, computed);
 }
 
 /** Håller planchetten på brädet, även när fingret glider utanför. */

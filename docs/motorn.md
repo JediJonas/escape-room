@@ -223,7 +223,9 @@ planchett som följer. Skenet
 rör sig med jämn fart medan alla följer, så både servern och mobilerna kan
 räkna ut var det är utan att servern tickar. Mobilen avgör själv om
 planchetten är på skenet och säger bara till när det ändras, och när den ser
-skenet nå en bokstav. Fingrets rörelser går inte genom servern. Se
+skenet nå en bokstav. Fingrets rörelser går inte genom servern. Skenet
+flyttas aldrig bakåt på skärmen, och den egna mobilen stoppar det direkt när
+planchetten tappar, så att fördröjningen till servern inte syns som ett hopp. Se
 `seance.ts`.
 
 **Uppdraget väljs när spelet startar.** Spelledaren ser uppdragen i

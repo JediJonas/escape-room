@@ -389,9 +389,9 @@ test('i seansen glider skenet när alla följer, och bokstaven lyser hos alla n�
   memory.clock.nowMs += boView.step.seance?.segment.durationMs ?? 0;
   memory.sentViews.length = 0;
   await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'arrived' });
-  // Bokstaven H är tagen, och båda får en ny vy där skenet står på den.
-  const takenCells = memory.sentViews.map(({ view: sent }) => (sent as GameView).step.seance?.takenCell ?? null);
-  assert.deepEqual(takenCells, [7, 7]);
+  // Bokstaven H är tagen, och båda får en ny vy där skenet är på väg mot nästa.
+  const letterIndexes = memory.sentViews.map(({ view: sent }) => (sent as GameView).step.seance?.letterIndex ?? null);
+  assert.deepEqual(letterIndexes, [1, 1]);
 
   // Den andra mobilen som säger till ändrar ingenting, och ingen får en ny vy.
   memory.sentViews.length = 0;

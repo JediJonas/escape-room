@@ -85,12 +85,12 @@ test('mobilen räknar fram samma läge för skenet som servern', () => {
   assert.ok(Math.abs(findGlowPoint(describe(stopped, 'p0'), 10 * durationMs).point.x - (from.x + to.x) / 2) < 1e-9);
 });
 
-test('när skenet når bokstaven lyser den hos alla, och skenet glider sedan mot nästa', () => {
+test('när skenet når bokstaven står det kvar där hos alla, och glider sedan mot nästa', () => {
   let round = takeNextLetter(startSeance(), 0);
   assert.equal(round.seance.letterIndex, 1);
-  for (const id of IDS) assert.equal(describe(round.seance, id).takenCell, BOARD_LETTERS.indexOf('J'));
+  for (const id of IDS) assert.deepEqual(findGlowPoint(describe(round.seance, id), round.nowMs).point, findCellCenter(BOARD_LETTERS.indexOf('J')));
   round = takeNextLetter(round.seance, round.nowMs);
-  assert.equal(describe(round.seance, 'p2').takenCell, BOARD_LETTERS.indexOf('A'));
+  assert.deepEqual(findGlowPoint(describe(round.seance, 'p2'), round.nowMs).point, findCellCenter(BOARD_LETTERS.indexOf('A')));
 });
 
 test('skenet står kvar på bokstaven en stund innan det glider vidare', () => {

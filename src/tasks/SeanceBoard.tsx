@@ -1,10 +1,12 @@
 import { type PointerEvent, useEffect, useRef, useState } from 'react';
-import { BOARD_LETTERS, type BoardPoint, type BoardTouch, START_CELL, type SeanceView, findGlowPoint } from '../../supabase/functions/game/seance.ts';
-import { LIFT_GRACE_MS, clampToBoard, describeSeanceStatus, findLitCell, isPlanchetteOnGlow } from './seanceBoard.ts';
+import { BOARD_LETTERS, type BoardPoint, type BoardTouch, START_CELL, type SeanceView, findGlowProgress, findPointOnSegment } from '../../supabase/functions/game/seance.ts';
+import { LIFT_GRACE_MS, clampToBoard, describeSeanceStatus, holdGlowProgress, isPlanchetteOnGlow } from './seanceBoard.ts';
 import './seance.css';
 
 /** Raden under brädet uppdateras så här ofta, så att meddelandet om vem som släppte försvinner. */
 const STATUS_TICK_MS = 1000;
+/** Hur ofta mobilen säger till igen att skenet har nått bokstaven, om servern inte höll med. */
+const ARRIVED_RETRY_MS = 1000;
 const PERCENT = 100;
 /** Startrutan har en måne i stället för en bokstav. */
 const START_SYMBOL = '☽';
@@ -37,14 +39,14 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
 }) {
   const glowRef = useRef<HTMLDivElement>(null);
   const planchetteRef = useRef<HTMLDivElement>(null);
-  const cellRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const planchette = useRef<BoardPoint | null>(null);
   const pointerId = useRef<number | null>(null);
   const liftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reportedOn = useRef(false);
-  const arrivedTurn = useRef('');
   const latest = useRef({ seance, clockOffsetMs, onTouch });
   const [nowMs, setNowMs] = useState(() => Date.now());
+  // Instruktionen står på brädet tills spelaren har lagt fingret på det första gången.
+  const [hasTouched, setHasTouched] = useState(false);
 
   useEffect(() => {
     latest.current = { seance, clockOffsetMs, onTouch };
@@ -62,20 +64,26 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
 
   useEffect(() => {
     let frame = 0;
-    let litCell: number | null = null;
+    let shown: { turn: string; progress: number } | null = null;
+    let arrived = { turn: '', atMs: 0 };
     const draw = () => {
       const { seance: current, clockOffsetMs: offset, onTouch: send } = latest.current;
-      const glow = findGlowPoint(current, Date.now() + offset);
+      const turn = describeLetterTurn(current);
+      // Min egen planchett har lämnat skenet: jag stoppar det här direkt, utan att vänta på servern.
+      const isMeOff = current.isMeOnGlow && !reportedOn.current;
+      const isHeld = current.movesFromMs === null || isMeOff;
+      const computed = findGlowProgress(current, Date.now() + offset);
+      const progress = holdGlowProgress({
+        computed,
+        shown: shown?.turn === turn ? shown.progress : null,
+        isHeld,
+      });
+      shown = { turn, progress };
+      const glow = { point: findPointOnSegment(current.segment, progress), hasArrived: progress >= 1 };
       if (glowRef.current) Object.assign(glowRef.current.style, toPercent(glow.point));
       if (planchetteRef.current) {
         planchetteRef.current.hidden = planchette.current === null;
         if (planchette.current) Object.assign(planchetteRef.current.style, toPercent(planchette.current));
-      }
-      const nextLit = findLitCell(current, glow.point);
-      if (nextLit !== litCell) {
-        if (litCell !== null) cellRefs.current[litCell]?.classList.remove('is-lit');
-        if (nextLit !== null) cellRefs.current[nextLit]?.classList.add('is-lit');
-        litCell = nextLit;
       }
       if (!current.isComplete) {
         // Under respiten efter ett lyft finger räknas planchetten som kvar.
@@ -85,10 +93,12 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
           reportedOn.current = isOn;
           send(isOn ? 'onGlow' : 'offGlow');
         }
-        // Servern tickar inte, så den som ser skenet nå bokstaven säger till.
-        const turn = describeLetterTurn(current);
-        if (glow.hasArrived && current.movesFromMs !== null && isOn && arrivedTurn.current !== turn) {
-          arrivedTurn.current = turn;
+        // Servern tickar inte, så den som ser skenet nå bokstaven säger till. Det som räknas är
+        // serverns läge, inte det som visas. Går klockorna lite olika frågar mobilen igen om en stund.
+        const nowMs = Date.now();
+        const canAskAgain = arrived.turn !== turn || nowMs - arrived.atMs > ARRIVED_RETRY_MS;
+        if (computed >= 1 && current.movesFromMs !== null && isOn && canAskAgain) {
+          arrived = { turn, atMs: nowMs };
           send('arrived');
         }
       }
@@ -110,6 +120,7 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
   function press(event: PointerEvent<HTMLDivElement>) {
     if (!canTouch || pointerId.current !== null) return;
     pointerId.current = event.pointerId;
+    setHasTouched(true);
     event.currentTarget.setPointerCapture(event.pointerId);
     if (liftTimer.current) clearTimeout(liftTimer.current);
     liftTimer.current = null;
@@ -137,7 +148,6 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
   const isWaiting = !seance.isComplete && seance.movesFromMs === null;
   return (
     <section className="seance" aria-label="Seansen">
-      <p className="seance-instruction">{text}</p>
       <div
         className={`seance-board${seance.isComplete ? ' is-complete' : ''}`}
         aria-label={canTouch ? 'Brädet. Håll fingret på planchetten och följ skenet.' : 'Brädet'}
@@ -149,13 +159,14 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch }: 
       >
         <div className="seance-letters" aria-hidden="true">
           {BOARD_CELLS.map((symbol, cell) => (
-            <span key={symbol} ref={(element) => { cellRefs.current[cell] = element; }} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
+            <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
           ))}
         </div>
         <div ref={glowRef} className={`seance-glow${isWaiting ? ' is-waiting' : ''}`} />
         <div ref={planchetteRef} className="seance-planchette" hidden />
       </div>
-      <p className="hint seance-status" role="status">{describeSeanceStatus(seance, nowMs + clockOffsetMs, canTouch)}</p>
+      {canTouch && !hasTouched && <p className="seance-instruction">{text}</p>}
+      <p className="seance-status" role="status">{describeSeanceStatus(seance, nowMs + clockOffsetMs, canTouch)}</p>
     </section>
   );
 }

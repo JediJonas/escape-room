@@ -1,0 +1,85 @@
+/*
+ * Golvuret och minnet i Rummen minns. Minnet är sepiatonat, kornigt och
+ * flimrar lite, i både ljust och mörkt läge, så att alla ser att huset minns
+ * var de än är (Jonas 2026-11-17).
+ */
+
+.grandfather-clock { display: grid; justify-items: center; gap: 0.75rem; margin: 1rem 0; }
+
+.clock-face {
+  width: min(80vw, 18rem);
+  height: auto;
+  /* Fingret vrider visarna och ska inte rulla sidan. */
+  touch-action: none;
+  user-select: none;
+}
+
+.clock-face.can-turn { cursor: grab; }
+.clock-rim { fill: #3a2717; }
+.clock-dial { fill: #efe3c8; stroke: #8a6a3f; stroke-width: 1.5; }
+.clock-numeral { fill: #2b2116; font: 600 11px Georgia, 'Times New Roman', serif; }
+.clock-hand { stroke: #1c140c; stroke-linecap: round; }
+.clock-hand.hour { stroke-width: 6; }
+.clock-hand.minute { stroke-width: 3.5; }
+.clock-pin { fill: #1c140c; }
+
+.wheel-grip {
+  width: 100%;
+  /* Knappen hålls in en stund, och iPhone ska inte markera texten eller visa en meny. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+}
+
+.memory-screen {
+  --memory-paper: #d9c7a3;
+  --memory-ink: #2e2416;
+  color: var(--memory-ink);
+  background-color: #b49a6e;
+  background-image:
+    radial-gradient(ellipse at center, rgb(255 240 210 / 0.35), rgb(40 25 10 / 0.55) 85%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  animation: memory-flicker 4s steps(1, end) infinite;
+}
+
+.memory-screen .game-header,
+.memory-screen .hint { color: var(--memory-ink); }
+
+.memory-screen button.secondary {
+  color: var(--memory-ink);
+  border-color: var(--memory-ink);
+}
+
+.memory { display: grid; gap: 0.75rem; transition: opacity 2s; }
+.memory.is-fading { opacity: 0.55; }
+
+.memory-label {
+  margin: 0;
+  font: 600 1rem Georgia, 'Times New Roman', serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.memory-pieces p {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgb(255 248 230 / 0.55);
+  border-radius: 0.4rem;
+  font: 1.1rem/1.45 Georgia, 'Times New Roman', serif;
+}
+
+.memory-note { margin: 0; font-style: italic; }
+.memory-choices { border: 0; padding: 0; }
+
+@keyframes memory-flicker {
+  0%, 100% { filter: sepia(0.6) brightness(1); }
+  37% { filter: sepia(0.6) brightness(0.93); }
+  39% { filter: sepia(0.6) brightness(1.04); }
+  71% { filter: sepia(0.6) brightness(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memory-screen { animation: none; filter: sepia(0.6); }
+  .memory { transition: none; }
+}

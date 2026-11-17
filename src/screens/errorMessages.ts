@@ -27,7 +27,10 @@ const MESSAGES: Record<ActionError, string> = {
   notTrapped: 'Det kan bara den andra sidan av källardörren göra.',
   noMoreFuses: 'Säkringarna är slut.',
   noDoor: 'Det finns ingen dörr dit härifrån.',
-  roomForgets: 'Rummet minns inte just nu. Vänta en stund.',
+  houseRemembers: 'Huset minns. Dörrarna och golvuret går inte att röra förrän minnet har bleknat.',
+  notRemembering: 'Minnet har redan bleknat.',
+  alreadyChosen: 'Du har redan valt rum. Du stannar där tills minnet bleknar.',
+  roomFull: 'Det rummet är fullt. Välj ett rum där färre står.',
   noMoreHints: 'Uppgiften har inga fler ledtrådar.',
   unknownMission: 'Uppdraget finns inte längre. Starta ett nytt spel.',
 };

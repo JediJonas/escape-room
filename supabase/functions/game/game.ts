@@ -11,13 +11,13 @@ import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
 import { dealRoles } from './roles.ts';
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
-import { type RoomsView, describeRooms, hasSolvedOwnRooms, startRooms } from './rooms.ts';
+import { type RoomsRefusal, type RoomsView, describeRooms, startRooms } from './rooms.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
 import { type FoundItem, describeFound, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'roomForgets' | 'notTrapped' | 'noMoreFuses' | 'noDoor';
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | RoomsRefusal;
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
@@ -31,7 +31,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     hintsGiven: 0,
     isSolutionShown: false,
     seance: step.type === 'seance' ? startSeance() : null,
-    rooms: step.type === 'rooms' ? startRooms(step, sortByJoinOrder(players).map((player) => player.id)) : null,
+    rooms: step.type === 'rooms' ? startRooms(step) : null,
     cellar: step.type === 'cellar' ? startCellar() : null,
   };
   const { roles } = step;
@@ -98,7 +98,8 @@ function usesReadyButton(step: MissionStep, state: GameState): boolean {
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
-  if (step.type === 'rooms') return state.rooms !== null && hasSolvedOwnRooms(state.rooms, playerId);
+  // Rummen minns är klar för alla samtidigt, när minnet har bleknat. Se taskActions.ts.
+  if (step.type === 'rooms') return false;
   if (step.type === 'scene' && isDoneWhenArrived(step)) return isAtGoal(step, state, playerId);
   return usesReadyButton(step, state) && state.readyPlayerIds.includes(playerId);
 }
@@ -273,7 +274,7 @@ export type GameView = {
     solution: string | null;
     /** Brädet i en seans, med bokstaven bara hos den som ska läsa den. */
     seance: SeanceView | null;
-    /** Spelarens rum i Rummen minns, med bitarna bara i det rum där hon står. */
+    /** Golvuret och minnet i Rummen minns, med bitarna bara i det rum spelaren har valt. */
     rooms: RoomsView | null;
     /** Källaren, med bilden bara hos den instängda. */
     cellar: CellarView | null;
@@ -364,7 +365,7 @@ export function buildGameView({ game, mission, players, viewer }: {
         ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })
         : null,
       rooms: step.type === 'rooms' && state.rooms && isRunning
-        ? describeRooms({ rooms: state.rooms, step, places, placeId: state.placeByPlayer[viewer.id], viewerId: viewer.id })
+        ? describeRooms({ rooms: state.rooms, step, places, viewerId: viewer.id })
         : null,
       cellar: step.type === 'cellar' && state.cellar && isRunning ? describeCellarFor(step, state, players, viewer.id) : null,
     },

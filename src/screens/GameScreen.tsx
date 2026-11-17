@@ -6,7 +6,8 @@ import type { CellarMove } from '../../supabase/functions/game/cellar.ts';
 import { requestMotionPermission } from '../device/motion.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
-import { RoomsTask } from '../tasks/RoomsTask.tsx';
+import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
+import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
@@ -30,7 +31,9 @@ export type GameActions = {
   moveInCellar: (move: CellarMove) => void;
   walk: (placeId: PlaceId) => void;
   searchRoom: () => void;
-  chooseGuest: (guest: string) => void;
+  turnClock: (minutes: number) => void;
+  chooseMemoryRoom: (placeId: PlaceId) => void;
+  fadeMemory: () => void;
   giveHint: () => void;
   showSolution: () => void;
   answerPending: (playerId: string, isAdmitted: boolean) => void;
@@ -55,9 +58,9 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [isFoundOpen, setIsFoundOpen] = useState(false);
   const [openThingId, setOpenThingId] = useState<string | null>(null);
   const { step } = view;
+  const memory = useMemoryTime(step.rooms?.remembersUntilMs ?? null, clockOffsetMs, game.fadeMemory);
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
-  // I Rummen minns kan spelaren ha ett rum kvar att gå till fast hon står i ett annat.
-  const hasPlaceToGo = (step.goTo !== null && !isAtGoal) || (step.rooms?.hasRoomElsewhere ?? false);
+  const hasPlaceToGo = step.goTo !== null && !isAtGoal;
   const needsPlace = view.me.isPlaying && hasPlaceToGo && !view.isFinished;
   // Utan platskort visas listan direkt, eftersom det inte finns något att skanna.
   const shownInput: PlaceInput = needsPlace ? (view.usesPlaceCards ? placeInput : 'list') : 'none';
@@ -81,6 +84,21 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     return (
       <ScreenLayout actions={<button type="button" onClick={() => setIsFoundOpen(false)}>Tillbaka</button>}>
         <FoundView found={view.found} />
+      </ScreenLayout>
+    );
+  }
+
+  // Medan huset minns ser alla minnet, var de än är, och inget av det som finns i nuet (Jonas 2026-11-17).
+  if (step.rooms && memory.isRemembering && !view.isFinished) {
+    return (
+      <ScreenLayout className="memory-screen" actions={<p className="hint">Dörrarna är stängda tills minnet bleknar.</p>}>
+        <p className="hint game-header">
+          <span>{view.missionTitle} · steg {step.number} av {step.count}</span>
+          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+        </p>
+        <MemoryScreen rooms={step.rooms} isFading={memory.isFading} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseMemoryRoom} />
+        <LeaderPanel view={view} isBusy={isBusy} onSetPaused={game.setPaused} onGiveHint={game.giveHint} onShowSolution={game.showSolution} onAnswerPending={game.answerPending} />
+        <p className="error" role="alert">{error}</p>
       </ScreenLayout>
     );
   }
@@ -238,7 +256,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         </form>
       )}
       {cellar && <CellarStatus cellar={cellar} clockOffsetMs={clockOffsetMs} onTimeUp={timeUpInCellar} />}
-      {step.rooms && <RoomsTask rooms={step.rooms} clockOffsetMs={clockOffsetMs} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseGuest} />}
+      {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}
       {shownInput === 'scan' && <PlaceScanner onPlace={(placeId) => choose(placeId, 'scan')} onCameraFailed={(reason) => showList(`${reason} Välj platsen i listan.`)} />}

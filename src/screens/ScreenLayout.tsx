@@ -8,9 +8,11 @@ import type { FormEvent, ReactNode } from 'react';
  * Efter startsidan ligger huvudhandlingen underst, närmast tummen
  * (Jonas 2026-11-17). Startsidan har sina två val i den ordning de har.
  */
-export function ScreenLayout({ children, actions, onSubmit }: {
+export function ScreenLayout({ children, actions, onSubmit, className }: {
   children: ReactNode;
   actions: ReactNode;
+  /** En extra klass på skärmen, till exempel minnet i Rummen minns. */
+  className?: string;
   /** Med en funktion blir skärmen ett formulär, så att Enter skickar det. */
   onSubmit?: () => void;
 }) {
@@ -25,7 +27,7 @@ export function ScreenLayout({ children, actions, onSubmit }: {
     onSubmit?.();
   };
   return (
-    <main className="screen">
+    <main className={className ? `screen ${className}` : 'screen'}>
       {onSubmit ? <form className="screen-body" onSubmit={submit} noValidate>{body}</form> : <div className="screen-body">{body}</div>}
     </main>
   );

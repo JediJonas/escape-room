@@ -198,7 +198,9 @@ export function App() {
     touchBoard: (touch) => {
       if (gameId) void callGame({ type: 'touchBoard', gameId, touch });
     },
-    chooseGuest: (guest) => sendInGame({ type: 'chooseGuest', guest }),
+    turnClock: (minutes) => sendInGame({ type: 'turnClock', minutes }),
+    chooseMemoryRoom: (placeId) => sendInGame({ type: 'chooseMemoryRoom', placeId }),
+    fadeMemory: () => sendInGame({ type: 'fadeMemory' }),
     moveInCellar: (move) => sendInGame({ type: 'moveInCellar', move }),
     walk: (placeId) => sendInGame({ type: 'walk', placeId }),
     searchRoom: () => sendInGame({ type: 'searchRoom' }),

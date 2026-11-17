@@ -5,19 +5,19 @@
  */
 
 import { type ClockView, describeClock, pauseClock, resumeClock, startClock } from './clock.ts';
-import { type Mission, type Place, type SceneStep, listPlaces } from './mission.ts';
+import { type AnswerStep, type Mission, type MissionStep, type Place, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { type RoleAssignment, dealRoles } from './roles.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace';
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints';
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
 /** Gruppen kommer till ett steg: rollerna delas ut på nytt, eller tas bort om steget saknar roller. */
 function enterStep(state: GameState, mission: Mission, players: readonly PlayerRecord[], stepIndex: number): GameState {
-  const cleared = { ...state, stepIndex, readyPlayerIds: [] };
+  const cleared = { ...state, stepIndex, readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false };
   const roles = mission.steps[stepIndex].roles;
   if (!roles) return { ...cleared, roleByPlayer: {} };
   const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory });
@@ -31,7 +31,7 @@ function moveOn(state: GameState, mission: Mission, players: readonly PlayerReco
   return enterStep(state, mission, players, nextIndex);
 }
 
-function isAtGoal(step: SceneStep, state: GameState, playerId: string): boolean {
+function isAtGoal(step: MissionStep, state: GameState, playerId: string): boolean {
   return step.goTo !== undefined && state.placeByPlayer[playerId] === step.goTo;
 }
 
@@ -40,11 +40,17 @@ function isAtGoal(step: SceneStep, state: GameState, playerId: string): boolean 
  * framme. Annars trycker spelaren Klar när hon har läst och gjort sitt
  * (Jonas 2026-11-17).
  */
-function isDoneWhenArrived(step: SceneStep): boolean {
+function isDoneWhenArrived(step: MissionStep): boolean {
   return step.goTo !== undefined && step.textAtPlace === undefined;
 }
 
-function isPlayerDone(step: SceneStep, state: GameState, playerId: string): boolean {
+/** En scen utan plats att gå till, eller med text på platsen, klaras med Klar. En uppgift klaras genom att lösas. */
+function usesReadyButton(step: MissionStep): boolean {
+  return step.type === 'scene' && !isDoneWhenArrived(step);
+}
+
+function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
+  if (step.type !== 'scene') return false;
   return isDoneWhenArrived(step) ? isAtGoal(step, state, playerId) : state.readyPlayerIds.includes(playerId);
 }
 
@@ -91,6 +97,7 @@ export function markReady({ state, mission, players, player }: {
 }): StateChange {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   const step = mission.steps[state.stepIndex];
+  if (!usesReadyButton(step)) return { state };
   if (step.goTo !== undefined && !isAtGoal(step, state, player.id)) return { refusal: 'notAtPlace' };
   if (state.readyPlayerIds.includes(player.id)) return { state };
   return { state: moveOnIfAllDone({ ...state, readyPlayerIds: [...state.readyPlayerIds, player.id] }, mission, players) };
@@ -108,6 +115,49 @@ export function choosePlace({ state, mission, players, player, placeId }: {
   const place = listPlaces(mission).find((candidate) => candidate.id === placeId);
   if (!place) return { refusal: 'unknownPlace' };
   return { state: moveOnIfAllDone({ ...state, placeByPlayer: { ...state.placeByPlayer, [player.id]: place.id } }, mission, players) };
+}
+
+/** Stora och små bokstäver och extra mellanslag spelar ingen roll i ett svar. */
+export function normalizeAnswer(answer: string): string {
+  return answer.trim().replace(/\s+/g, ' ').toLocaleLowerCase('sv');
+}
+
+/** Den aktuella uppgiften, eller ett nej om gruppen är i en scen eller spelet inte är igång. */
+function findCurrentTask(state: GameState, mission: Mission): { step: AnswerStep } | { refusal: GameRefusal } {
+  if (state.status !== 'running') return { refusal: 'notRunning' };
+  const step = mission.steps[state.stepIndex];
+  return step.type === 'answer' ? { step } : { refusal: 'notATask' };
+}
+
+/** Vem som helst i gruppen kan svara. Ett rätt svar för alla vidare. */
+export function submitAnswer({ state, mission, players, answer }: {
+  state: GameState;
+  mission: Mission;
+  players: readonly PlayerRecord[];
+  answer: unknown;
+}): StateChange {
+  const task = findCurrentTask(state, mission);
+  if ('refusal' in task) return { refusal: task.refusal };
+  const given = typeof answer === 'string' ? normalizeAnswer(answer) : '';
+  const isRight = given !== '' && task.step.solution.answers.some((correct) => normalizeAnswer(correct) === given);
+  return isRight ? { state: moveOn(state, mission, players) } : { refusal: 'wrongAnswer' };
+}
+
+/** Spelledaren ger gruppen nästa ledtråd. Alla får den samtidigt. */
+export function giveHint({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
+  if (!player.isLeader) return { refusal: 'notLeader' };
+  const task = findCurrentTask(state, mission);
+  if ('refusal' in task) return { refusal: task.refusal };
+  if (state.hintsGiven >= task.step.hints.length) return { refusal: 'noMoreHints' };
+  return { state: { ...state, hintsGiven: state.hintsGiven + 1 } };
+}
+
+/** Facit visas bara hos spelledaren, och bara när hon ber om det. */
+export function showSolution({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
+  if (!player.isLeader) return { refusal: 'notLeader' };
+  const task = findCurrentTask(state, mission);
+  if ('refusal' in task) return { refusal: task.refusal };
+  return { state: { ...state, isSolutionShown: true } };
 }
 
 /** Pausar eller fortsätter nedräkningen. Bara spelledaren får göra det. */
@@ -142,9 +192,15 @@ export type GameView = {
     textAtPlace: string | null;
     /** Spelarens roll i steget och bara hennes egna bitar. */
     role: { title: string; pieces: string[] } | null;
+    type: MissionStep['type'];
     /** Om spelaren trycker Klar i steget, eller blir klar av att komma fram. */
     usesReadyButton: boolean;
     isMeDone: boolean;
+    /** Ledtrådarna som gruppen har fått, och hur många uppgiften har. */
+    hints: string[];
+    hintCount: number;
+    /** Bara hos spelledaren och bara när hon har bett om det. */
+    solution: string | null;
   };
   /** Bara hos spelledaren: vilka som är klara med steget. */
   progress: { name: string; isMe: boolean; isDone: boolean }[] | null;
@@ -159,13 +215,13 @@ function findPlace(places: readonly Place[], placeId: PlaceId | undefined): Plac
   return places.find((place) => place.id === placeId) ?? null;
 }
 
-function describeRole(step: SceneStep, assignment: RoleAssignment | undefined) {
+function describeRole(step: MissionStep, assignment: RoleAssignment | undefined) {
   const role = step.roles?.find((candidate) => candidate.id === assignment?.roleId);
   if (!role || !assignment) return null;
   return { title: role.title, pieces: assignment.pieceIndexes.map((index) => role.pieces[index]).filter((piece) => piece !== undefined) };
 }
 
-function describeStep(step: SceneStep, places: readonly Place[], myPlace: Place | null, assignment: RoleAssignment | undefined) {
+function describeStep(step: MissionStep, places: readonly Place[], myPlace: Place | null, assignment: RoleAssignment | undefined) {
   const goTo = findPlace(places, step.goTo);
   const isAtPlace = goTo !== null && myPlace?.id === goTo.id;
   return { text: step.text, goTo, textAtPlace: isAtPlace ? step.textAtPlace ?? null : null, role: describeRole(step, assignment) };
@@ -194,8 +250,12 @@ export function buildGameView({ game, mission, players, viewer }: {
       number: stepIndex + 1,
       count: mission.steps.length,
       ...describeStep(step, places, myPlace, state.roleByPlayer[viewer.id]),
-      usesReadyButton: !isDoneWhenArrived(step),
+      type: step.type,
+      usesReadyButton: usesReadyButton(step),
       isMeDone: isPlayerDone(step, state, viewer.id),
+      hints: step.hints?.slice(0, state.hintsGiven) ?? [],
+      hintCount: step.hints?.length ?? 0,
+      solution: viewer.isLeader && state.isSolutionShown && step.solution ? step.solution.answers[0] : null,
     },
     progress: viewer.isLeader && isRunning
       ? sortByJoinOrder(players).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))

@@ -7,7 +7,7 @@
  */
 
 import { readGameMinutes } from './clock.ts';
-import { type GameRefusal, type StateChange, advanceStep, choosePlace, markReady, setPaused, startGame } from './game.ts';
+import { type GameRefusal, type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
 import type { GameStore, GameTransaction } from './gameStore.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, type JoinRefusal, cleanPlayerName, findJoinRefusal } from './lobby.ts';
@@ -53,6 +53,9 @@ const STATUS_FOR_ERROR: Record<ActionError, number> = {
   tooFewPlayers: HTTP_CONFLICT,
   notRunning: HTTP_CONFLICT,
   notAtPlace: HTTP_CONFLICT,
+  notATask: HTTP_CONFLICT,
+  wrongAnswer: HTTP_CONFLICT,
+  noMoreHints: HTTP_CONFLICT,
   unknownMission: HTTP_SERVER_ERROR,
   noFreeJoinCode: HTTP_UNAVAILABLE,
 };
@@ -241,6 +244,28 @@ async function choosePlaceAction(action: Action, context: Context): Promise<Acti
   });
 }
 
+async function submitAnswerAction(action: Action, context: Context): Promise<ActionResult> {
+  return withOwnPlayer(action, context, async (scope) => {
+    const change = submitAnswer({ state: scope.game.state, mission: scope.mission, players: scope.players, answer: action.answer });
+    return applyChange(scope, change, { action: { type: 'submitAnswer', answer: action.answer, stepIndex: scope.game.state.stepIndex } });
+  });
+}
+
+async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
+  return withOwnPlayer(action, context, async (scope) => {
+    const change = giveHint({ state: scope.game.state, mission: scope.mission, player: scope.player });
+    return applyChange(scope, change, { action: { type: 'giveHint', stepIndex: scope.game.state.stepIndex } });
+  });
+}
+
+async function showSolutionAction(action: Action, context: Context): Promise<ActionResult> {
+  return withOwnPlayer(action, context, async (scope) => {
+    const change = showSolution({ state: scope.game.state, mission: scope.mission, player: scope.player });
+    // Facit syns bara hos spelledaren, så ingen annan får en ny vy.
+    return applyChange(scope, change, { action: { type: 'showSolution', stepIndex: scope.game.state.stepIndex }, recipients: [scope.player] });
+  });
+}
+
 const HANDLERS: Record<string, (action: Action, context: Context) => Promise<ActionResult>> = {
   createGame,
   joinGame,
@@ -251,6 +276,9 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   choosePlace: choosePlaceAction,
   markReady: markReadyAction,
   setPaused: setPausedAction,
+  submitAnswer: submitAnswerAction,
+  giveHint: giveHintAction,
+  showSolution: showSolutionAction,
 };
 
 export async function handleAction({ action, context }: { action: unknown; context: Context }): Promise<ActionResult> {

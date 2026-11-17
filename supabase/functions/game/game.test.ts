@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { advanceStep, buildGameView, choosePlace, markReady, setPaused, startGame } from './game.ts';
+import { advanceStep, buildGameView, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
 import { getMission } from './missions/index.ts';
 import { type GameRecord, type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
@@ -96,4 +96,40 @@ test('bara spelledaren pausar, och vyn visar tiden som är kvar', () => {
   assert.deepEqual(buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: GUEST }).clock, { isPaused: true, remainingMs: 44 * 60_000 });
   const resumed = readState(setPaused({ state: paused, player: LEADER, isPaused: false, nowMs: 120_000 }));
   assert.deepEqual(buildGameView({ game: { ...game, state: resumed }, mission: MISSION, players: PLAYERS, viewer: GUEST }).clock, { isPaused: false, endsAtMs: 46 * 60_000 });
+});
+
+const TASK_STEP_INDEX = MISSION.steps.findIndex((step) => step.type === 'answer');
+
+test('ett rätt svar för gruppen vidare, oavsett stora bokstäver och mellanslag', () => {
+  const state = runningAt(TASK_STEP_INDEX);
+  assert.deepEqual(submitAnswer({ state, mission: MISSION, players: PLAYERS, answer: '41' }), { refusal: 'wrongAnswer' });
+  assert.deepEqual(submitAnswer({ state, mission: MISSION, players: PLAYERS, answer: '' }), { refusal: 'wrongAnswer' });
+  assert.deepEqual(submitAnswer({ state, mission: MISSION, players: PLAYERS, answer: 7 }), { refusal: 'wrongAnswer' });
+  assert.equal(readState(submitAnswer({ state, mission: MISSION, players: PLAYERS, answer: ' 42 ' })).stepIndex, TASK_STEP_INDEX + 1);
+  assert.equal(readState(submitAnswer({ state, mission: MISSION, players: PLAYERS, answer: 'Fyrtiotvå' })).stepIndex, TASK_STEP_INDEX + 1);
+  // I en scen finns inget att svara på.
+  assert.deepEqual(submitAnswer({ state: runningAt(0), mission: MISSION, players: PLAYERS, answer: '42' }), { refusal: 'notATask' });
+});
+
+test('spelledaren ger ledtrådarna en i taget, och alla ser dem', () => {
+  let state = runningAt(TASK_STEP_INDEX);
+  assert.deepEqual(giveHint({ state, mission: MISSION, player: GUEST }), { refusal: 'notLeader' });
+  for (let given = 1; given <= 3; given += 1) {
+    state = readState(giveHint({ state, mission: MISSION, player: LEADER }));
+    const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: 'prov', state }, mission: MISSION, players: PLAYERS, viewer: GUEST });
+    assert.deepEqual({ shown: view.step.hints.length, count: view.step.hintCount }, { shown: given, count: 3 });
+  }
+  assert.deepEqual(giveHint({ state, mission: MISSION, player: LEADER }), { refusal: 'noMoreHints' });
+  // Nästa uppgift börjar utan ledtrådar.
+  assert.equal(readState(advanceStep({ state, mission: MISSION, players: PLAYERS, player: LEADER })).hintsGiven, 0);
+});
+
+test('facit syns bara hos spelledaren och bara när hon ber om det', () => {
+  const state = runningAt(TASK_STEP_INDEX);
+  const viewOf = (current: GameState, viewer: PlayerRecord) => buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: 'prov', state: current }, mission: MISSION, players: PLAYERS, viewer });
+  assert.equal(viewOf(state, LEADER).step.solution, null);
+  assert.deepEqual(showSolution({ state, mission: MISSION, player: GUEST }), { refusal: 'notLeader' });
+  const shown = readState(showSolution({ state, mission: MISSION, player: LEADER }));
+  assert.equal(viewOf(shown, LEADER).step.solution, '42');
+  assert.equal(viewOf(shown, GUEST).step.solution, null);
 });

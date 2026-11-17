@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { PlayerView } from '../../supabase/functions/game/views.ts';
 import { CreateGameScreen } from '../screens/CreateGameScreen.tsx';
 import { getErrorMessage } from '../screens/errorMessages.ts';
-import { GameScreen } from '../screens/GameScreen.tsx';
+import { type GameActions, GameScreen } from '../screens/GameScreen.tsx';
 import { JoinGameScreen } from '../screens/JoinGameScreen.tsx';
 import { LobbyScreen } from '../screens/LobbyScreen.tsx';
 import { StartScreen } from '../screens/StartScreen.tsx';
@@ -139,20 +138,29 @@ export function App() {
   async function sendInGame(action: { type: string } & Record<string, unknown>) {
     if (!gameId) return;
     const response = await send({ ...action, gameId });
-    if (!response.ok) setError(getErrorMessage(response.error));
-    else if (response.view) setScreen({ name: 'game', view: response.view });
+    if (!response.ok) {
+      setError(getErrorMessage(response.error));
+      return;
+    }
+    // Ett gammalt fel, som ett fel svar, ska inte stå kvar efter ett lyckat anrop.
+    setError('');
+    if (response.view) setScreen({ name: 'game', view: response.view });
   }
 
   const startGame = (usesPlaceCards: boolean, minutes: number) => sendInGame({ type: 'startGame', usesPlaceCards, minutes });
-  const nextStep = () => sendInGame({ type: 'nextStep' });
-  const markReady = () => sendInGame({ type: 'markReady' });
-  const setPaused = (isPaused: boolean) => sendInGame({ type: 'setPaused', isPaused });
-  const choosePlace = (placeId: PlaceId, source: 'scan' | 'list') => sendInGame({ type: 'choosePlace', placeId, source });
-
-  function leaveFinishedGame() {
-    saveGameId(null);
-    showScreen({ name: 'start' });
-  }
+  const gameActions: GameActions = {
+    nextStep: () => sendInGame({ type: 'nextStep' }),
+    markReady: () => sendInGame({ type: 'markReady' }),
+    setPaused: (isPaused) => sendInGame({ type: 'setPaused', isPaused }),
+    choosePlace: (placeId, source) => sendInGame({ type: 'choosePlace', placeId, source }),
+    submitAnswer: (answer) => sendInGame({ type: 'submitAnswer', answer }),
+    giveHint: () => sendInGame({ type: 'giveHint' }),
+    showSolution: () => sendInGame({ type: 'showSolution' }),
+    leave: () => {
+      saveGameId(null);
+      showScreen({ name: 'start' });
+    },
+  };
 
   const goToStart = () => showScreen({ name: 'start' });
 
@@ -172,17 +180,7 @@ export function App() {
         <LobbyScreen view={screen.view} joinUrl={buildJoinUrl(location.href, screen.view.joinCode)} isBusy={isBusy} error={error} onLeave={leaveGame} onStart={startGame} />
       )}
       {screen.name === 'game' && screen.view.type === 'game' && (
-        <GameScreen
-          view={screen.view}
-          clockOffsetMs={clockOffsetMs}
-          isBusy={isBusy}
-          error={error}
-          onNextStep={nextStep}
-          onMarkReady={markReady}
-          onSetPaused={setPaused}
-          onChoosePlace={choosePlace}
-          onLeave={leaveFinishedGame}
-        />
+        <GameScreen view={screen.view} clockOffsetMs={clockOffsetMs} isBusy={isBusy} error={error} actions={gameActions} />
       )}
       {SHOWS_VIEWPORT_PROBE && <ViewportProbe />}
     </>

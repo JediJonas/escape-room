@@ -7,7 +7,7 @@ test('ett spel från före platserna får startvärden för de nya fälten', () 
 });
 
 test('ett sparat tillstånd läses som det är', () => {
-  const saved = { status: 'running', usesPlaceCards: false, stepIndex: 2, placeByPlayer: { p1: 'C' }, roleByPlayer: { p1: { roleId: 'siaren', pieceIndexes: [0] } }, prominentHistory: ['p1'], readyPlayerIds: ['p1'], clock: { durationMs: 3_600_000, startedAtMs: 5, pausedAtMs: null, pausedTotalMs: 0 } };
+  const saved = { status: 'running', usesPlaceCards: false, stepIndex: 2, placeByPlayer: { p1: 'C' }, roleByPlayer: { p1: { roleId: 'siaren', pieceIndexes: [0] } }, prominentHistory: ['p1'], readyPlayerIds: ['p1'], hintsGiven: 2, isSolutionShown: true, clock: { durationMs: 3_600_000, startedAtMs: 5, pausedAtMs: null, pausedTotalMs: 0 } };
   assert.deepEqual(readGameState(saved), saved);
 });
 

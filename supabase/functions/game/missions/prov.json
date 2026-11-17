@@ -97,6 +97,17 @@
       ]
     },
     {
+      "id": "lappen",
+      "type": "answer",
+      "text": "Dörren till trädgården har ett kodlås. Koden är talet som stod på lappen i köket. Skriv in det.",
+      "hints": [
+        "Lappen låg på bordet i köket.",
+        "Den som läste lappen sa vad det stod på den när ni gick till hallen.",
+        "Talet är sex gånger sju."
+      ],
+      "solution": { "answers": ["42", "fyrtiotvå"] }
+    },
+    {
       "id": "slut",
       "type": "scene",
       "text": "Provet är slut. Tack för att ni provade!"

@@ -6,7 +6,7 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { advanceStep, buildGameView, choosePlace, startGame } from './game.ts';
+import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
 import { MAX_PLAYERS } from './lobby.ts';
 import type { Mission } from './mission.ts';
 import { MISSIONS } from './missions/index.ts';
@@ -21,10 +21,15 @@ function readState(change: ReturnType<typeof startGame>): GameState {
   return change.state;
 }
 
-/** Varje text i steget som bara vissa ska se: platsens text och alla bitar. */
+/** Varje text i steget som bara vissa ska se: platsens text, alla bitar, ledtrådarna och facit. */
 function listSecrets(mission: Mission, stepIndex: number): string[] {
   const step = mission.steps[stepIndex];
-  return [...(step.textAtPlace ? [step.textAtPlace] : []), ...(step.roles ?? []).flatMap((role) => role.pieces)];
+  return [
+    ...(step.textAtPlace ? [step.textAtPlace] : []),
+    ...(step.roles ?? []).flatMap((role) => role.pieces),
+    ...(step.hints ?? []),
+    ...(step.solution?.answers ?? []),
+  ];
 }
 
 function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) {
@@ -34,7 +39,13 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
   for (const viewer of players) {
     const view = buildGameView({ game, mission, players, viewer });
     const text = JSON.stringify(view);
-    const allowed = new Set([...(view.step.role?.pieces ?? []), ...(view.step.textAtPlace ? [view.step.textAtPlace] : [])]);
+    const allowed = new Set([
+      ...(view.step.role?.pieces ?? []),
+      ...(view.step.textAtPlace ? [view.step.textAtPlace] : []),
+      ...view.step.hints,
+      // Facit får bara synas hos spelledaren, och bara när hon har bett om det.
+      ...(viewer.isLeader && state.isSolutionShown ? mission.steps[state.stepIndex].solution?.answers ?? [] : []),
+    ]);
     for (const secret of secrets) {
       if (text.includes(secret)) assert.ok(allowed.has(secret), `${mission.id} steg ${state.stepIndex + 1}, ${viewer.name} ser någon annans: ${secret}`);
     }
@@ -67,6 +78,12 @@ for (const mission of MISSIONS) {
           for (const player of players.filter((_, index) => index % 2 === 0)) state = readState(choosePlace({ state, mission, players, player, placeId: goTo }));
         }
         checkStep(mission, state, players);
+        // I en uppgift kontrolleras vyerna igen med alla ledtrådar och facit framme.
+        if (mission.steps[state.stepIndex].type === 'answer') {
+          while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));
+          state = readState(showSolution({ state, mission, player: leader }));
+          checkStep(mission, state, players);
+        }
         state = readState(advanceStep({ state, mission, players, player: leader }));
       }
     }

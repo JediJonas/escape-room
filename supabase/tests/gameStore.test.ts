@@ -61,7 +61,7 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
     const [saved] = await sql`select state from engine.games where id = ${gameId}`;
     // Klockan startar med databasens tid, så den jämförs för sig.
     const { clock, ...rest } = saved.state;
-    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [] });
+    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false });
     assert.equal(clock.durationMs, 60 * 60_000);
     assert.equal(clock.pausedAtMs, null);
   });

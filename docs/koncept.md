@@ -209,13 +209,15 @@ Hur bra en svensk viskning faktiskt låter är oprövat. Reserven är att spela 
 
 ## Första uppdraget: Den femte gästen
 
-Den femte gästen är ett spökhusuppdrag på cirka 60 minuter med nio uppgifter, där huset spelarna sitter i blir spelplanen. Förberedelsen är nivå 1: fem platskort sätts upp.
+Den femte gästen är ett spökhusuppdrag på cirka 60 minuter med nio uppgifter. Rummen finns i mobilen, så inget behöver förberedas och inga platskort sätts upp (Jonas 2026-11-17).
 
 **Tonen.** Uppdraget ska vara läskigt och samtidigt roligt, från 16 år. Stämningen byggs med mörker, viskningar i en enda mobil och skrämselmoment, som en skärm som plötsligt slocknar. Inget blod och inget våld. Åldern höjdes från ungefär tio år i november 2026, för att uppdraget ska få vara läskigare.
 
 ### Vad spelarna får veta
 
-En kväll 1962 hölls en seans i huset. Fem gäster kom, men bara fyra gick därifrån. Den femte, Vera, sågs aldrig mer. Spelarna upprepar seansen med mobilerna som instrument, och Vera svarar. Hon ber dem ta reda på vad som hände henne.
+Från början vet spelarna bara att de är ett gäng vänner som håller en seans i ett hus där det sägs spöka (Jonas 2026-11-17). Mobilerna är instrumenten. Någon svarar på brädet. Hon bokstaverar HJÄLP MIG. Sedan får gruppen leta själv (Jonas 2026-11-17). Hon säger inte vem hon är.
+
+Resten tar de reda på själva. Av urklippen i byrån får de veta att en seans hölls i huset en kväll 1962, att fem unga gäster kom men bara fyra gick därifrån, och att den femte aldrig sågs mer. Att den femte hette Vera, och att det är hon som svarar, förstår de när de har lagt ihop vem som var vem.
 
 ### Sann bakgrund, bara för systemet
 
@@ -229,17 +231,57 @@ Den instängda spelaren hittar namn inristade i källarväggen, vart och ett öv
 
 ### Platser
 
-Salongen är rummet där gruppen samlas och behöver inget kort. De fem korten är källaren, hallen, köket, biblioteket och sovrummet.
+Husets rum är salongen, hallen, köket, biblioteket, sovrummet och källaren. De finns i mobilen, och spelarna går mellan dem på skärmen utan att lämna bordet (Jonas 2026-11-17). Spelet säger vart var och en ska, men alla kan gå vart de vill.
+
+Två gånger går en spelare iväg på riktigt, till ett annat rum i bostaden med stängd dörr (Jonas 2026-11-17):
+
+- **Vera minns.** Vera tar över spelarens mobil. Skärmen blir svart och skriver "Gå ut. Stäng dörren efter dig." Spelaren trycker Klar först när dörren är stängd, och knackar sedan Veras svar på dörren.
+- **Källaren.** Den instängda går till ett annat rum och stänger dörren, och de andra lotsar henne genom dörren.
+
+Det är de enda tillfällena då gruppen splittras på riktigt, och de blir starkare av det.
+
+### Nu och 1962
+
+Varje plats finns i två tider: som den är nu och som den var kvällen 1962 (Jonas 2026-11-17).
+
+- **Nu.** När en spelare går till en plats ser hon platsen som den är i kväll, med det som gruppen har hittat där. Det som en gång har hittats ligger kvar och går att se igen, till exempel urklippen i biblioteket (se Hittat nedan). Gruppen går fortfarande igenom uppgifterna i ordning, men behöver inte minnas allt.
+- **Klockan.** Alla klockor i huset stannade kvart över nio, när ljuset slocknade 1962. Det finns en enda klocka att vrida, golvuret i salongen (Jonas 2026-11-17). Den som står vid det vrider visarna, med mobilen som en ratt eller med fingret som reserv. Visarna hakar i var femte minut, så att det går att träffa rätt. Står de på 21.15 minns hela huset, för alla spelare samtidigt, och alla platser visas som de var då. Vrids de till vilken annan tid som helst är huset tillbaka i nu (Jonas 2026-11-17).
+- **Minnet syns.** Minnesbilden är sepiatonad, kornig och flimrar lite, med en rad överst som säger platsen och tiden. Alla spelare ser att huset minns, var de än är.
+- **Ett rum var i minnet.** När huset minns väljer varje spelare vilket rum hon ska vara i, bland dem som finns kvar, och hon stannar där tills minnet bleknar (Jonas 2026-11-17). Nästa gång väljer alla på nytt, så att spelarna kan byta rum med varandra. Är spelarna fler än rummen fylls rummen jämnt: ett rum går bara att välja om inget annat rum har färre spelare i sig. Med sex spelare och fyra rum blir det alltså två i två av rummen och en i de andra, aldrig tre i ett (Jonas 2026-11-17).
+- **Minnet bleknar.** Efter några minuter bleknar minnet av sig självt, och huset är tillbaka i nu (Jonas 2026-11-17). Någon får gå tillbaka till golvuret och vrida igen. Visarna går då tillbaka till tiden de hade från början, så att gruppen måste vrida fram 21.15 på nytt (Jonas 2026-11-17). Medan huset minns går det inte att se det som finns i nuet, till exempel urklippen i biblioteket. Det ger press och gör att gruppen behöver bestämma tillsammans när den ska resa och vart.
+- **Vägen till klockan.** Huvudartikeln i Tidningsurklippen säger att golvuret i salongen stannade kvart över nio den kvällen och inte har gått sedan dess, och att ingen vet var de fem var just då. Golvuret i rundbilden står på en annan tid, så den som har läst artikeln ser att något inte stämmer. Den som kör fast får uppgiftens vanliga ledtrådar.
+
+### Rundbilder och Hittat
+
+Alla platser är rundbilder, i båda tiderna (Jonas 2026-11-17). En del saker i bilden går att trycka på, som seansbordet och golvuret i salongen eller byrån i biblioteket, och då öppnas en vy där spelaren gör något. Uppgiftens skärm är alltså en vy som man kommer till från rundbilden.
+
+- **Hittat.** Under bilden finns en lista med det gruppen har hittat. Den fylls på i takt med att något hittas och är gemensam för hela gruppen. Seansen finns där från början. Urklippen kommer in när någon har hittat dem i byrån, golvuret när någon har vridit det första gången och källardörren när någon har hittat den i hallen (Jonas 2026-11-17).
+- **Lätt att komma tillbaka.** Det som står i listan går att öppna var spelaren än står. Att hitta något första gången kräver att man är på rätt plats.
+- **Reserv.** Listan är också reserven för den som inte hittar i bilden eller inte klarar rundvisaren.
+- **Saker finns när berättelsen har kommit dit.** En sak går bara att hitta när gruppen har kommit till den delen av berättelsen. Före det är platsen i rundbilden tom. Så kan ingen hitta nyckeln eller pianots noter för tidigt.
+
+### Kedjan genom akt 1
+
+Varje uppgift ger vägen till nästa (Jonas 2026-11-17).
+
+1. Seansen ger berättelsen och HJÄLP MIG. Gruppen letar själv och hittar urklippen i byrån.
+2. Gästboken i hallen ger de fem gästernas namn. Urklippen i byrån och en tavla i hallen kopplar namnen till kännetecken och ger tiden 21.15.
+3. Golvuret tar gruppen till minnet.
+4. I minnet syns bara fyra av gästerna. Den som saknas är den som svarar på brädet, Vera.
+
+### Källardörren och nyckeln
+
+Källardörren finns i hallens rundbild (Jonas 2026-11-17). Den går att hitta tidigt, och då hamnar den i Hittat, men den som försöker öppna den får veta att den är låst. Nyckeln behövs för att komma ner i uppgift 7 (Jonas 2026-11-17). Var den ligger får gruppen veta genom knackningarna i Vera minns (Jonas 2026-11-17). Gästerna gömde den i sovrummet, och där ligger också ritningen. Nyckeln finns inte att hitta förrän Vera har svarat, så att gruppen inte kan hoppa direkt till källaren.
 
 ### Flöde
 
 | Nr | Uppgift | Typ | Tempo | Vad gruppen får veta |
 | --- | --- | --- | --- | --- |
 | 1 | Seansen | Samtidigt | Lugnt | Vera finns kvar i huset och vill ha hjälp |
-| 2 | Tidningsurklippet | Dokumentet | Lugnt | Vilka de fem gästerna var |
-| 3 | Rummen minns | Splittrade rum, Delat vittnesmål | Lugnt | Vera fanns inte i något rum när ljuset slocknade |
-| 4 | Pianot | Orkestern, Ett öra | Realtid | Melodin som spelades under seansen öppnar biblioteket |
-| 5 | Vera minns | Tystad | Lugnt | De fyra gästerna låste källardörren själva |
+| 2 | Tidningsurklippen | Dokumentet, Delat vittnesmål | Lugnt | Vilka de fem gästerna var och hur man känner igen dem |
+| 3 | Rummen minns | Splittrade rum | Lugnt | Den som saknas i minnet, och som svarar på brädet, är Vera |
+| 4 | Pianot | Orkestern, Ett öra | Realtid | Melodin som spelades när ljuset slocknade kallar fram Vera |
+| 5 | Vera minns | Tystad | Lugnt | De fyra gästerna låste källardörren och gömde nyckeln i sovrummet |
 | 6 | Ritningen | Skärmar ihop | Lugnt | Det finns ett rum bakom källaren |
 | 7 | Källaren | Instängd, Lotsen | Realtid | Vändningen: Vera vill byta plats med en av dem |
 | 8 | Hon letar | Lotsen, i hela huset | Realtid | Namnen på alla som huset har tagit |
@@ -249,21 +291,21 @@ Akt 1 är uppgift 1–2, akt 2 är uppgift 3–7 och akt 3 är uppgift 8–9.
 
 ### Uppgifterna
 
-**1. Seansen.** Seansen spelas som med ett ouijabräde (Jonas 2026-11-17). Brädet fyller hela skärmen, kant i kant, och har alla bokstäver från A till Ö. Klockan och menyknappen ligger överst, och vem skenet väntar på står i en ruta i underkant (Jonas 2026-11-17). Alla håller fingret på sin egen planchett och följer ett sken som glider långsamt mot nästa bokstav, lika hos alla. Skenet börjar sakta, går fortare mitt på vägen och bromsar in mot bokstaven (Jonas 2026-11-17). Skenet rör sig bara medan allas planchetter följer med. Halkar någon efter stannar det, och alla ser vem det väntar på. Når skenet bokstaven stannar det där i tre sekunder, utan att något lyser upp, eftersom fingret ändå skymmer bokstaven (Jonas 2026-11-17). Meddelandet skrivs inte ut, så gruppen får själv hålla reda på bokstäverna och prata ihop sig om vad det säger. Lyfter någon fingret bryts kontakten, alla ser vem som släppte och meddelandet börjar om. När meddelandet är klart slocknar skenet. Brädet ser ut som förut, utan någon text, och står kvar tills var och en själv trycker Lämna brädet. Sedan trycker alla Klar (Jonas 2026-11-17). Uppgiften lär ut att alla behövs. Tillstånd för ljud och rörelse begärs i scenen före, när spelaren trycker Klar, eftersom en systemruta på iPhone mitt i seansen kan bryta kontakten. En scen anger det med `asksFor` i uppdragsfilen. Brädet och planchetten ska bli bilder när designen ses över.
+**1. Seansen.** Uppdraget börjar med en berättelse: spelarna är ett gäng vänner som har valt att hålla en seans i ett hus där det sägs spöka. Brädet bokstaverar HJÄLP MIG. Sedan är huset fritt att utforska, och gruppen får själv hitta urklippen i byrån (Jonas 2026-11-17). Nästa gång gruppen håller seansen bokstaverar brädet VEM ÄR JAG (se Rummen minns). Seansen spelas som med ett ouijabräde (Jonas 2026-11-17). Brädet fyller hela skärmen, kant i kant, och har alla bokstäver från A till Ö. Klockan och menyknappen ligger överst, och vem skenet väntar på står i en ruta i underkant (Jonas 2026-11-17). Alla håller fingret på sin egen planchett och följer ett sken som glider långsamt mot nästa bokstav, lika hos alla. Skenet börjar sakta, går fortare mitt på vägen och bromsar in mot bokstaven (Jonas 2026-11-17). Skenet rör sig bara medan allas planchetter följer med. Halkar någon efter stannar det, och alla ser vem det väntar på. Når skenet bokstaven stannar det där i tre sekunder, utan att något lyser upp, eftersom fingret ändå skymmer bokstaven (Jonas 2026-11-17). Meddelandet skrivs inte ut, så gruppen får själv hålla reda på bokstäverna och prata ihop sig om vad det säger. Lyfter någon fingret bryts kontakten, alla ser vem som släppte och meddelandet börjar om. När meddelandet är klart slocknar skenet. Brädet ser ut som förut, utan någon text, och står kvar tills var och en själv trycker Lämna brädet. Sedan trycker alla Klar (Jonas 2026-11-17). Uppgiften lär ut att alla behövs. Tillstånd för ljud och rörelse begärs i scenen före, när spelaren trycker Klar, eftersom en systemruta på iPhone mitt i seansen kan bryta kontakten. En scen anger det med `asksFor` i uppdragsfilen. Brädet och planchetten ska bli bilder när designen ses över.
 
-**2. Tidningsurklippet.** Ett utskrivet urklipp från 1962 berättar om seansen. Vera viskar olika läsregler till olika mobiler, till exempel "vart tredje ord i andra stycket". Ingen regel räcker ensam. Tillsammans ger de gästernas namn och vilket rum var och en gick till. Reserv: urklippet visas på skärmen.
+**2. Tidningsurklippen.** Urklippen ligger i byrån i biblioteket och hittas i rundbilden. Huvudartikeln från 1962 berättar att fem ungdomar gick in i huset men bara fyra kom ut. Den nämner inga namn och har inga bilder, men säger att golvuret stannade kvart över nio (Jonas 2026-11-17). Runt den finns andra urklipp, som en förlovningsannons, en dödsruna, en annons för en optiker och en notis från en pipklubb. Varje urklipp säger något om en eller två av gästerna, men bara halva kopplingen: det ena ger ett namn, det andra ett kännetecken som syns, till exempel en röd sjal eller ett pärlhalsband. Namnen på alla fem står i gästboken i hallen, de fem sista som skrev i den (Jonas 2026-11-17). Urklippen delas ut så att ingen har alla, och två spelare måste lägga ihop sina för att få en hel koppling. En gäst finns inte i något urklipp utan på en tavla i hallen, så att gruppen måste gå runt i huset och inte bara läsa (Jonas 2026-11-17). Urklippen ligger sedan i Hittat. De visas på skärmen. Utskrift prövas om skärmen inte räcker (Jonas 2026-11-17). Det ersätter förslaget med läsregler som Vera viskar.
 
-**3. Rummen minns.** Spelarna går till var sitt platskort och ser rummet som det såg ut 1962 när ljuset slocknade. Rummen är hallen, köket, biblioteket och sovrummet. Källaren sparas till uppgift 7. Varje rum har tre bitar: en gäst som syns men inte har något namn, till exempel en kvinna i röd sjal, en röst som hörs, och en stannad klocka. Rösten säger namnet på gästen i ett annat rum, med något som syns där, till exempel "Elsa, ta av dig sjalen". Ingen kan alltså lösa sitt rum ensam, och gruppen måste ropa mellan rummen. Den som står i rummet väljer vem som stod där bland alla fem gästerna. Ett fel val gör att rummet glömmer i 15 sekunder, så att det inte lönar sig att gissa. När alla fyra rum har rätt gäst går gruppen vidare och får veta att Vera inte fanns i något rum. Vid tre spelare tar en spelare två rum och går mellan dem. Vid fem eller fler delar flera på ett rum, och bitarna delas så att den ena ser och den andra hör. Gästernas namn är tillfälliga tills Tidningsurklippet byggs. Rummen visas som text tills mekaniken är provad, och får sedan bilder från Gemini.
+**3. Rummen minns.** Urklippen leder till golvuret (se Kedjan genom akt 1). När någon har vridit tillbaka tiden väljer spelarna var sitt rum och ser minnet (se Ett rum var i minnet). Rummen är hallen, köket, biblioteket och sovrummet. Källaren sparas till uppgift 7. I minnet syns en gäst utan namn, med ett kännetecken som en röd sjal eller ett pärlhalsband, och en detalj som en stannad klocka. Inga röster säger några namn (Jonas 2026-11-17). Vem gästen är vet gruppen bara från Tidningsurklippen, så spelarna måste berätta för varandra vad de ser och lägga ihop det med vad de har läst. I minnet syns bara fyra av de fem. Den som inte finns i något rum är den som aldrig kom ut. Gruppen svarar vid seansbordet. Andra gången gruppen håller seansen bokstaverar skenet VEM ÄR JAG, på samma sätt som HJÄLP MIG. Gruppen svarar genom att skriva namnet, som man i verkligheten hade sagt det rakt ut (Jonas 2026-11-17). Frågan står kvar, så gruppen kan svara när den vet. Brädet kallar på gruppen: när den har sett alla fyra rummen i minnet och minnet har bleknat, börjar planchetten i salongens rundbild röra sig av sig själv, seansen i Hittat flimrar och ett svagt knackande hörs i allas mobiler (Jonas 2026-11-17). Rätt svar är Vera (Jonas 2026-11-17). Ett fel namn kostar tid. Det går inte att gissa sig fram, eftersom gruppen behöver både gästboken, urklippen och minnet för att veta vem som saknas. Vid tre spelare står ett rum tomt, och gruppen behöver minnas två gånger. Vid fem eller fler delar flera på ett rum och ser olika delar av det. Rummen visas som text tills mekaniken är provad och får sedan bilder från Gemini. Den första versionen, med röster och ett val per rum, var för lätt vid provspel.
 
-**4. Pianot.** En spelare hör en melodi i sin mobil och ingen annan hör den. De övriga har några tangenter var. Lyssnaren nynnar och dirigerar, och gruppen spelar melodin ton för ton i rätt ordning. Ett fel ger en falsk ton och ett nytt försök.
+**4. Pianot.** En spelare hör en melodi i sin mobil och ingen annan hör den. De övriga har några tangenter var. Lyssnaren nynnar och dirigerar, och gruppen spelar melodin ton för ton i rätt ordning. Ett fel ger en falsk ton och ett nytt försök. Pianot står i hallen, och i minnet av hallen står det öppet med noter på. Melodin är den som spelades när ljuset slocknade 1962, och när gruppen spelar den kommer Vera så nära att hon kan ta över en mobil.
 
-**5. Vera minns.** Vera tar över en mobil. Den spelaren ser ett minne från källartrappan men får inte prata, bara knacka en gång för ja och två för nej. De andra frågar sig fram till vad som hände: gästerna låste dörren och sprang.
+**5. Vera minns.** Vera tar över en mobil, och den spelaren går ut och stänger dörren (se Platser). Hon blir Veras röst men vet inte vad som frågas (Jonas 2026-11-17). De andra väljer en fråga i taget bland några färdiga frågor i sina mobiler, till exempel "Var du ensam i källaren?" eller "Låste någon dörren?". Frågan ställs först när alla har valt samma, och var och en ser vad de andra har valt, så att gruppen måste prata ihop sig (Jonas 2026-11-17). Knackarens skärm visar bara hur många gånger hon ska knacka, och hon trycker Klar när hon har knackat. En knack betyder ja och två betyder nej, och det vet bara de som frågar. Knackarna görs på dörren, på riktigt. Reserven är att hon trycker på skärmen och att knackarna hörs i de andras mobiler. Vera orkar bara svara på några frågor, så gruppen måste välja dem med omsorg. Frågorna har två mål: vad som hände i källartrappan, och var gästerna gjorde av nyckeln (Jonas 2026-11-17). Frågor som "Tog de nyckeln med sig?" och "Gömde de den i sovrummet?" ringar in platsen. Till sist svarar gruppen på vad som hände, och ett fel svar kostar tid: gästerna låste dörren, gömde nyckeln i sovrummet och sprang.
 
-**6. Ritningen.** Varje mobil visar en bit av husets ritning. Spelarna lägger mobilerna bredvid varandra på bordet och vrider dem tills väggarna möts. Den färdiga ritningen visar ett rum bakom källaren som inte finns på någon annan karta.
+**6. Ritningen.** Varje mobil visar en bit av husets ritning. Spelarna lägger mobilerna bredvid varandra på bordet och vrider dem tills väggarna möts. Ritningen ligger bredvid nyckeln i sovrummet. Den färdiga ritningen visar ett rum bakom källaren som inte finns på någon annan karta, så att gruppen vet vad den letar efter när någon går ner.
 
-**7. Källaren.** Vera ber en spelare gå ner och skanna källarkortet. Dörren slår igen. Den instängdas mobil blir en ficklampa i ett mörkt rum, och hon ser sig omkring genom att vrida på mobilen, med fingret som reserv. De andra stannar vid bordet. De har var sin bit av en beskrivning av källaren, till exempel att den dolda dörren sitter bakom hyllan med syltburkarna, och lotsar henne mot det dolda rummet medan något kommer närmare. De har också proppskåpet: tre säkringar som tänder källarlampan i tre sekunder hos den instängda. När dörren är mitt i ficklampan trycker hon på skärmen. Ett tryck på fel ställe hörs och för det närmare. Bakom dörren hittar hon namnen på väggen, och bara hon ser dem. Hinner det fram släpps hon ändå ut, men med färre namn till finalen. Första versionen använder källarbilden från testsidan och en beskrivning i text, eftersom Ritningen inte är byggd. En ny och läskigare källare tas fram med Gemini när mekaniken är provad.
+**7. Källaren.** Gruppen låser upp källardörren i hallen med nyckeln, och Vera ber en spelare gå ner. Spelaren går till ett annat rum i bostaden och stänger dörren, och dörren slår igen i mobilen. Den instängdas mobil blir en ficklampa i ett mörkt rum, och hon ser sig omkring genom att vrida på mobilen, med fingret som reserv. De andra stannar vid bordet och pratar med henne genom dörren. De har var sin bit av en beskrivning av källaren, till exempel att den dolda dörren sitter bakom hyllan med syltburkarna, och lotsar henne mot det dolda rummet medan något kommer närmare. De har också proppskåpet i köket: tre säkringar som tänder källarlampan i tre sekunder hos den instängda. När dörren är mitt i ficklampan trycker hon på skärmen. Ett tryck på fel ställe hörs och för det närmare. Bakom dörren hittar hon namnen på väggen, och bara hon ser dem. Hinner det fram släpps hon ändå ut, men med färre namn till finalen. Första versionen använder källarbilden från testsidan och en beskrivning i text, eftersom Ritningen inte är byggd. En ny och läskigare källare tas fram med Gemini när mekaniken är provad.
 
-**8. Hon letar.** Vera söker nu igenom huset. Spelarna ska hämta en sak vid varje platskort, men får bara röra sig när hon tittar åt ett annat håll. En utkik ser på sin skärm vart hon vänder sig och ropar "stilla!". Mobilen känner av den som rör sig för sent, och den spelaren får börja om från salongen. Reserv om rörelsesensorn saknas: spelaren håller in en knapp medan hon står stilla.
+**8. Hon letar.** Vera söker nu igenom huset. Uppgiften byggdes för riktiga rum och behöver tänkas om nu när rummen finns i mobilen (Jonas 2026-11-17). Ett förslag är att spelarna smyger mellan rummen på skärmen. I den första versionen ska spelarna hämta en sak vid varje platskort, men får bara röra sig när hon tittar åt ett annat håll. En utkik ser på sin skärm vart hon vänder sig och ropar "stilla!". Mobilen känner av den som rör sig för sent, och den spelaren får börja om från salongen. Reserv om rörelsesensorn saknas: spelaren håller in en knapp medan hon står stilla.
 
 **9. Bryta kedjan.** Alla samlas och håller fingret på skärmen som i seansen. Namnen från källarväggen ska läsas upp i rätt ordning, och varje spelare har bara några av dem. Sedan väljer gruppen. Att stänga dörren är enkelt och räddar alla spelare, men Vera blir kvar. Att släppa ut alla huset har tagit kräver en svårare synkad avslutning, och ett misslyckande kostar.
 
@@ -310,7 +352,7 @@ Elva frågor är avgjorda den 16 november 2026.
 | Spelledare som står utanför | Mobilen blir en ren administrationsvy med samma funktioner, utan roll i uppgifterna |
 | Gemensam skärm | Nej. Nedräkning, berättelse och ljud finns i spelarnas mobiler |
 | Rundbilder | Illustrerade, framtagna med Gemini-API:et (Nano Banana). Prövat och håller, utom rakt upp och rakt ner |
-| Platskort | Används som standard. Spelledaren kan välja bort dem, och då väljer spelarna plats i en lista |
+| Platskort | Används som standard. Spelledaren kan välja bort dem, och då väljer spelarna plats i en lista. Den femte gästen används utan platskort (Jonas 2026-11-17) |
 | Föremål i rundbilden | Ja. Spelaren kan undersöka föremål, med korta texter som en annan spelare behöver |
 | Röster och viskningar | Genereras i förväg och sparas som ljudfiler. Oprövat på svenska |
 | Ton och ålder | Läskigt med skrämselmoment, från 16 år, och samtidigt roligt. Inget blod och inget våld |

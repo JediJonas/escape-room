@@ -20,7 +20,7 @@ export type StateChange = { state: GameState } | { refusal: GameRefusal };
 /** Gruppen kommer till ett steg: rollerna delas ut på nytt, eller tas bort om steget saknar roller. */
 function enterStep(state: GameState, mission: Mission, players: readonly PlayerRecord[], stepIndex: number): GameState {
   const step = mission.steps[stepIndex];
-  const cleared = { ...state, stepIndex, readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, seance: step.type === 'seance' ? startSeance(sortByJoinOrder(players)) : null };
+  const cleared = { ...state, stepIndex, readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, seance: step.type === 'seance' ? startSeance() : null };
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
   const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory });

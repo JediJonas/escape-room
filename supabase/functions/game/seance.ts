@@ -3,9 +3,9 @@
  * bokstäver, och alla håller sin planchett på ett sken. Skenet glider
  * långsamt mot nästa bokstav i meddelandet, men bara medan allas
  * planchetter följer med. Halkar någon efter stannar det och väntar. Når
- * skenet bokstaven stannar det en stund, och bokstaven visas tydligt hos
- * den som ska läsa upp den. Lyfter någon fingret börjar meddelandet om
- * (Jonas 2026-11-17).
+ * skenet bokstaven stannar det en stund och bokstaven lyser. Meddelandet
+ * skrivs inte ut, så att gruppen själv får prata ihop sig om vad det säger.
+ * Lyfter någon fingret börjar meddelandet om (Jonas 2026-11-17).
  *
  * Servern tickar inte. Den sparar var skenet var vid en viss tid och om det
  * rör sig, och räknar fram var det är nu vid varje anrop. Mobilerna räknar
@@ -26,8 +26,8 @@ export const START_CELL = BOARD_LETTERS.length;
 const GLOW_CELLS_PER_SECOND = 0.6;
 const MS_PER_SECOND = 1000;
 
-/** Hur länge skenet står kvar på en bokstav innan det glider vidare, så att den som läser hinner säga den. */
-export const GLOW_PAUSE_MS = 2000;
+/** Hur länge skenet står kvar på en bokstav innan det glider vidare, så att gruppen hinner se och säga den. */
+export const GLOW_PAUSE_MS = 3000;
 
 /** Bokstäverna som ett meddelande får ha. Mellanslag skiljer orden. */
 export const SEANCE_LETTERS = /^[A-ZÅÄÖ]+( [A-ZÅÄÖ]+)*$/;
@@ -42,8 +42,6 @@ export type SeanceState = {
   letterIndex: number;
   /** De vars planchett är på skenet. */
   followerIds: string[];
-  /** Spelarna i den ordning de läser bokstäverna. Bestäms när gruppen kommer till steget. */
-  readerIds: string[];
   /** Hur långt skenet har kommit mot bokstaven, från 0 till 1, vid serverns tid anchorMs. */
   progress: number;
   anchorMs: number;
@@ -60,9 +58,9 @@ export function readBoardTouch(touch: unknown): BoardTouch | null {
   return touch === 'onGlow' || touch === 'offGlow' || touch === 'lifted' || touch === 'arrived' ? touch : null;
 }
 
-/** Meddelandets bokstäver utan mellanslag, och vilka som börjar ett nytt ord. */
-export function splitMessage(message: string): { letter: string; startsWord: boolean }[] {
-  return message.split(' ').flatMap((word) => [...word].map((letter, index) => ({ letter, startsWord: index === 0 })));
+/** Meddelandets bokstäver utan mellanslag. Skenet stannar bara på bokstäver. */
+export function splitMessage(message: string): string[] {
+  return [...message.replaceAll(' ', '')];
 }
 
 export function findCellCenter(cell: number): BoardPoint {
@@ -79,16 +77,16 @@ export function measureDistanceInCells(first: BoardPoint, second: BoardPoint): n
 /** Sträckan som skenet glider mot en bokstav: från förra bokstaven, eller från starten. */
 export type GlowSegment = { from: BoardPoint; to: BoardPoint; durationMs: number };
 
-export function findSegment(letters: readonly { letter: string }[], letterIndex: number): GlowSegment {
-  const findCell = (index: number) => (index < 0 ? START_CELL : BOARD_LETTERS.indexOf(letters[index].letter));
+export function findSegment(letters: readonly string[], letterIndex: number): GlowSegment {
+  const findCell = (index: number) => (index < 0 ? START_CELL : BOARD_LETTERS.indexOf(letters[index]));
   const from = findCellCenter(findCell(letterIndex - 1));
   const to = findCellCenter(findCell(letterIndex));
   return { from, to, durationMs: (measureDistanceInCells(from, to) / GLOW_CELLS_PER_SECOND) * MS_PER_SECOND };
 }
 
 /** Skenet står still vid starten tills alla följer, så tiden det startar spelar ingen roll. */
-export function startSeance(players: readonly PlayerRecord[]): SeanceState {
-  return { letterIndex: 0, followerIds: [], readerIds: players.map((player) => player.id), progress: 0, anchorMs: 0, pauseUntilMs: null, brokenBy: null };
+export function startSeance(): SeanceState {
+  return { letterIndex: 0, followerIds: [], progress: 0, anchorMs: 0, pauseUntilMs: null, brokenBy: null };
 }
 
 export function isSeanceComplete(seance: SeanceState, message: string): boolean {
@@ -163,7 +161,7 @@ export function hasSeanceChanged(before: SeanceState, after: SeanceState): boole
     || [...before.followerIds].sort().join() !== [...after.followerIds].sort().join();
 }
 
-/** Det en spelare ser av seansen. Bara den som läser bokstaven får den uppförstorad. */
+/** Det en spelare ser av seansen. Meddelandet finns inte med, bara rutan där skenet står. */
 export type SeanceView = {
   segment: GlowSegment;
   /** Hur långt skenet har kommit mot bokstaven vid serverns tid anchorMs. */
@@ -178,8 +176,6 @@ export type SeanceView = {
   /** Namnen på dem som skenet väntar på, så att gruppen kan ropa på dem (Jonas 2026-11-17). */
   waitingFor: string[];
   isMeOnGlow: boolean;
-  /** Den senast tagna bokstaven, bara hos den som ska läsa upp den. */
-  myLetter: { letter: string; startsWord: boolean } | null;
   isComplete: boolean;
   /** Namnet på den som bröt kontakten senast, och när. */
   brokenBy: { name: string; atMs: number } | null;
@@ -198,7 +194,6 @@ export function describeSeance({ seance, message, players, participantIds, viewe
   const takenIndex = seance.letterIndex - 1;
   // När meddelandet är klart står skenet kvar på sista bokstaven.
   const segment = findSegment(letters, isComplete ? letters.length - 1 : seance.letterIndex);
-  const isMyLetter = takenIndex >= 0 && findReaderId(seance, takenIndex) === viewerId;
   const isMoving = !isComplete && isEveryoneFollowing(seance, participantIds);
   const breaker = players.find((player) => player.id === seance.brokenBy?.playerId);
   return {
@@ -206,7 +201,7 @@ export function describeSeance({ seance, message, players, participantIds, viewe
     progress: isComplete ? 1 : seance.progress,
     anchorMs: seance.anchorMs,
     movesFromMs: isMoving ? findMoveStartMs(seance) : null,
-    takenCell: takenIndex >= 0 ? BOARD_LETTERS.indexOf(letters[takenIndex].letter) : null,
+    takenCell: takenIndex >= 0 ? BOARD_LETTERS.indexOf(letters[takenIndex]) : null,
     letterIndex: seance.letterIndex,
     letterCount: letters.length,
     waitingFor: participantIds
@@ -214,7 +209,6 @@ export function describeSeance({ seance, message, players, participantIds, viewe
       .map((id) => players.find((player) => player.id === id)?.name ?? '')
       .filter((name) => name !== ''),
     isMeOnGlow: seance.followerIds.includes(viewerId),
-    myLetter: isMyLetter ? letters[takenIndex] : null,
     isComplete,
     brokenBy: seance.brokenBy && breaker ? { name: breaker.name, atMs: seance.brokenBy.atMs } : null,
   };
@@ -235,12 +229,6 @@ export function findGlowPoint(seance: SeanceView, serverNowMs: number): { point:
   };
 }
 
-/** Den som läser bokstaven. Turen går runt bland spelarna. */
-export function findReaderId(seance: SeanceState, letterIndex: number): string | null {
-  if (seance.readerIds.length === 0) return null;
-  return seance.readerIds[letterIndex % seance.readerIds.length];
-}
-
 function isStringList(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
@@ -253,10 +241,10 @@ function isFiniteNumber(value: unknown): value is number {
 export function readSeanceState(saved: unknown): SeanceState | null {
   if (!saved || typeof saved !== 'object') return null;
   const fields = saved as Record<string, unknown>;
-  if (!Number.isInteger(fields.letterIndex) || !isStringList(fields.followerIds) || !isStringList(fields.readerIds)) return null;
+  if (!Number.isInteger(fields.letterIndex) || !isStringList(fields.followerIds)) return null;
   if (!isFiniteNumber(fields.progress) || !isFiniteNumber(fields.anchorMs)) return null;
   const pauseUntilMs = isFiniteNumber(fields.pauseUntilMs) ? fields.pauseUntilMs : null;
   const broken = fields.brokenBy as Record<string, unknown> | null | undefined;
   const brokenBy = broken && typeof broken.playerId === 'string' && isFiniteNumber(broken.atMs) ? { playerId: broken.playerId, atMs: broken.atMs } : null;
-  return { letterIndex: fields.letterIndex as number, followerIds: fields.followerIds, readerIds: fields.readerIds, progress: fields.progress, anchorMs: fields.anchorMs, pauseUntilMs, brokenBy };
+  return { letterIndex: fields.letterIndex as number, followerIds: fields.followerIds, progress: fields.progress, anchorMs: fields.anchorMs, pauseUntilMs, brokenBy };
 }

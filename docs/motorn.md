@@ -219,7 +219,7 @@ bestäms när typen byggs.
 **Seansen** har typen `seance` och meddelandet i `solution.message`, med
 versaler och ett mellanslag mellan orden. Servern sparar vilken bokstav
 skenet är på väg till, hur långt det har kommit vid en viss tid, vems
-planchett som följer och i vilken ordning spelarna läser bokstäverna. Skenet
+planchett som följer. Skenet
 rör sig med jämn fart medan alla följer, så både servern och mobilerna kan
 räkna ut var det är utan att servern tickar. Mobilen avgör själv om
 planchetten är på skenet och säger bara till när det ändras, och när den ser

@@ -15,7 +15,8 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia.
 | `docs/` | Konceptet och andra anteckningar |
 | `index.html` | Startsidan |
 | `testsida/` | Sidorna för den tekniska testsidan och testkorten |
-| `src/start/` | Startsidan i React |
+| `src/start/` | Startsidan i React: skapa spel, gå med och väntrummet |
+| `src/screens/` | Spelets skärmar |
 | `src/testsida/` | Koden till den tekniska testsidan (byggordning steg 1) |
 | `src/device/` | En modul per mobilfunktion: rörelse och kamera |
 | `src/sound/` | Ljud: ljudmotorn, vanligt ljud som reserv och toning |
@@ -23,8 +24,8 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia.
 | `src/view/` | Visaren för rundbilder, med bred bild som reserv |
 | `public/` | Bilder som läggs ut som de är, som rundbilderna och testkorten |
 | `supabase/migrations/` | Databasens schema och kanalernas regler |
-| `supabase/functions/game/` | Spelets serverfunktion |
-| `supabase/tests/` | Prov av kanalernas regler i en vanlig Postgres |
+| `supabase/functions/game/` | Spelets serverfunktion och motorns rena regler |
+| `supabase/tests/` | Prov av kanalernas regler och serverfunktionens SQL i en vanlig Postgres |
 
 Testerna ligger bredvid det de testar, som `src/sync/sync.test.ts`.
 
@@ -47,7 +48,7 @@ Kräver Node 22.
 npm install
 npm run dev      # webbsidan på https://localhost:5173, även för mobiler i samma nät
 npm run check    # lint, typkontroll, tester och bygge
-npm run test:db  # kanalernas regler, kräver en Postgres (PGHOST med flera)
+npm run test:db  # kanalernas regler och serverns SQL, kräver en Postgres (PGHOST med flera)
 ```
 
 `npm run dev` använder ett eget certifikat, så att kamera och rörelsesensor

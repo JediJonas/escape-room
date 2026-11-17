@@ -1,0 +1,103 @@
+/*
+ * Startsidans skärmar. Knapparna ligger längst ner nära tummen på pekskärm och
+ * direkt under innehållet med mus, enligt skillen knappar-i-mobilen. All luft
+ * nertill kommer från --bottom-gap i testsidans stil.
+ */
+
+/* Skärmen sköter själv luften runt innehållet. html före body går före
+   testsidans stil, oavsett i vilken ordning bygget lägger filerna. */
+html body { padding: 0; }
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1rem var(--bottom-gap);
+}
+
+.screen-body { display: flex; flex-direction: column; flex: 1 0 auto; }
+
+.screen-actions { display: grid; gap: 0.5rem; margin-top: 1rem; }
+.screen-actions button { width: 100%; }
+.screen-actions .hint { margin: 0; }
+
+@media (pointer: coarse) {
+  /* dvh och inte vh: Safaris verktygsfält räknas inte in i dvh. */
+  .screen { min-height: 100dvh; }
+  /* Trycker knapparna nedåt. Är innehållet högre än skärmen rullar de med. */
+  .screen-content { flex: 1 0 auto; }
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--accent);
+}
+
+.field { display: grid; gap: 0.25rem; }
+.field label { font-weight: 600; }
+.field input {
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--surface);
+  color: var(--text);
+  /* 16 px eller mer, annars zoomar Safari in när fältet får fokus. */
+  font: inherit;
+  font-size: max(1rem, 16px);
+}
+
+.join-code-input {
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.error { color: var(--bad); font-weight: 600; }
+.error:empty { display: none; }
+
+.join-code {
+  margin: 0.5rem 0 1rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+/* Vit ruta även i mörkt läge, eftersom kameror läser mörkt mot ljust. */
+.qr-code {
+  display: block;
+  width: min(100%, 16rem);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.player-list { margin: 0 0 0.75rem; padding-left: 1.25rem; }
+.player-list li { padding: 0.15rem 0; }
+
+/* Mätrutan, bara med ?matt i adressen. */
+.viewport-line {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: red;
+  pointer-events: none;
+}
+
+.viewport-probe {
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  background: rgb(0 0 0 / 75%);
+  color: #fff;
+  font: 0.7rem/1.3 ui-monospace, monospace;
+  pointer-events: none;
+}
+
+.viewport-probe div { display: flex; gap: 0.5rem; justify-content: space-between; }
+.viewport-probe dd { margin: 0; }

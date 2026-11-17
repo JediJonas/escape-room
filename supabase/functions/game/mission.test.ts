@@ -41,6 +41,19 @@ test('skrivfel i ett uppdrag syns i testerna och inte mitt i ett spel', () => {
   assert.deepEqual(findMissionErrors(null), ['uppdraget är inte ett objekt']);
 });
 
+test('roller som inte räcker till tio spelare eller kräver för många syns i testerna', () => {
+  const role = (fields: object) => ({ id: 'r', title: 'Roll', count: 1, pieces: ['a'], ...fields });
+  const withRoles = (roles: object[]) => ({ ...VALID, steps: [{ ...VALID.steps[0], roles }] });
+  assert.deepEqual(findMissionErrors(withRoles([role({}), role({ id: 'resten', count: 'rest', pieces: Array(9).fill('x') })])), []);
+  assert.match(findMissionErrors(withRoles([role({ count: 'rest', pieces: ['a', 'b'] })])).join(), /2 bitar men kan få 10 spelare/);
+  assert.match(findMissionErrors(withRoles([role({ count: 4, pieces: ['a', 'b', 'c', 'd'] })])).join(), /kräver 4 spelare men uppdraget tillåter 3/);
+  assert.match(findMissionErrors(withRoles([role({ count: 'rest', pieces: Array(10).fill('x') }), role({ id: 'två', count: 'rest', pieces: Array(10).fill('x') })])).join(), /mer än en roll med resten/);
+  assert.match(findMissionErrors(withRoles([role({ title: '' })])).join(), /saknar titel/);
+  assert.match(findMissionErrors(withRoles([role({ count: 0 })])).join(), /ogiltigt antal/);
+  assert.match(findMissionErrors(withRoles([])).join(), /inte är en lista/);
+  assert.match(findMissionErrors(withRoles([role({ maxPiecesPerPlayer: 0 })])).join(), /ogiltig gräns/);
+});
+
 test('platserna listas i ordningen A till F', () => {
   assert.deepEqual(listPlaces(VALID as never), [{ id: 'A', name: 'Källaren' }, { id: 'B', name: 'Hallen' }]);
 });

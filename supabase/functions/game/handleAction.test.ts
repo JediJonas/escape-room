@@ -208,8 +208,9 @@ test('texten på platsen syns bara hos den som är där, och bara hon får en ny
   const memory = await createGameWithPlayers(['Bo']);
   const gameId = memory.games[0].id;
   await send(memory.store, 'user-leader', { type: 'startGame', gameId });
-  const kitchenStep = await send(memory.store, 'user-leader', { type: 'nextStep', gameId });
-  const goTo = readGameView(kitchenStep.body).step.goTo;
+  let leaderStep = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
+  while (!leaderStep.step.goTo) leaderStep = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  const goTo = leaderStep.step.goTo;
   assert.ok(goTo);
   memory.sentViews.length = 0;
 

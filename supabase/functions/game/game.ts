@@ -5,13 +5,22 @@
  */
 
 import { type Mission, type Place, type SceneStep, listPlaces } from './mission.ts';
-import { describeViewer } from './lobby.ts';
+import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
+import { type RoleAssignment, dealRoles } from './roles.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
 export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace';
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
+
+/** Gruppen kommer till ett steg: rollerna delas ut på nytt, eller tas bort om steget saknar roller. */
+function enterStep(state: GameState, mission: Mission, players: readonly PlayerRecord[], stepIndex: number): GameState {
+  const roles = mission.steps[stepIndex].roles;
+  if (!roles) return { ...state, stepIndex, roleByPlayer: {} };
+  const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory });
+  return { ...state, stepIndex, roleByPlayer: deal.roleByPlayer, prominentHistory: deal.prominentHistory };
+}
 
 export function startGame({ state, mission, players, starter, usesPlaceCards }: {
   state: GameState;
@@ -23,16 +32,21 @@ export function startGame({ state, mission, players, starter, usesPlaceCards }: 
   if (!starter.isLeader) return { refusal: 'notLeader' };
   if (state.status !== 'lobby') return { refusal: 'gameStarted' };
   if (players.length < mission.minPlayers) return { refusal: 'tooFewPlayers' };
-  return { state: { ...state, status: 'running', usesPlaceCards, stepIndex: 0 } };
+  return { state: enterStep({ ...state, status: 'running', usesPlaceCards }, mission, players, 0) };
 }
 
 /** Går till nästa steg. Efter det sista är spelet slut. */
-export function advanceStep({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
+export function advanceStep({ state, mission, players, player }: {
+  state: GameState;
+  mission: Mission;
+  players: readonly PlayerRecord[];
+  player: PlayerRecord;
+}): StateChange {
   if (!player.isLeader) return { refusal: 'notLeader' };
   if (state.status !== 'running') return { refusal: 'notRunning' };
   const nextIndex = state.stepIndex + 1;
-  if (nextIndex >= mission.steps.length) return { state: { ...state, status: 'finished' } };
-  return { state: { ...state, stepIndex: nextIndex } };
+  if (nextIndex >= mission.steps.length) return { state: { ...state, status: 'finished', roleByPlayer: {} } };
+  return { state: enterStep(state, mission, players, nextIndex) };
 }
 
 /** Spelaren är på en plats, oavsett om hon skannade kortet eller valde i listan. */
@@ -65,6 +79,8 @@ export type GameView = {
     text: string;
     goTo: Place | null;
     textAtPlace: string | null;
+    /** Spelarens roll i steget och bara hennes egna bitar. */
+    role: { title: string; pieces: string[] } | null;
   };
   myPlace: Place | null;
   places: Place[];
@@ -76,10 +92,16 @@ function findPlace(places: readonly Place[], placeId: PlaceId | undefined): Plac
   return places.find((place) => place.id === placeId) ?? null;
 }
 
-function describeStep(step: SceneStep, places: readonly Place[], myPlace: Place | null) {
+function describeRole(step: SceneStep, assignment: RoleAssignment | undefined) {
+  const role = step.roles?.find((candidate) => candidate.id === assignment?.roleId);
+  if (!role || !assignment) return null;
+  return { title: role.title, pieces: assignment.pieceIndexes.map((index) => role.pieces[index]).filter((piece) => piece !== undefined) };
+}
+
+function describeStep(step: SceneStep, places: readonly Place[], myPlace: Place | null, assignment: RoleAssignment | undefined) {
   const goTo = findPlace(places, step.goTo);
   const isAtPlace = goTo !== null && myPlace?.id === goTo.id;
-  return { text: step.text, goTo, textAtPlace: isAtPlace ? step.textAtPlace ?? null : null };
+  return { text: step.text, goTo, textAtPlace: isAtPlace ? step.textAtPlace ?? null : null, role: describeRole(step, assignment) };
 }
 
 export function buildGameView({ game, mission, players, viewer }: {
@@ -98,7 +120,7 @@ export function buildGameView({ game, mission, players, viewer }: {
     me: describeViewer(viewer),
     isFinished: game.state.status === 'finished',
     usesPlaceCards: game.state.usesPlaceCards,
-    step: { number: stepIndex + 1, count: mission.steps.length, ...describeStep(mission.steps[stepIndex], places, myPlace) },
+    step: { number: stepIndex + 1, count: mission.steps.length, ...describeStep(mission.steps[stepIndex], places, myPlace, game.state.roleByPlayer[viewer.id]) },
     myPlace,
     places,
     playerCount: players.length,

@@ -18,6 +18,39 @@
       "text": "Välkommen till provhuset. Det här är ett prov av spelets motor, inte ett riktigt uppdrag. Spelledaren går vidare med knappen Nästa."
     },
     {
+      "id": "vittnen",
+      "type": "scene",
+      "text": "Någon har varit i huset före er. Var och en har sett ett spår av den. Berätta för de andra vad du ser, men visa inte skärmen.",
+      "roles": [
+        {
+          "id": "siaren",
+          "title": "Du är siaren",
+          "count": 1,
+          "isProminent": true,
+          "pieces": [
+            "Du ser en gestalt i fönstret mot trädgården. När du blinkar är den borta. Säg det först när alla andra har berättat sitt."
+          ]
+        },
+        {
+          "id": "gasterna",
+          "title": "Du är gäst",
+          "count": "rest",
+          "pieces": [
+            "Klockan i hallen har stannat på tre.",
+            "Någon har ritat en pil på dörrkarmen.",
+            "Det luktar rök från källartrappan.",
+            "Ett vinglas står kvar på bordet, halvfullt.",
+            "Mattan i hallen är blöt vid ytterdörren.",
+            "En stol i köket står vänd mot väggen.",
+            "Gardinen på vinden rör sig fast fönstret är stängt.",
+            "Någon har skrivit ordet HEJ i dammet på spegeln.",
+            "Telefonluren ligger bredvid telefonen."
+          ],
+          "maxPiecesPerPlayer": 2
+        }
+      ]
+    },
+    {
       "id": "koket",
       "type": "scene",
       "text": "Alla går till köket.",
@@ -30,6 +63,39 @@
       "text": "Gå till hallen. Den som läste lappen i köket säger vad det stod på den.",
       "goTo": "B",
       "textAtPlace": "Du är i hallen. Det är tyst här, och ytterdörren är stängd."
+    },
+    {
+      "id": "brevet",
+      "type": "scene",
+      "text": "Ett brev har dykt upp i brevlådan. En av er håller i det.",
+      "roles": [
+        {
+          "id": "brevbararen",
+          "title": "Du har brevet",
+          "count": 1,
+          "isProminent": true,
+          "pieces": [
+            "Brevet är adresserat till den som står närmast dörren. Läs inte upp det. Beskriv bara handstilen och vem det är till."
+          ]
+        },
+        {
+          "id": "lyssnarna",
+          "title": "Du lyssnar",
+          "count": "rest",
+          "pieces": [
+            "Du känner igen handstilen, men kommer inte på varifrån.",
+            "Du ser att frimärket är utländskt.",
+            "Du hör att någon andas bakom ytterdörren.",
+            "Du märker att kuvertet är fuktigt, som om det har legat ute länge.",
+            "Du ser att avsändaren är huset självt.",
+            "Du minns att brevlådan var tom för en minut sedan.",
+            "Du ser en pil i lacket som förseglar brevet.",
+            "Du hör klockan i hallen slå tre gånger.",
+            "Du ser att brevet har ditt namn på baksidan, överstruket."
+          ],
+          "maxPiecesPerPlayer": 2
+        }
+      ]
     },
     {
       "id": "slut",

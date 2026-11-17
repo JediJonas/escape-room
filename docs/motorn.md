@@ -189,12 +189,19 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   skrivfel i ett uppdrag syns då i testerna och inte mitt i ett spel.
   `solution` lämnar aldrig servern.
 - **Roller och bitar.** En roll säger vem spelaren är i uppgiften, med ett
-  antal eller `rest` för alla övriga. Det rollen ska se och göra ligger som
-  bitar i `content`. Motorn delar ut bitarna över dem som delar rollen, så att
-  alla bitar finns hos någon och ingen får samma skärm som en annan. Så
-  fungerar samma uppgift med tre och med tio spelare.
+  antal eller `rest` för alla övriga. Det rollen ska se ligger som bitar i
+  rollens `pieces`. Motorn delar ut bitarna över dem som delar rollen, så att
+  ingen får samma skärm som en annan. Så fungerar samma uppgift med två och
+  med tio spelare. En roll har minst lika många bitar som den kan få
+  spelare, och testerna kontrollerar det för varje uppdrag.
+- **Högst antal bitar per spelare.** Med `maxPiecesPerPlayer` får ingen fler
+  bitar än så. Är spelarna få blir då vissa bitar kvar hos ingen. Utan gränsen
+  fick en ensam gäst i Provhuset nio rader att läsa upp. Uppgifter som
+  behöver alla bitar sätter ingen gräns. (Förslag 2026-11-17, väntar på
+  Jonas.)
 - **Framträdande roller roterar.** En roll märkt `isProminent` går i första
-  hand till någon som inte har haft en sådan.
+  hand till den som har väntat längst sedan sin senaste framträdande roll.
+  Ordningen sparas i tillståndet som `prominentHistory`.
 - **Berättelsen mellan uppgifterna** är steg av typen `scene`.
 - **Följder.** Ett misslyckande kan kosta minuter eller sätta en markering som
   senare steg och slut läser.
@@ -305,7 +312,10 @@ och 5 miljoner per månad, och projektet pausas aldrig.
    scen kan skicka spelarna till en plats, och texten där syns bara hos den
    som har kommit fram. Uppdragsfilen anger sitt minsta antal spelare, och
    provuppdraget Provhuset tillåter två (Jonas 2026-11-17). Den andra delen
-   ger roller och bitar.
+   ger roller och bitar: motorn delar ut rollerna när ett steg börjar, och
+   Provhuset har två scener där en spelare får en hemlighet och de andra
+   olika bitar. En läckkontroll spelar alla uppdrag med två till tio spelare
+   och letar efter andras bitar i varje vy.
 4. **Spelledarvyn.** Starta, pausa, ge ledtråd, hoppa över, visa facit på
    begäran och låta en mobil ta över en spelare.
 

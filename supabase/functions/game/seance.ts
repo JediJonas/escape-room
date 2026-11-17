@@ -3,7 +3,7 @@
  * bokstäver, och alla håller sin planchett på ett sken. Skenet glider
  * långsamt mot nästa bokstav i meddelandet, men bara medan allas
  * planchetter följer med. Halkar någon efter stannar det och väntar. Når
- * skenet bokstaven stannar det en stund och bokstaven lyser. Meddelandet
+ * skenet bokstaven stannar det en stund. Inget lyser och meddelandet
  * skrivs inte ut, så att gruppen själv får prata ihop sig om vad det säger.
  * Lyfter någon fingret börjar meddelandet om (Jonas 2026-11-17).
  *
@@ -169,8 +169,6 @@ export type SeanceView = {
   anchorMs: number;
   /** Serverns tid då skenet börjar röra sig, eller null om det står still och väntar. */
   movesFromMs: number | null;
-  /** Rutan där skenet står efter en tagen bokstav, för att lysa upp bokstaven hos alla. */
-  takenCell: number | null;
   letterIndex: number;
   letterCount: number;
   /** Namnen på dem som skenet väntar på, så att gruppen kan ropa på dem (Jonas 2026-11-17). */
@@ -191,7 +189,6 @@ export function describeSeance({ seance, message, players, participantIds, viewe
 }): SeanceView {
   const letters = splitMessage(message);
   const isComplete = isSeanceComplete(seance, message);
-  const takenIndex = seance.letterIndex - 1;
   // När meddelandet är klart står skenet kvar på sista bokstaven.
   const segment = findSegment(letters, isComplete ? letters.length - 1 : seance.letterIndex);
   const isMoving = !isComplete && isEveryoneFollowing(seance, participantIds);
@@ -201,7 +198,6 @@ export function describeSeance({ seance, message, players, participantIds, viewe
     progress: isComplete ? 1 : seance.progress,
     anchorMs: seance.anchorMs,
     movesFromMs: isMoving ? findMoveStartMs(seance) : null,
-    takenCell: takenIndex >= 0 ? BOARD_LETTERS.indexOf(letters[takenIndex]) : null,
     letterIndex: seance.letterIndex,
     letterCount: letters.length,
     waitingFor: participantIds
@@ -218,15 +214,23 @@ export function describeSeance({ seance, message, players, participantIds, viewe
  * Var skenet är vid serverns tid, räknat på samma sätt som på servern, och om
  * det har nått bokstaven. Mobilen ritar skenet med den här.
  */
+export function findGlowProgress(seance: SeanceView, serverNowMs: number): number {
+  const { durationMs } = seance.segment;
+  if (seance.movesFromMs === null) return seance.progress;
+  // En sträcka utan längd, när samma bokstav kommer två gånger, är framme direkt.
+  if (durationMs <= 0) return 1;
+  return Math.min(1, seance.progress + Math.max(0, serverNowMs - seance.movesFromMs) / durationMs);
+}
+
+/** Punkten på sträckan, där 0 är början och 1 är bokstaven. */
+export function findPointOnSegment(segment: GlowSegment, progress: number): BoardPoint {
+  const { from, to } = segment;
+  return { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress };
+}
+
 export function findGlowPoint(seance: SeanceView, serverNowMs: number): { point: BoardPoint; hasArrived: boolean } {
-  const { from, to, durationMs } = seance.segment;
-  const moved = seance.movesFromMs === null || durationMs <= 0 ? 0 : Math.max(0, serverNowMs - seance.movesFromMs) / durationMs;
-  const progress = Math.min(1, seance.progress + moved);
-  const isMovingZeroLength = seance.movesFromMs !== null && durationMs <= 0;
-  return {
-    point: { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress },
-    hasArrived: progress >= 1 || isMovingZeroLength,
-  };
+  const progress = findGlowProgress(seance, serverNowMs);
+  return { point: findPointOnSegment(seance.segment, progress), hasArrived: progress >= 1 };
 }
 
 function isStringList(value: unknown): value is string[] {

@@ -5,23 +5,28 @@ import { DEFAULT_GAME_MINUTES, GAME_MINUTES } from '../../supabase/functions/gam
 import { JoinQrCode } from './JoinQrCode.tsx';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
+/** Det spelledaren väljer när hon startar. */
+export type StartChoices = { usesPlaceCards: boolean; leaderPlays: boolean; minutes: number };
+
 export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: {
   view: LobbyView;
   joinUrl: string;
   isBusy: boolean;
   error: string;
   onLeave: () => void;
-  onStart: (usesPlaceCards: boolean, minutes: number) => void;
+  onStart: (choices: StartChoices) => void;
 }) {
   const [usesPlaceCards, setUsesPlaceCards] = useState(true);
+  const [leaderPlays, setLeaderPlays] = useState(true);
   const [minutes, setMinutes] = useState<number>(DEFAULT_GAME_MINUTES);
   const isLeader = view.me.isLeader;
-  const missingPlayers = view.minPlayers - view.players.length;
+  // Spelledaren som står utanför räknas inte som spelare.
+  const missingPlayers = view.minPlayers - view.players.length + (isLeader && !leaderPlays ? 1 : 0);
   return (
     <ScreenLayout
       actions={
         isLeader
-          ? <button type="button" onClick={() => onStart(usesPlaceCards, minutes)} disabled={isBusy || missingPlayers > 0}>{isBusy ? 'Startar …' : 'Starta spelet'}</button>
+          ? <button type="button" onClick={() => onStart({ usesPlaceCards, leaderPlays, minutes })} disabled={isBusy || missingPlayers > 0}>{isBusy ? 'Startar …' : 'Starta spelet'}</button>
           : <button type="button" className="secondary" onClick={onLeave} disabled={isBusy}>Lämna spelet</button>
       }
     >
@@ -56,6 +61,12 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
             </label>
           ))}
         </fieldset>
+      )}
+      {isLeader && (
+        <p className="checkbox-field">
+          <input id="leader-plays" type="checkbox" checked={leaderPlays} onChange={(event) => setLeaderPlays(event.target.checked)} />
+          <label htmlFor="leader-plays">Jag spelar med. Utan bocken leder du spelet utan egen roll.</label>
+        </p>
       )}
       {isLeader && (
         <p className="checkbox-field">

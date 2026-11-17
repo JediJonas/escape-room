@@ -8,6 +8,7 @@ import { type ClockView, describeClock, pauseClock, resumeClock, startClock } fr
 import { type AnswerStep, type Mission, type MissionStep, type Place, type Role, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
+import { describePending, listParticipants } from './participants.ts';
 import { dealRoles } from './roles.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
@@ -86,19 +87,23 @@ function moveOnIfAllDone(state: GameState, mission: Mission, players: readonly P
   return isAllDone ? moveOn(state, mission, players) : state;
 }
 
-export function startGame({ state, mission, players, starter, usesPlaceCards, minutes, nowMs }: {
+export function startGame({ state, mission, players, starter, usesPlaceCards, leaderPlays, minutes, nowMs }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   starter: PlayerRecord;
   usesPlaceCards: boolean;
+  /** Spelledaren spelar med som standard och kan välja att stå utanför. */
+  leaderPlays: boolean;
   minutes: number;
   nowMs: number;
 }): StateChange {
   if (!starter.isLeader) return { refusal: 'notLeader' };
   if (state.status !== 'lobby') return { refusal: 'gameStarted' };
-  if (players.length < mission.minPlayers) return { refusal: 'tooFewPlayers' };
-  return { state: enterStep({ ...state, status: 'running', usesPlaceCards, clock: startClock(minutes, nowMs) }, mission, players, 0) };
+  const started: GameState = { ...state, status: 'running', usesPlaceCards, leaderPlays, clock: startClock(minutes, nowMs) };
+  const participants = listParticipants(started, players);
+  if (participants.length < mission.minPlayers) return { refusal: 'tooFewPlayers' };
+  return { state: enterStep(started, mission, participants, 0) };
 }
 
 /** Spelledaren går vidare utan att vänta på alla, till exempel när någon har gått iväg. */
@@ -206,7 +211,8 @@ export type GameView = {
   type: 'game';
   gameId: string;
   missionTitle: string;
-  me: { playerId: string; name: string; isLeader: boolean };
+  /** isPlaying är falskt för spelledaren som står utanför. Hon får ingen roll. */
+  me: { playerId: string; name: string; isLeader: boolean; isPlaying: boolean };
   isFinished: boolean;
   usesPlaceCards: boolean;
   step: {
@@ -229,6 +235,8 @@ export type GameView = {
   };
   /** Bara hos spelledaren: vilka som är klara med steget. */
   progress: { name: string; isMe: boolean; isDone: boolean }[] | null;
+  /** Bara hos spelledaren: mobiler som väntar på att få vara med eller ta över en spelare. */
+  pending: { playerId: string; name: string; takesOver: string | null }[] | null;
   clock: ClockView | null;
   myPlace: Place | null;
   places: Place[];
@@ -273,11 +281,13 @@ export function buildGameView({ game, mission, players, viewer }: {
   const stepIndex = Math.min(state.stepIndex, mission.steps.length - 1);
   const step = mission.steps[stepIndex];
   const isRunning = state.status === 'running';
+  const participants = listParticipants(state, players);
+  const showsLeaderTools = viewer.isLeader && isRunning;
   return {
     type: 'game',
     gameId: game.id,
     missionTitle: mission.title,
-    me: describeViewer(viewer),
+    me: { ...describeViewer(viewer), isPlaying: participants.some((player) => player.id === viewer.id) },
     isFinished: state.status === 'finished',
     usesPlaceCards: state.usesPlaceCards,
     step: {
@@ -291,12 +301,13 @@ export function buildGameView({ game, mission, players, viewer }: {
       hintCount: step.hints?.length ?? 0,
       solution: viewer.isLeader && state.isSolutionShown && step.solution ? step.solution.answers[0] : null,
     },
-    progress: viewer.isLeader && isRunning
-      ? sortByJoinOrder(players).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))
+    progress: showsLeaderTools
+      ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))
       : null,
+    pending: showsLeaderTools ? describePending(state, players) : null,
     clock: isRunning && state.clock ? describeClock(state.clock) : null,
     myPlace,
     places,
-    playerCount: players.length,
+    playerCount: participants.length,
   };
 }

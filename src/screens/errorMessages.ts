@@ -20,6 +20,8 @@ const MESSAGES: Record<ActionError, string> = {
   notRunning: 'Spelet är inte igång.',
   unknownPlace: 'Den platsen finns inte i uppdraget.',
   notAtPlace: 'Gå till platsen först.',
+  notPlaying: 'Du är inte med i uppgifterna just nu.',
+  noSuchPlayer: 'Den mobilen väntar inte längre.',
   notATask: 'Det finns ingen uppgift att svara på just nu.',
   wrongAnswer: 'Det stämmer inte. Försök igen.',
   noMoreHints: 'Uppgiften har inga fler ledtrådar.',

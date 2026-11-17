@@ -201,8 +201,8 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
 - **Högst antal bitar per spelare.** Med `maxPiecesPerPlayer` får ingen fler
   bitar än så. Är spelarna få blir då vissa bitar kvar hos ingen. Utan gränsen
   fick en ensam gäst i Provhuset nio rader att läsa upp. Uppgifter som
-  behöver alla bitar sätter ingen gräns. (Förslag 2026-11-17, väntar på
-  Jonas.)
+  behöver alla bitar sätter ingen gräns. Den som skriver uppgiften avgör
+  (Jonas 2026-11-17).
 - **Framträdande roller roterar.** En roll märkt `isProminent` går i första
   hand till den som har väntat längst sedan sin senaste framträdande roll.
   Ordningen sparas i tillståndet som `prominentHistory`.
@@ -335,7 +335,14 @@ och 5 miljoner per månad, och projektet pausas aldrig.
    en i taget, och alla ser dem. Facit skickas bara till spelledaren när hon
    ber om det, och läckkontrollen prövar det. Den
    tredje låter spelledaren stå utanför, släppa in den som kommer sent och
-   låta en mobil ta över en spelare.
+   låta en mobil ta över en spelare. Den som kommer efter start väntar tills
+   spelledaren svarar. Har mobilen samma namn som en spelare ber den om att
+   ta över spelaren, och får då spelarens roll, plats och det den redan har
+   gjort. Spelledarens plats kan inte tas över på det sättet. En mobil som
+   väntar frågar servern var tredje sekund, eftersom kanalen den lyssnar på
+   försvinner vid ett övertagande. Den gamla mobilen kan höra spelarens
+   kanal tills den laddar om, eftersom Supabase prövar behörigheten när
+   kanalen öppnas.
 
 Varje del provas på riktiga mobiler innan nästa påbörjas. Uppgiftstyperna
 själva hör till steg 3 i konceptet.

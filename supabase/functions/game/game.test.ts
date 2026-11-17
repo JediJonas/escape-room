@@ -27,13 +27,13 @@ function readState(change: ReturnType<typeof startGame>): GameState {
 }
 
 test('starten sparar valet om platskort och börjar på första steget', () => {
-  const state = readState(startGame({ state: createInitialState(), mission: MISSION, players: [LEADER, GUEST], starter: LEADER, usesPlaceCards: false, minutes: 45, nowMs: 1000 }));
+  const state = readState(startGame({ state: createInitialState(), mission: MISSION, players: [LEADER, GUEST], starter: LEADER, usesPlaceCards: false, leaderPlays: true, minutes: 45, nowMs: 1000 }));
   assert.deepEqual(state, { ...createInitialState(), status: 'running', usesPlaceCards: false, clock: { durationMs: 45 * 60_000, startedAtMs: 1000, pausedAtMs: null, pausedTotalMs: 0 } });
 });
 
 test('en spelare kan inte starta eller gå vidare, och spelet startar inte med för få', () => {
-  assert.deepEqual(startGame({ state: createInitialState(), mission: MISSION, players: [LEADER, GUEST], starter: GUEST, usesPlaceCards: true, minutes: 60, nowMs: 0 }), { refusal: 'notLeader' });
-  assert.deepEqual(startGame({ state: createInitialState(), mission: MISSION, players: [LEADER], starter: LEADER, usesPlaceCards: true, minutes: 60, nowMs: 0 }), { refusal: 'tooFewPlayers' });
+  assert.deepEqual(startGame({ state: createInitialState(), mission: MISSION, players: [LEADER, GUEST], starter: GUEST, usesPlaceCards: true, leaderPlays: true, minutes: 60, nowMs: 0 }), { refusal: 'notLeader' });
+  assert.deepEqual(startGame({ state: createInitialState(), mission: MISSION, players: [LEADER], starter: LEADER, usesPlaceCards: true, leaderPlays: true, minutes: 60, nowMs: 0 }), { refusal: 'tooFewPlayers' });
   const running: GameState = { ...createInitialState(), status: 'running' };
   assert.deepEqual(advanceStep({ state: running, mission: MISSION, players: [LEADER, GUEST], player: GUEST }), { refusal: 'notLeader' });
 });
@@ -103,7 +103,7 @@ test('en scen som bara skickar alla till en plats går vidare när den sista är
 });
 
 test('bara spelledaren pausar, och vyn visar tiden som är kvar', () => {
-  const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: LEADER, usesPlaceCards: true, minutes: 45, nowMs: 0 }));
+  const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: LEADER, usesPlaceCards: true, leaderPlays: true, minutes: 45, nowMs: 0 }));
   assert.deepEqual(setPaused({ state: started, player: GUEST, isPaused: true, nowMs: 60_000 }), { refusal: 'notLeader' });
   const paused = readState(setPaused({ state: started, player: LEADER, isPaused: true, nowMs: 60_000 }));
   const game: GameRecord = { id: 'g', joinCode: 'BCDF', missionId: 'prov', state: paused };

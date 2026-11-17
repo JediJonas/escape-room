@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
 import { MAX_PLAYERS } from './lobby.ts';
+import { listParticipants } from './participants.ts';
 import type { Mission } from './mission.ts';
 import { MISSIONS } from './missions/index.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
@@ -90,18 +91,20 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
 }
 
 for (const mission of MISSIONS) {
-  test(`${mission.id}: ingen vy läcker något, med ${mission.minPlayers} till ${MAX_PLAYERS} spelare`, () => {
-    for (let playerCount = mission.minPlayers; playerCount <= MAX_PLAYERS; playerCount += 1) {
-      const players = createPlayers(playerCount);
+  test(`${mission.id}: ingen vy läcker något, med ${mission.minPlayers} till ${MAX_PLAYERS} spelare, med och utan spelledaren`, () => {
+    for (const leaderPlays of [true, false]) for (let playerCount = mission.minPlayers; playerCount <= MAX_PLAYERS; playerCount += 1) {
+      // Spelledaren som står utanför räknas inte, så det behövs en spelare till.
+      const players = createPlayers(leaderPlays ? playerCount : Math.min(playerCount + 1, MAX_PLAYERS));
       const [leader] = players;
-      let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, usesPlaceCards: true, minutes: 60, nowMs: 0 }));
+      let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, usesPlaceCards: true, leaderPlays, minutes: 60, nowMs: 0 }));
+      const participants = listParticipants(state, players);
       while (state.status === 'running') {
         // Var annan spelare går till rätt plats, så att både de som är där och de som inte är det kontrolleras.
-        state = goToGoals(mission, state, players, players.filter((_, index) => index % 2 === 0));
+        state = goToGoals(mission, state, participants, participants.filter((_, index) => index % 2 === 0));
         checkStep(mission, state, players);
         // När rollerna har egna platser kontrolleras vyerna igen med alla framme.
         if (mission.steps[state.stepIndex].roles?.some((role) => role.goTo !== undefined)) {
-          state = goToGoals(mission, state, players, players);
+          state = goToGoals(mission, state, participants, participants);
           checkStep(mission, state, players);
         }
         // I en uppgift kontrolleras vyerna igen med alla ledtrådar och facit framme.
@@ -110,7 +113,7 @@ for (const mission of MISSIONS) {
           state = readState(showSolution({ state, mission, player: leader }));
           checkStep(mission, state, players);
         }
-        state = readState(advanceStep({ state, mission, players, player: leader }));
+        state = readState(advanceStep({ state, mission, players: participants, player: leader }));
       }
     }
   });

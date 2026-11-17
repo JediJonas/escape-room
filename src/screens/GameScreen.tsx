@@ -19,6 +19,7 @@ export type GameActions = {
   submitAnswer: (answer: string) => void;
   giveHint: () => void;
   showSolution: () => void;
+  answerPending: (playerId: string, isAdmitted: boolean) => void;
   leave: () => void;
 };
 
@@ -37,7 +38,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [cameraProblem, setCameraProblem] = useState('');
   const { step } = view;
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
-  const needsPlace = step.goTo !== null && !isAtGoal && !view.isFinished;
+  const needsPlace = view.me.isPlaying && step.goTo !== null && !isAtGoal && !view.isFinished;
   // Utan platskort visas listan direkt, eftersom det inte finns något att skanna.
   const shownInput: PlaceInput = needsPlace ? (view.usesPlaceCards ? placeInput : 'list') : 'none';
 
@@ -52,6 +53,8 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     setAnswer('');
   }
   const isTask = step.type !== 'scene' && !view.isFinished;
+  // Spelledaren som står utanför svarar inte och trycker inte Klar.
+  const canAnswer = isTask && view.me.isPlaying;
 
   function submitAnswer(event: FormEvent) {
     event.preventDefault();
@@ -75,10 +78,10 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (needsPlace && view.usesPlaceCards && shownInput !== 'scan') {
     actions.push(<button key="scan" type="button" className={shownInput === 'list' ? 'secondary' : undefined} onClick={() => setPlaceInput('scan')}>Skanna platskortet</button>);
   }
-  if (!needsPlace && step.usesReadyButton && !step.isMeDone && !view.isFinished) {
+  if (view.me.isPlaying && !needsPlace && step.usesReadyButton && !step.isMeDone && !view.isFinished) {
     actions.push(<button key="ready" type="button" onClick={game.markReady} disabled={isBusy}>Klar</button>);
   }
-  if (isTask) {
+  if (canAnswer) {
     actions.push(<button key="answer" type="submit" form={ANSWER_FORM_ID} disabled={isBusy || !answer.trim()}>Svara</button>);
   }
   if (view.isFinished) {
@@ -105,7 +108,8 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
           {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
         </section>
       )}
-      {isTask && (
+      {!view.me.isPlaying && !view.isFinished && <p className="hint">Du står utanför och leder spelet. Du ser det alla ser, men ingen roll.</p>}
+      {canAnswer && (
         <form id={ANSWER_FORM_ID} className="field" onSubmit={submitAnswer}>
           <label htmlFor="answer">Ert svar</label>
           <input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" enterKeyHint="send" />
@@ -124,7 +128,14 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         </fieldset>
       )}
       {step.isMeDone && view.me.isLeader && <p className="hint">{waitingText}</p>}
-      <LeaderPanel view={view} isBusy={isBusy} onSetPaused={game.setPaused} onGiveHint={game.giveHint} onShowSolution={game.showSolution} />
+      <LeaderPanel
+        view={view}
+        isBusy={isBusy}
+        onSetPaused={game.setPaused}
+        onGiveHint={game.giveHint}
+        onShowSolution={game.showSolution}
+        onAnswerPending={game.answerPending}
+      />
       <p className="error" role="alert">{error}</p>
     </ScreenLayout>
   );

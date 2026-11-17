@@ -14,6 +14,7 @@ import type { LobbyView } from '../functions/game/lobby.ts';
 const DATABASE = process.env.GAME_STORE_DATABASE;
 const LEADER = '30000000-0000-0000-0000-000000000001';
 const GUEST = '30000000-0000-0000-0000-000000000002';
+const NEW_PHONE = '30000000-0000-0000-0000-000000000003';
 
 describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
   const client = postgres({ database: DATABASE, prepare: false, max: 1, onnotice: () => {} });
@@ -61,9 +62,17 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
     const [saved] = await sql`select state from engine.games where id = ${gameId}`;
     // Klockan startar med databasens tid, så den jämförs för sig.
     const { clock, ...rest } = saved.state;
-    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false });
+    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [] });
     assert.equal(clock.durationMs, 60 * 60_000);
     assert.equal(clock.pausedAtMs, null);
+
+    // En ny mobil tar över gästen. Samma inloggning får bara finnas en gång i spelet.
+    await sql`insert into auth.users (id) values (${NEW_PHONE}) on conflict do nothing`;
+    const waiting = await send(NEW_PHONE, { type: 'joinGame', joinCode: 'QRST', name: 'Gäst' });
+    const waitingId = (waiting.body as { view: { me: { playerId: string } } }).view.me.playerId;
+    assert.equal((await send(LEADER, { type: 'admitPlayer', gameId, playerId: waitingId })).status, 200);
+    const owners = await sql`select id, user_id from engine.players where game_id = ${gameId} and not is_leader`;
+    assert.deepEqual(owners.map((row) => ({ ...row })), [{ id: guestView.me.playerId, user_id: NEW_PHONE }]);
   });
 
   test('en kod som redan används byts, och ett id som inte är ett uuid ger inget fel', async () => {

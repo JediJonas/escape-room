@@ -4,7 +4,8 @@ import { CreateGameScreen } from '../screens/CreateGameScreen.tsx';
 import { getErrorMessage } from '../screens/errorMessages.ts';
 import { type GameActions, GameScreen } from '../screens/GameScreen.tsx';
 import { JoinGameScreen } from '../screens/JoinGameScreen.tsx';
-import { LobbyScreen } from '../screens/LobbyScreen.tsx';
+import { LobbyScreen, type StartChoices } from '../screens/LobbyScreen.tsx';
+import { WaitingScreen } from '../screens/WaitingScreen.tsx';
 import { StartScreen } from '../screens/StartScreen.tsx';
 import { ViewportProbe } from '../screens/ViewportProbe.tsx';
 import { type GameResponse, callGame, listenToPlayerView, measureClockOffsetMs } from '../sync/gameServer.ts';
@@ -17,6 +18,10 @@ type Screen =
   | { name: 'create' }
   | { name: 'join'; joinCode: string }
   | { name: 'game'; view: PlayerView };
+
+/** Hur ofta en mobil som väntar på spelledaren frågar servern. */
+const WAITING_POLL_MS = 3000;
+const NOT_ADMITTED_MESSAGE = 'Spelledaren släppte inte in den här mobilen.';
 
 const SHOWS_VIEWPORT_PROBE = new URLSearchParams(location.search).has('matt');
 
@@ -83,6 +88,25 @@ export function App() {
       if (response.error !== 'notInGame') setError(getErrorMessage(response.error));
     });
   }, [showResponse, showScreen]);
+
+  // En mobil som väntar frågar servern med jämna mellanrum. Tar den över en
+  // spelare försvinner kanalen den lyssnar på, så kanalen räcker inte.
+  const isWaiting = currentView?.type === 'waiting';
+  useEffect(() => {
+    if (!isWaiting || !gameId) return undefined;
+    const timer = setInterval(() => {
+      callGame({ type: 'getView', gameId }).then((response) => {
+        if (response.ok && response.view) {
+          setScreen({ name: 'game', view: response.view });
+        } else if (!response.ok && response.error === 'notInGame') {
+          saveGameId(null);
+          setScreen({ name: 'start' });
+          setError(NOT_ADMITTED_MESSAGE);
+        }
+      });
+    }, WAITING_POLL_MS);
+    return () => clearInterval(timer);
+  }, [isWaiting, gameId]);
 
   // Nya vyer kommer i spelarens kanal. När kanalen öppnas och
   // när mobilen vaknar hämtas vyn, ifall något har missats under tiden.
@@ -154,7 +178,7 @@ export function App() {
     if (response.view) setScreen({ name: 'game', view: response.view });
   }
 
-  const startGame = (usesPlaceCards: boolean, minutes: number) => sendInGame({ type: 'startGame', usesPlaceCards, minutes });
+  const startGame = (choices: StartChoices) => sendInGame({ type: 'startGame', ...choices });
   const gameActions: GameActions = {
     nextStep: () => sendInGame({ type: 'nextStep' }),
     markReady: () => sendInGame({ type: 'markReady' }),
@@ -163,6 +187,7 @@ export function App() {
     submitAnswer: (answer) => sendInGame({ type: 'submitAnswer', answer }),
     giveHint: () => sendInGame({ type: 'giveHint' }),
     showSolution: () => sendInGame({ type: 'showSolution' }),
+    answerPending: (playerId, isAdmitted) => sendInGame({ type: isAdmitted ? 'admitPlayer' : 'rejectPlayer', playerId }),
     leave: () => {
       saveGameId(null);
       showScreen({ name: 'start' });
@@ -185,6 +210,9 @@ export function App() {
       )}
       {screen.name === 'game' && screen.view.type === 'lobby' && (
         <LobbyScreen view={screen.view} joinUrl={buildJoinUrl(location.href, screen.view.joinCode)} isBusy={isBusy} error={error} onLeave={leaveGame} onStart={startGame} />
+      )}
+      {screen.name === 'game' && screen.view.type === 'waiting' && (
+        <WaitingScreen view={screen.view} error={error} onLeave={gameActions.leave} />
       )}
       {screen.name === 'game' && screen.view.type === 'game' && (
         <GameScreen view={screen.view} clockOffsetMs={clockOffsetMs} isBusy={isBusy} error={error} actions={gameActions} />

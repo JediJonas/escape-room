@@ -1,68 +1,44 @@
 /**
- * Brädet i seansen så som mobilen ritar det: var skenet står vid en viss
- * tid, och när spelarens planchett räknas som på skenet. Rena funktioner
- * utan DOM och klocka. Servern avgör när en bokstav är tagen, se
- * supabase/functions/game/seance.ts.
+ * Brädet i seansen så som mobilen ritar det: när spelarens planchett räknas
+ * som på skenet, vilken bokstav som lyser och raden under brädet. Rena
+ * funktioner utan DOM och klocka. Var skenet är räknas ut på samma sätt som
+ * på servern, se supabase/functions/game/seance.ts.
  */
 
-import { BOARD_COLUMNS, BOARD_ROWS, GLOW_GLIDE_MS, type SeanceView } from '../../supabase/functions/game/seance.ts';
-
-/** En punkt på brädet, från 0 till 1 åt båda håll. */
-export type BoardPoint = { x: number; y: number };
+import { type BoardPoint, type SeanceView, findCellCenter, measureDistanceInCells } from '../../supabase/functions/game/seance.ts';
 
 /**
  * Planchetten räknas som på skenet när den är närmare än en halv ruta, och
  * som av först när den är längre bort än så här. Skillnaden gör att en
- * planchett i kanten inte skickar på och av till servern hela tiden.
+ * planchett i kanten inte skickar på och av till servern hela tiden, och att
+ * skenet hinner en bit före fingret innan det stannar.
  */
 const ON_GLOW_CELLS = 0.5;
 const OFF_GLOW_CELLS = 0.8;
 
+/** Skenet räknas som stående på en bokstav så länge det är så här nära rutans mitt. */
+const ON_LETTER_CELLS = 0.3;
+
 /** Hur länge ett lyft finger får vara borta innan kontakten bryts, så att ett finger som glider inte förstör allt. */
 export const LIFT_GRACE_MS = 500;
 
-const HALF = 0.5;
-
-export function findCellCenter(cell: number): BoardPoint {
-  const column = cell % BOARD_COLUMNS;
-  const row = Math.floor(cell / BOARD_COLUMNS);
-  return { x: (column + HALF) / BOARD_COLUMNS, y: (row + HALF) / BOARD_ROWS };
-}
-
-/** Mjuk start och mjukt stopp, som om något drar i skenet. Samma kurva som easeInOutQuad. */
-function easeInOut(progress: number): number {
-  const remaining = 1 - progress;
-  return progress < HALF ? 2 * progress * progress : 1 - 2 * remaining * remaining;
-}
-
-/** Var skenet står vid serverns tid, och om det har kommit fram. */
-export function findGlowPoint(seance: SeanceView, serverNowMs: number): { point: BoardPoint; hasArrived: boolean } {
-  const target = findCellCenter(seance.glowCell);
-  if (seance.previousCell === null || seance.glowMovesAtMs === null) return { point: target, hasArrived: true };
-  const progress = (serverNowMs - seance.glowMovesAtMs) / GLOW_GLIDE_MS;
-  if (progress >= 1) return { point: target, hasArrived: true };
-  const from = findCellCenter(seance.previousCell);
-  const eased = easeInOut(Math.max(0, progress));
-  return { point: { x: from.x + (target.x - from.x) * eased, y: from.y + (target.y - from.y) * eased }, hasArrived: false };
-}
-
-/** Avståndet räknas i rutor, så att det blir lika åt båda håll fast rutorna inte är kvadratiska. */
-function measureDistanceInCells(first: BoardPoint, second: BoardPoint): number {
-  return Math.hypot((first.x - second.x) * BOARD_COLUMNS, (first.y - second.y) * BOARD_ROWS);
-}
-
 /**
  * Om planchetten är på skenet. Den som redan var på får glida lite längre
- * innan hon räknas som av. Skenet måste ha kommit fram, annars räknas inget.
+ * innan hon räknas som av.
  */
-export function isPlanchetteOnGlow({ planchette, glow, hasArrived, wasOn }: {
+export function isPlanchetteOnGlow({ planchette, glow, wasOn }: {
   planchette: BoardPoint | null;
   glow: BoardPoint;
-  hasArrived: boolean;
   wasOn: boolean;
 }): boolean {
-  if (!planchette || !hasArrived) return false;
+  if (!planchette) return false;
   return measureDistanceInCells(planchette, glow) < (wasOn ? OFF_GLOW_CELLS : ON_GLOW_CELLS);
+}
+
+/** Bokstaven som skenet står på, för att lysa upp den hos alla. När skenet glider vidare slocknar den. */
+export function findLitCell(seance: SeanceView, glow: BoardPoint): number | null {
+  if (seance.takenCell === null) return null;
+  return measureDistanceInCells(glow, findCellCenter(seance.takenCell)) < ON_LETTER_CELLS ? seance.takenCell : null;
 }
 
 /** Håller planchetten på brädet, även när fingret glider utanför. */
@@ -73,9 +49,25 @@ export function clampToBoard(point: BoardPoint): BoardPoint {
 /** Hur länge gruppen ser vem som bröt kontakten. */
 const BROKEN_NOTICE_MS = 4000;
 
-/** Raden under brädet. Den säger vad gruppen väntar på, eller vem som släppte. */
-export function describeSeanceStatus(seance: SeanceView, serverNowMs: number): string {
+/** Fler namn än så här blir för långt för raden, så då står bara antalet. */
+const MAX_NAMES_SHOWN = 3;
+
+/** Räknar upp namn som "Bo", "Bo och Cia" eller "Anna, Bo och Cia". */
+function listNames(names: readonly string[]): string {
+  if (names.length <= 1) return names.join('');
+  return `${names.slice(0, -1).join(', ')} och ${names[names.length - 1]}`;
+}
+
+/**
+ * Raden under brädet. Den säger vem skenet väntar på, eller vem som släppte.
+ * Väntar skenet på spelaren själv står det så, i stället för hennes namn.
+ */
+export function describeSeanceStatus(seance: SeanceView, serverNowMs: number, isPlaying: boolean): string {
   if (seance.isComplete) return 'Skenet har slocknat.';
   if (seance.brokenBy && serverNowMs - seance.brokenBy.atMs < BROKEN_NOTICE_MS) return `Kontakten bröts. ${seance.brokenBy.name} släppte. Det börjar om.`;
-  return `${seance.followerCount} av ${seance.playerCount} följer skenet.`;
+  if (isPlaying && !seance.isMeOnGlow) return 'Skenet väntar på dig.';
+  const { waitingFor } = seance;
+  if (waitingFor.length === 0) return 'Alla följer skenet.';
+  if (waitingFor.length > MAX_NAMES_SHOWN) return `Skenet väntar på ${waitingFor.length} av er.`;
+  return `Skenet väntar på ${listNames(waitingFor)}.`;
 }

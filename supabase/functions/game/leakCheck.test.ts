@@ -90,12 +90,17 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
   }
 }
 
+/** Lång nog för att skenet ska hinna fram till vilken bokstav som helst. */
+const GLIDE_WAIT_MS = 60_000;
+
 /** Alla följer skenet genom hela meddelandet, och vyerna kontrolleras efter varje bokstav. */
 function followWholeSeance(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
   let followed = state;
+  let nowMs = 0;
   while (followed.seance && !buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state: followed }, mission, players, viewer: participants[0] }).step.seance?.isComplete) {
-    const letterIndex = followed.seance.letterIndex;
-    for (const player of participants) followed = readState(touchBoard({ state: followed, mission, players: participants, player, touch: 'onGlow', letterIndex, nowMs: 0 }));
+    for (const player of participants) followed = readState(touchBoard({ state: followed, mission, players: participants, player, touch: 'onGlow', nowMs }));
+    nowMs += GLIDE_WAIT_MS;
+    followed = readState(touchBoard({ state: followed, mission, players: participants, player: participants[0], touch: 'arrived', nowMs }));
     checkStep(mission, followed, players);
   }
   return followed;

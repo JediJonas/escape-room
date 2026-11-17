@@ -185,13 +185,12 @@ export function submitAnswer({ state, mission, players, answer }: {
  * En spelares planchett i seansen. Den sista som kommer fram till skenet tar
  * bokstaven, och den som lyfter fingret får meddelandet att börja om.
  */
-export function touchBoard({ state, mission, players, player, touch, letterIndex, nowMs }: {
+export function touchBoard({ state, mission, players, player, touch, nowMs }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   player: PlayerRecord;
   touch: BoardTouch;
-  letterIndex: unknown;
   nowMs: number;
 }): StateChange {
   const task = findCurrentTask(state, mission);
@@ -203,7 +202,6 @@ export function touchBoard({ state, mission, players, player, touch, letterIndex
     participantIds: players.map((participant) => participant.id),
     playerId: player.id,
     touch,
-    letterIndex: Number.isInteger(letterIndex) ? letterIndex as number : -1,
     nowMs,
   });
   return { state: { ...state, seance } };
@@ -339,7 +337,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       hintCount: step.hints?.length ?? 0,
       solution: viewer.isLeader && state.isSolutionShown && step.type !== 'scene' ? describeSolution(step) : null,
       seance: step.type === 'seance' && state.seance && isRunning
-        ? describeSeance({ seance: state.seance, stepId: step.id, message: step.solution.message, players, participantCount: participants.length, viewerId: viewer.id })
+        ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })
         : null,
     },
     progress: showsLeaderTools

@@ -218,11 +218,13 @@ bestäms när typen byggs.
 
 **Seansen** har typen `seance` och meddelandet i `solution.message`, med
 versaler och ett mellanslag mellan orden. Servern sparar vilken bokstav
-gruppen är på, vems planchett som är på skenet och i vilken ordning spelarna
-läser bokstäverna. Mobilen avgör själv om planchetten är på skenet och säger
-bara till när det ändras, så att fingrets rörelser inte går genom servern.
-Skenets väg räknas fram ur stegets id, och mobilen får bara rutan, aldrig
-bokstaven, utom den som ska läsa den. Se `seance.ts`.
+skenet är på väg till, hur långt det har kommit vid en viss tid, vems
+planchett som följer och i vilken ordning spelarna läser bokstäverna. Skenet
+rör sig med jämn fart medan alla följer, så både servern och mobilerna kan
+räkna ut var det är utan att servern tickar. Mobilen avgör själv om
+planchetten är på skenet och säger bara till när det ändras, och när den ser
+skenet nå en bokstav. Fingrets rörelser går inte genom servern. Se
+`seance.ts`.
 
 **Uppdraget väljs när spelet startar.** Spelledaren ser uppdragen i
 väntrummet och väljer ett när hon trycker Starta spelet. Spelet skapas med

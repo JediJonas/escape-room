@@ -7,7 +7,7 @@ test('ett spel från före platserna får startvärden för de nya fälten', () 
 });
 
 test('ett sparat tillstånd läses som det är', () => {
-  const saved = { status: 'running', usesPlaceCards: false, stepIndex: 2, placeByPlayer: { p1: 'C' }, roleByPlayer: { p1: { roleId: 'siaren', pieceIndexes: [0] } }, prominentHistory: ['p1'], readyPlayerIds: ['p1'], hintsGiven: 2, isSolutionShown: true, leaderPlays: false, pendingPlayers: [{ playerId: 'p2', takesOverPlayerId: null }], clock: { durationMs: 3_600_000, startedAtMs: 5, pausedAtMs: null, pausedTotalMs: 0 }, seance: { letterIndex: 3, followerIds: ['p1'], readerIds: ['p1', 'p2'], glowMovesAtMs: 9, brokenBy: { playerId: 'p2', atMs: 4 } } };
+  const saved = { status: 'running', usesPlaceCards: false, stepIndex: 2, placeByPlayer: { p1: 'C' }, roleByPlayer: { p1: { roleId: 'siaren', pieceIndexes: [0] } }, prominentHistory: ['p1'], readyPlayerIds: ['p1'], hintsGiven: 2, isSolutionShown: true, leaderPlays: false, pendingPlayers: [{ playerId: 'p2', takesOverPlayerId: null }], clock: { durationMs: 3_600_000, startedAtMs: 5, pausedAtMs: null, pausedTotalMs: 0 }, seance: { letterIndex: 3, followerIds: ['p1'], readerIds: ['p1', 'p2'], progress: 0.5, anchorMs: 7, pauseUntilMs: 9, brokenBy: { playerId: 'p2', atMs: 4 } } };
   assert.deepEqual(readGameState(saved), saved);
 });
 

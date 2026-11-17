@@ -53,11 +53,13 @@ function createMemoryStore() {
       sentViews.push({ playerId, view: view as LobbyView | GameView });
     },
   };
+  // Testerna kan flytta klockan framåt, till exempel för att skenet i seansen ska hinna glida.
+  const clock = { nowMs: SERVER_TIME.getTime() };
   const store: GameStore = {
-    readServerTimeMs: async () => SERVER_TIME.getTime(),
+    readServerTimeMs: async () => clock.nowMs,
     transaction: (work) => work(transaction),
   };
-  return { store, games, players, events, sentViews };
+  return { store, games, players, events, sentViews, clock };
 }
 
 function createContext(store: GameStore, userId: string, joinCodes = ['BCDF']) {
@@ -358,30 +360,44 @@ test('spelledaren väljer uppdrag när hon startar, och ett okänt uppdrag ger e
   assert.equal(memory.games[0].missionId, 'den-femte-gasten');
 });
 
-test('i seansen tas bokstaven när alla följer skenet, och bara en mobil ser den', async () => {
+/** Startar Den femte gästen med Bo och går fram till seansen. */
+async function startSeanceWithBo() {
   const memory = await createGameWithPlayers(['Bo']);
   const gameId = memory.games[0].id;
   await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
   let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
   while (view.step.type !== 'seance') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
-  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'fuska', letterIndex: 0 }), { status: 400, body: { error: 'unknownAction' } });
+  return { memory, gameId, view };
+}
+
+/** Lång nog för att skenet ska hinna fram till vilken bokstav som helst. */
+const GLIDE_WAIT_MS = 60_000;
+
+test('i seansen glider skenet när alla följer, och bokstaven förstoras bara hos en mobil', async () => {
+  const { memory, gameId } = await startSeanceWithBo();
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'fuska' }), { status: 400, body: { error: 'unknownAction' } });
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'submitAnswer', gameId, answer: 'HJÄLP MIG' }), { status: 409, body: { error: 'notATask' } });
 
-  const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'onGlow', letterIndex: 0 })).body);
-  assert.equal(leaderView.step.seance?.followerCount, 1);
+  const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'onGlow' })).body);
+  assert.deepEqual(leaderView.step.seance?.waitingFor, ['Bo']);
+  assert.equal(leaderView.step.seance?.movesFromMs, null);
+  const boView = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'onGlow' })).body);
+  assert.deepEqual(boView.step.seance?.waitingFor, []);
+  assert.equal(boView.step.seance?.movesFromMs, memory.clock.nowMs);
+
+  // Precis så länge som skenet behöver för att nå första bokstaven, så att det inte hinner vidare.
+  memory.clock.nowMs += boView.step.seance?.segment.durationMs ?? 0;
   memory.sentViews.length = 0;
-  const boView = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'onGlow', letterIndex: 0 })).body);
-  assert.equal(boView.step.seance?.letterIndex, 1);
-  assert.equal(memory.sentViews.length, 2);
+  await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'arrived' });
   const letters = memory.sentViews.map(({ view: sent }) => (sent as GameView).step.seance?.myLetter?.letter ?? null);
   assert.deepEqual(letters, ['H', null]);
 
-  // En handling för en bokstav som redan är tagen ger ingen ny vy hos de andra.
+  // Den andra mobilen som säger till ändrar ingenting, och ingen får en ny vy.
   memory.sentViews.length = 0;
-  await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'offGlow', letterIndex: 0 });
-  assert.deepEqual(memory.sentViews.map(({ view: sent }) => sent.me.name), ['Bo']);
+  await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'arrived' });
+  assert.equal(memory.sentViews.length, 0);
 
-  const broken = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'lifted', letterIndex: 1 })).body);
+  const broken = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'lifted' })).body);
   assert.equal(broken.step.seance?.letterIndex, 0);
   assert.equal(broken.step.seance?.brokenBy?.name, 'Bo');
 
@@ -390,21 +406,19 @@ test('i seansen tas bokstaven när alla följer skenet, och bara en mobil ser de
 });
 
 test('när meddelandet är klart trycker alla Klar och går vidare', async () => {
-  const memory = await createGameWithPlayers(['Bo']);
-  const gameId = memory.games[0].id;
-  await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
-  let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
-  while (view.step.type !== 'seance') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
-  assert.equal(view.step.usesReadyButton, false);
-  const stepNumber = view.step.number;
-  for (let letterIndex = 0; letterIndex < (view.step.seance?.letterCount ?? 0); letterIndex += 1) {
-    await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'onGlow', letterIndex });
-    view = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'onGlow', letterIndex })).body);
+  const { memory, gameId, view: start } = await startSeanceWithBo();
+  assert.equal(start.step.usesReadyButton, false);
+  await send(memory.store, 'user-leader', { type: 'touchBoard', gameId, touch: 'onGlow' });
+  await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'onGlow' });
+  let view = start;
+  for (let letter = 0; letter < (start.step.seance?.letterCount ?? 0); letter += 1) {
+    memory.clock.nowMs += GLIDE_WAIT_MS;
+    view = readGameView((await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'arrived' })).body);
   }
   assert.equal(view.step.seance?.isComplete, true);
   assert.equal(view.step.usesReadyButton, true);
   await send(memory.store, 'user-leader', { type: 'markReady', gameId });
   view = readGameView((await send(memory.store, 'user-Bo', { type: 'markReady', gameId })).body);
-  assert.equal(view.step.number, stepNumber + 1);
+  assert.equal(view.step.number, start.step.number + 1);
   assert.equal(view.step.seance, null);
 });

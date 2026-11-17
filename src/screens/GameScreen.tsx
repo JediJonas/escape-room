@@ -19,7 +19,7 @@ export type GameActions = {
   setPaused: (isPaused: boolean) => void;
   choosePlace: (placeId: PlaceId, source: 'scan' | 'list') => void;
   submitAnswer: (answer: string) => void;
-  touchBoard: (touch: BoardTouch, letterIndex: number) => void;
+  touchBoard: (touch: BoardTouch) => void;
   giveHint: () => void;
   showSolution: () => void;
   answerPending: (playerId: string, isAdmitted: boolean) => void;
@@ -39,6 +39,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [answer, setAnswer] = useState('');
   const [answeredStep, setAnsweredStep] = useState(view.step.number);
   const [cameraProblem, setCameraProblem] = useState('');
+  const [isSeanceMenuOpen, setIsSeanceMenuOpen] = useState(false);
   const { step } = view;
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
   const needsPlace = view.me.isPlaying && step.goTo !== null && !isAtGoal && !view.isFinished;
@@ -54,6 +55,22 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (answeredStep !== view.step.number) {
     setAnsweredStep(view.step.number);
     setAnswer('');
+    setIsSeanceMenuOpen(false);
+  }
+
+  // Medan skenet rör sig fyller brädet skärmen. Texten, ledtrådarna och spelledarens knappar ligger i menyn.
+  const isBoardShown = step.seance !== null && !step.seance.isComplete && !view.isFinished;
+  if (step.seance && isBoardShown && !isSeanceMenuOpen) {
+    return (
+      <main className="seance-screen">
+        <p className="hint game-header">
+          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+          {view.clock?.isPaused && <span className="paused">Pausat</span>}
+          <button type="button" className="secondary seance-menu-button" onClick={() => setIsSeanceMenuOpen(true)}>Meny</button>
+        </p>
+        <SeanceBoard seance={step.seance} text={step.text} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} />
+      </main>
+    );
   }
   const isTask = step.type !== 'scene' && !view.isFinished;
   // Spelledaren som står utanför svarar inte och trycker inte Klar.
@@ -71,6 +88,9 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
 
   // Knapparna ligger med huvudhandlingen underst, närmast tummen.
   const actions = [];
+  if (isBoardShown) {
+    actions.push(<button key="board" type="button" onClick={() => setIsSeanceMenuOpen(false)}>Tillbaka till brädet</button>);
+  }
   if (view.me.isLeader && !view.isFinished) {
     // För när någon har gått iväg och gruppen inte ska behöva vänta.
     actions.push(<button key="skip" type="button" className="secondary" onClick={game.nextStep} disabled={isBusy}>{isTask ? 'Hoppa över uppgiften' : 'Gå vidare ändå'}</button>);
@@ -100,7 +120,6 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
       </p>
       {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
       <p className="scene-text">{step.text}</p>
-      {step.seance && <SeanceBoard seance={step.seance} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} />}
       {step.role && (
         <section className="role-card" aria-label="Bara du ser det här">
           <h2>{step.role.title}</h2>

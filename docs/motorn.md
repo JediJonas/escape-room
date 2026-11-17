@@ -214,9 +214,10 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia (Jonas
   Koden skrivs i TypeScript, till skillnad från Maffia (Jonas 2026-11-16). `npm run check` kör lint, typkontroll,
   tester och bygge, och GitHub Actions kör samma sak. Bygget läggs ut på
   GitHub Pages.
-- **Mapparna.** `src/` med en mapp per ansvar: `game/` för motorns rena
-  funktioner, `screens/` för vyerna, och `device/`, `sound/`, `sync/` och
-  `view/` som i dag.
+- **Mapparna.** Motorns rena funktioner ligger hos serverfunktionen, i
+  `supabase/functions/game/`, eftersom Supabase bara lägger ut filer under
+  `supabase/functions/`. `src/` har en mapp per ansvar: `screens/` för
+  vyerna, och `device/`, `sound/`, `sync/` och `view/` som i dag.
 - **Vyn och läckkontrollen.** Maffia har en funktion som bygger det enda en
   telefon får veta, och en fristående kontroll som letar efter läckor i varje
   vy. Motorn får båda. Läckkontrollen spelar hela provuppdrag i testerna och
@@ -226,8 +227,9 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia (Jonas
 Det som skiljer:
 
 - **Värden är servern, inte en telefon.** Maffia låter en telefon äga spelet
-  och skicka vyer genom PeerJS. Här gör serverfunktionen det. Motorn i
-  `src/game/` körs därför i Supabase och i testerna, men inte i mobilen.
+  och skicka vyer genom PeerJS. Här gör serverfunktionen det. Motorn körs
+  därför i Supabase och i testerna, men inte i mobilen. Mobilen hämtar bara
+  typerna och några små delade funktioner därifrån, som koden att ansluta med.
 - **Uppdragsfilerna ligger utanför `src/`,** i `missions/`, så att bygget
   aldrig tar med dem. Ett test kontrollerar att ingen fil i webbsidan
   importerar dem.
@@ -290,6 +292,10 @@ och 5 miljoner per månad, och projektet pausas aldrig.
    Fördröjningen till serverfunktionen mäts på testsidan.
 2. **Ansluta.** Spelledaren skapar ett spel och visar en QR-kod och en kod på
    fyra bokstäver. Spelarna ansluter med namn, och alla ser vilka som är med.
+   Koden har bara konsonanter utan I och O, så att den inte går att läsa fel
+   och inte bildar ord. QR-koden ritas med biblioteket `qrcode-generator`,
+   som bara laddas hos spelledaren. En spelare kan lämna väntrummet, men
+   inte spelledaren, eftersom spelet då står utan ledare.
 3. **Plats och roll.** Spelarna väljer plats med kort eller lista. Ett
    provuppdrag med några scener ger olika spelare olika texter, så att
    rollfördelning och privata vyer går att se med flera mobiler.

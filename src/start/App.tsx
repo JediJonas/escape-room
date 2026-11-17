@@ -1,19 +1,146 @@
-import { VERSION } from '../config.ts';
+import { useCallback, useEffect, useState } from 'react';
+import type { LobbyView } from '../../supabase/functions/game/lobby.ts';
+import { CreateGameScreen } from '../screens/CreateGameScreen.tsx';
+import { getErrorMessage } from '../screens/errorMessages.ts';
+import { JoinGameScreen } from '../screens/JoinGameScreen.tsx';
+import { LobbyScreen } from '../screens/LobbyScreen.tsx';
+import { StartScreen } from '../screens/StartScreen.tsx';
+import { ViewportProbe } from '../screens/ViewportProbe.tsx';
+import { type GameResponse, callGame, listenToPlayerView } from '../sync/gameServer.ts';
+import { buildJoinUrl, readJoinCodeFromUrl, removeJoinCodeFromUrl } from './joinLink.ts';
+import { readSavedGameId, readSavedPlayerName, saveGameId, savePlayerName } from './savedGame.ts';
 
-/** Startsidan. Än så länge leder den bara till den tekniska testsidan. */
+type Screen =
+  | { name: 'loading' }
+  | { name: 'start' }
+  | { name: 'create' }
+  | { name: 'join'; joinCode: string }
+  | { name: 'lobby'; view: LobbyView };
+
+const SHOWS_VIEWPORT_PROBE = new URLSearchParams(location.search).has('matt');
+
+/** Skärmen när mobilen inte är med i något spel. En kod i adressen leder till formuläret. */
+function getScreenWithoutGame(): Screen {
+  const joinCode = readJoinCodeFromUrl(location.href);
+  return joinCode ? { name: 'join', joinCode } : { name: 'start' };
+}
+
+/** Startsidan: skapa ett spel eller gå med, och sedan väntrummet. */
 export function App() {
+  const [screen, setScreen] = useState<Screen>(() => (readSavedGameId() ? { name: 'loading' } : getScreenWithoutGame()));
+  const [isBusy, setIsBusy] = useState(false);
+  const [error, setError] = useState('');
+  const lobbyView = screen.name === 'lobby' ? screen.view : null;
+  const playerId = lobbyView?.me.playerId ?? null;
+  const gameId = lobbyView?.gameId ?? null;
+
+  const showScreen = useCallback((next: Screen) => {
+    setError('');
+    setScreen(next);
+  }, []);
+
+  /** Visar spelet efter ett lyckat svar, eller felet. */
+  const showResponse = useCallback((response: GameResponse) => {
+    if (!response.ok) {
+      setError(getErrorMessage(response.error));
+      return;
+    }
+    if (!response.view) return;
+    saveGameId(response.view.gameId);
+    history.replaceState(null, '', removeJoinCodeFromUrl(location.href));
+    showScreen({ name: 'lobby', view: response.view });
+  }, [showScreen]);
+
+  // Efter en omladdning hämtas spelet som mobilen var med i.
+  useEffect(() => {
+    const savedGameId = readSavedGameId();
+    if (!savedGameId) return;
+    callGame({ type: 'getView', gameId: savedGameId }).then((response) => {
+      if (response.ok) {
+        showResponse(response);
+        return;
+      }
+      if (response.error === 'notInGame') saveGameId(null);
+      showScreen(getScreenWithoutGame());
+      if (response.error !== 'notInGame') setError(getErrorMessage(response.error));
+    });
+  }, [showResponse, showScreen]);
+
+  // I väntrummet kommer nya vyer i spelarens kanal. När kanalen öppnas och
+  // när mobilen vaknar hämtas vyn, ifall något har missats under tiden.
+  useEffect(() => {
+    if (!playerId || !gameId) return;
+    const refresh = () => {
+      callGame({ type: 'getView', gameId }).then((response) => {
+        if (response.ok && response.view) setScreen({ name: 'lobby', view: response.view });
+      });
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    let stopListening: (() => void) | null = null;
+    let isCurrent = true;
+    listenToPlayerView({ playerId, onView: (view) => setScreen({ name: 'lobby', view }), onListening: refresh })
+      .then((stop) => {
+        if (isCurrent) stopListening = stop;
+        else stop();
+      })
+      .catch(() => setError(getErrorMessage('network')));
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      isCurrent = false;
+      stopListening?.();
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, [playerId, gameId]);
+
+  async function send(action: { type: string } & Record<string, unknown>) {
+    setIsBusy(true);
+    setError('');
+    const response = await callGame(action);
+    setIsBusy(false);
+    return response;
+  }
+
+  async function createGame(name: string) {
+    savePlayerName(name.trim());
+    showResponse(await send({ type: 'createGame', name }));
+  }
+
+  async function joinGame(joinCode: string, name: string) {
+    savePlayerName(name.trim());
+    showResponse(await send({ type: 'joinGame', joinCode, name }));
+  }
+
+  async function leaveGame() {
+    if (!gameId) return;
+    const response = await send({ type: 'leaveGame', gameId });
+    if (!response.ok) {
+      setError(getErrorMessage(response.error));
+      return;
+    }
+    saveGameId(null);
+    showScreen({ name: 'start' });
+  }
+
+  const goToStart = () => showScreen({ name: 'start' });
+
   return (
     <>
-      <header>
-        <h1>Escape room för mobiler</h1>
-        <p>Spelet är under bygge. Än så länge finns bara den tekniska testsidan.</p>
-      </header>
-      <main>
-        <p><a className="button-link" href="testsida/">Öppna testsidan</a></p>
-      </main>
-      <footer>
-        <p>Version {VERSION}</p>
-      </footer>
+      {screen.name === 'loading' && <main className="screen"><p>Hämtar spelet …</p></main>}
+      {screen.name === 'start' && (
+        <StartScreen error={error} onJoin={() => showScreen({ name: 'join', joinCode: '' })} onCreate={() => showScreen({ name: 'create' })} />
+      )}
+      {screen.name === 'create' && (
+        <CreateGameScreen initialName={readSavedPlayerName()} isBusy={isBusy} error={error} onCreate={createGame} onBack={goToStart} />
+      )}
+      {screen.name === 'join' && (
+        <JoinGameScreen initialCode={screen.joinCode} initialName={readSavedPlayerName()} isBusy={isBusy} error={error} onJoin={joinGame} onBack={goToStart} />
+      )}
+      {screen.name === 'lobby' && (
+        <LobbyScreen view={screen.view} joinUrl={buildJoinUrl(location.href, screen.view.joinCode)} isBusy={isBusy} error={error} onLeave={leaveGame} />
+      )}
+      {SHOWS_VIEWPORT_PROBE && <ViewportProbe />}
     </>
   );
 }

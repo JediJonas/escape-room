@@ -3,7 +3,9 @@
 // inloggning innan något körs, och withSupabase sköter CORS.
 import { withSupabase } from 'npm:@supabase/server@1';
 import postgres from 'npm:postgres@3';
-import { handleAction, type Sql } from './handleAction.ts';
+import { createGameStore, type Sql } from './gameStore.ts';
+import { handleAction } from './handleAction.ts';
+import { createJoinCode } from './joinCode.ts';
 
 // En direkt anslutning till databasen, som återanvänds mellan anropen så
 // länge funktionen är vaken. Den behövs för att kunna låsa ett spel under
@@ -13,12 +15,20 @@ if (!databaseUrl) throw new Error('SUPABASE_DB_URL saknas');
 const client = postgres(databaseUrl, { prepare: false, max: 1 });
 // postgres-bibliotekets sql har fler anropssätt än logiken behöver, och
 // TypeScript väljer fel av dem. Typen begränsas därför här.
-const sql = client as unknown as Sql;
+const store = createGameStore(client as unknown as Sql);
+
+/** Ett slumptal från den kryptografiska källan, så att koder inte går att förutse. */
+function randomIndex(count: number): number {
+  const [value] = crypto.getRandomValues(new Uint32Array(1));
+  return value % count;
+}
 
 export default {
-  fetch: withSupabase({ auth: 'user' }, async (request) => {
+  fetch: withSupabase({ auth: 'user' }, async (request, context) => {
+    const userId = context.userClaims?.id;
+    if (!userId) return Response.json({ error: 'notSignedIn' }, { status: 401 });
     const action = await request.json().catch(() => null);
-    const result = await handleAction({ action, sql });
+    const result = await handleAction({ action, context: { userId, store, createJoinCode: () => createJoinCode(randomIndex) } });
     return Response.json(result.body, { status: result.status });
   }),
 };

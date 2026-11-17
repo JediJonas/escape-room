@@ -35,3 +35,11 @@ create function realtime.topic() returns text language sql stable as $$
 $$;
 grant usage on schema realtime to anon, authenticated;
 grant select, insert on realtime.messages to anon, authenticated;
+
+-- Serverfunktionen skickar vyerna med realtime.send. Här hamnar de bara i
+-- tabellen, så att gameStore.test.ts kan läsa vad som skickades.
+create function realtime.send(payload jsonb, event text, topic text, private boolean default true)
+returns void language sql as $$
+  insert into realtime.messages (topic, extension, payload, event, private)
+  values (topic, 'broadcast', payload, event, private);
+$$;

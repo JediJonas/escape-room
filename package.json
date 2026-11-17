@@ -12,11 +12,12 @@
     "lint": "eslint .",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "validate:html": "java -jar node_modules/vnu-jar/build/dist/vnu.jar --errors-only dist/index.html dist/testsida/index.html dist/testsida/platskort.html",
-    "test:db": "sh supabase/tests/run.sh"
+    "test:db": "sh supabase/tests/run.sh && GAME_STORE_DATABASE=test_engine vitest run supabase/tests"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
     "jsqr": "^1.4.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
@@ -30,6 +31,7 @@
     "eslint": "^10.15.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
+    "postgres": "^3.4.9",
     "typescript": "~6.0.3",
     "typescript-eslint": "~8.72.2",
     "vite": "^8.3.8",

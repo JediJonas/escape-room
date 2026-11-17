@@ -53,6 +53,16 @@ Se README.md för mapparna. Det viktigaste:
 - **Bibliotek som bara vissa behöver laddas med `import()`**, som jsQR och
   Supabase, så att de bara hämtas när de används.
 
+## Knappar i mobilen
+
+- Huvudknapparna ligger längst ner, nära tummen, på pekskärm och flödar
+  direkt under innehållet med mus. Mönstret står i skillen
+  `knappar-i-mobilen` och i `src/start/start.css`. All luft nertill kommer
+  från `--bottom-gap`.
+- Lägg till `?matt` i adressen för att se mätrutan. Avståndet till Safaris
+  verktygsfält går bara att mäta på en riktig iPhone. Med iPhone 14 och iOS 26
+  lämnar Safari själv cirka 17 px ovanför fältet, så `--bottom-gap` är då 0.
+
 ## Rundbilder och Gemini
 
 - Rundbilder tas fram med Geminis API och modellen Nano Banana. Provet står i

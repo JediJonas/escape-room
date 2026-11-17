@@ -215,7 +215,7 @@ Den femte gästen är ett spökhusuppdrag på cirka 60 minuter med nio uppgifter
 
 ### Vad spelarna får veta
 
-Från början vet spelarna bara att de är ett gäng vänner som håller en seans i ett hus där det sägs spöka (Jonas 2026-11-17). Mobilerna är instrumenten. Någon svarar på brädet. Hon bokstaverar HJÄLP MIG. Sedan får gruppen leta själv (Jonas 2026-11-17). Hon säger inte vem hon är.
+Från början vet spelarna bara att de är ett gäng vänner som är nyfikna på det övernaturliga och har tagit sig in i ett hus där det sägs spöka, för att se om de döda vill tala med dem (Jonas 2026-11-17). Ordet seans förklaras inte, eftersom alla inte vet vad det betyder. Inledningen säger i stället att det finns ett ouijabräde i huset och vad det är. Mobilerna är instrumenten. Någon svarar på brädet. Hon bokstaverar HJÄLP MIG. Sedan får gruppen leta själv (Jonas 2026-11-17). Hon säger inte vem hon är.
 
 Resten tar de reda på själva. Av urklippen i byrån får de veta att en seans hölls i huset en kväll 1962, att fem unga gäster kom men bara fyra gick därifrån, och att den femte aldrig sågs mer. Att den femte hette Vera, och att det är hon som svarar, förstår de när de har lagt ihop vem som var vem.
 

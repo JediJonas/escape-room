@@ -2,6 +2,7 @@ import { type FormEvent, useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { BoardTouch } from '../../supabase/functions/game/seance.ts';
+import { RoomsTask } from '../tasks/RoomsTask.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
@@ -20,6 +21,7 @@ export type GameActions = {
   choosePlace: (placeId: PlaceId, source: 'scan' | 'list') => void;
   submitAnswer: (answer: string) => void;
   touchBoard: (touch: BoardTouch) => void;
+  chooseGuest: (guest: string) => void;
   giveHint: () => void;
   showSolution: () => void;
   answerPending: (playerId: string, isAdmitted: boolean) => void;
@@ -43,7 +45,9 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const { step } = view;
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
-  const needsPlace = view.me.isPlaying && step.goTo !== null && !isAtGoal && !view.isFinished;
+  // I Rummen minns kan spelaren ha ett rum kvar att gå till fast hon står i ett annat.
+  const hasPlaceToGo = (step.goTo !== null && !isAtGoal) || (step.rooms?.hasRoomElsewhere ?? false);
+  const needsPlace = view.me.isPlaying && hasPlaceToGo && !view.isFinished;
   // Utan platskort visas listan direkt, eftersom det inte finns något att skanna.
   const shownInput: PlaceInput = needsPlace ? (view.usesPlaceCards ? placeInput : 'list') : 'none';
 
@@ -141,6 +145,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
           <input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" enterKeyHint="send" />
         </form>
       )}
+      {step.rooms && <RoomsTask rooms={step.rooms} clockOffsetMs={clockOffsetMs} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseGuest} />}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}
       {shownInput === 'scan' && <PlaceScanner onPlace={(placeId) => choose(placeId, 'scan')} onCameraFailed={(reason) => showList(`${reason} Välj platsen i listan.`)} />}

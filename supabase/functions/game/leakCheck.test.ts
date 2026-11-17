@@ -9,7 +9,7 @@ import { test } from 'vitest';
 import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame, touchBoard } from './game.ts';
 import { MAX_PLAYERS } from './lobby.ts';
 import { listParticipants } from './participants.ts';
-import { type Mission, listSolutionTexts } from './mission.ts';
+import { type Mission, listPlaces, listSolutionTexts } from './mission.ts';
 import { MISSIONS } from './missions/index.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
@@ -29,7 +29,8 @@ function listSecrets(mission: Mission, stepIndex: number): string[] {
     ...(step.textAtPlace ? [step.textAtPlace] : []),
     ...(step.roles ?? []).flatMap((role) => role.pieces),
     ...(step.hints ?? []),
-    ...listSolutionTexts(step),
+    ...listSolutionTexts(step, listPlaces(mission)),
+    ...(step.type === 'rooms' ? step.rooms.flatMap((room) => room.pieces) : []),
   ];
 }
 
@@ -63,17 +64,18 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     const text = JSON.stringify(view);
     const allowed = new Set([
       ...(view.step.role?.pieces ?? []),
+      ...(view.step.rooms?.current?.pieces ?? []),
       ...(view.step.textAtPlace ? [view.step.textAtPlace] : []),
       ...view.step.hints,
       // Facit får bara synas hos spelledaren, och bara när hon har bett om det.
-      ...(viewer.isLeader && state.isSolutionShown ? listSolutionTexts(mission.steps[state.stepIndex]) : []),
+      ...(viewer.isLeader && state.isSolutionShown ? listSolutionTexts(mission.steps[state.stepIndex], view.places) : []),
     ]);
     for (const secret of secrets) {
       if (text.includes(secret)) assert.ok(allowed.has(secret), `${mission.id} steg ${state.stepIndex + 1}, ${viewer.name} ser någon annans: ${secret}`);
     }
     // Ingen vy berättar något om de andra spelarna.
     for (const other of players.filter((player) => player.id !== viewer.id)) assert.ok(!text.includes(other.id), `${viewer.name} ser ${other.id}`);
-    for (const piece of view.step.role?.pieces ?? []) {
+    for (const piece of [...(view.step.role?.pieces ?? []), ...(view.step.rooms?.current?.pieces ?? [])]) {
       assert.ok(!shown.has(piece), `${mission.id} steg ${state.stepIndex + 1}: två spelare ser samma bit: ${piece}`);
       shown.add(piece);
     }
@@ -88,6 +90,31 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     // De viktigaste bitarna, de första, ska alltid finnas hos någon.
     assert.ok(role.pieces.slice(0, reachable).every((piece) => shown.has(piece)), `${mission.id} steg ${state.stepIndex + 1}: en bit i ${role.id} har ingen`);
   }
+}
+
+/**
+ * Varje spelare går till sina rum ett i taget, och vyerna kontrolleras i
+ * varje rum. Sist kontrolleras att varje bit i varje rum har setts av någon.
+ */
+function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
+  const step = mission.steps[state.stepIndex];
+  if (step.type !== 'rooms' || !state.rooms) return state;
+  let visited = state;
+  const seen = new Set<string>();
+  const mostVisits = Math.max(...participants.map((player) => state.rooms?.visitsByPlayer[player.id]?.length ?? 0));
+  for (let round = 0; round < mostVisits; round += 1) {
+    for (const player of participants) {
+      const visit = state.rooms.visitsByPlayer[player.id]?.[round];
+      if (visit) visited = readState(choosePlace({ state: visited, mission, players: participants, player, placeId: visit.place }));
+    }
+    checkStep(mission, visited, players);
+    for (const viewer of participants) {
+      const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state: visited }, mission, players, viewer });
+      for (const piece of view.step.rooms?.current?.pieces ?? []) seen.add(piece);
+    }
+  }
+  for (const room of step.rooms) for (const piece of room.pieces) assert.ok(seen.has(piece), `${mission.id}: ingen ser ${piece} med ${participants.length} spelare`);
+  return visited;
 }
 
 /** Lång nog för att skenet ska hinna fram till vilken bokstav som helst. */
@@ -125,6 +152,7 @@ for (const mission of MISSIONS) {
         }
         // I en seans kontrolleras vyerna efter varje bokstav, när någon ser den.
         if (mission.steps[state.stepIndex].type === 'seance') state = followWholeSeance(mission, state, players, participants);
+        state = visitAllRooms(mission, state, players, participants);
         // I en uppgift kontrolleras vyerna igen med alla ledtrådar och facit framme.
         if (mission.steps[state.stepIndex].type !== 'scene') {
           while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));

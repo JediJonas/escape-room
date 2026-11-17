@@ -230,6 +230,16 @@ planchetten tappar, så att fördröjningen till servern inte syns som ett hopp.
 Ligger skenet efter servern när det rör sig igen glider det ikapp. Se
 `seance.ts`.
 
+**Rummen minns** har typen `rooms`. Steget har `guests`, alla som kan ha
+stått i ett rum, och `rooms`, med en plats och bitar för varje rum, viktigast
+först. Facit ligger i `solution.guestByPlace`. Motorn delar ut rummen när
+steget börjar: med färre spelare än rum tar någon flera, och med fler delar
+flera på ett rum och får varsina bitar. Varje rum har därför minst så många
+bitar som det kan få spelare med tio i gruppen, och testerna kontrollerar
+det. Bitarna syns bara för den som har rummet och står där. Ett fel val
+sparar till vilken tid rummet glömmer, och bara rummets spelare och
+spelledaren får en ny vy. Se `rooms.ts`.
+
 **Uppdraget väljs när spelet startar.** Spelledaren ser uppdragen i
 väntrummet och väljer ett när hon trycker Starta spelet. Spelet skapas med
 Provhuset.

@@ -8,7 +8,7 @@
 
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
-import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer, touchBoard } from './game.ts';
+import { type StateChange, advanceStep, chooseGuest, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer, touchBoard } from './game.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts';
 import { getMission } from './missions/index.ts';
@@ -165,6 +165,27 @@ async function touchBoardAction(action: Action, context: Context): Promise<Actio
   });
 }
 
+/**
+ * Ett fel val ändrar bara rummet, så bara de som har rummet och spelledaren
+ * får en ny vy. Ett rätt val syns hos alla, som antal lösta rum.
+ */
+function findGuestRecipients(scope: GameScope, change: StateChange): readonly PlayerRecord[] | undefined {
+  if ('refusal' in change) return [];
+  const before = scope.game.state.rooms;
+  const after = change.state.rooms;
+  if (!before || !after || before.solvedPlaces.length !== after.solvedPlaces.length) return undefined;
+  const placeId = scope.game.state.placeByPlayer[scope.player.id];
+  return scope.players.filter((player) => player.isLeader || before.visitsByPlayer[player.id]?.some((visit) => visit.place === placeId));
+}
+
+async function chooseGuestAction(action: Action, context: Context): Promise<ActionResult> {
+  const nowMs = await context.store.readServerTimeMs();
+  return withParticipant(action, context, async (scope) => {
+    const change = chooseGuest({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, guest: action.guest, nowMs });
+    return applyChange(scope, change, { action: { type: 'chooseGuest', guest: action.guest, stepIndex: scope.game.state.stepIndex }, recipients: findGuestRecipients(scope, change) });
+  });
+}
+
 async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
     const change = giveHint({ state: scope.game.state, mission: scope.mission, player: scope.player });
@@ -192,6 +213,7 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   setPaused: setPausedAction,
   submitAnswer: submitAnswerAction,
   touchBoard: touchBoardAction,
+  chooseGuest: chooseGuestAction,
   giveHint: giveHintAction,
   showSolution: showSolutionAction,
   admitPlayer: (action, context) => answerPendingAction(action, context, true),

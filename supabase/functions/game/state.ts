@@ -7,6 +7,7 @@
 import { type GameClock, readGameClock } from './clock.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import type { RoleAssignment } from './roles.ts';
+import { type RoomsState, readRoomsState } from './rooms.ts';
 import { type SeanceState, readSeanceState } from './seance.ts';
 
 /** Om spelaren skannade kortet eller valde i listan. Sparas för felsökningens skull. */
@@ -41,6 +42,8 @@ export type GameState = {
   clock: GameClock | null;
   /** Seansens läge medan gruppen är i en seans, annars null. */
   seance: SeanceState | null;
+  /** Rummen och vilka som är lösta medan gruppen är i Rummen minns, annars null. */
+  rooms: RoomsState | null;
 };
 
 export type GameRecord = {
@@ -60,7 +63,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null };
+  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null };
 }
 
 /**
@@ -92,6 +95,7 @@ export function readGameState(saved: unknown): GameState {
     pendingPlayers: readPendingPlayers(fields.pendingPlayers),
     clock: readGameClock(fields.clock),
     seance: readSeanceState(fields.seance),
+    rooms: readRoomsState(fields.rooms),
   };
 }
 

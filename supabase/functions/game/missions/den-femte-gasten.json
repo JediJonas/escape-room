@@ -12,7 +12,7 @@
     "F": "Salongen"
   },
   "house": {
-    "start": "F",
+    "start": "B",
     "rooms": [
       {
         "place": "F",
@@ -91,7 +91,7 @@
     {
       "id": "inledning",
       "type": "scene",
-      "text": "Ni är några vänner som har bestämt er för att hålla en seans i ett hus där det sägs spöka. I kväll ska ni ta reda på om någon svarar."
+      "text": "Ni är några vänner som har bestämt er för att hålla en seans i ett hus där det sägs spöka. Nu står ni i hallen. Någonstans i huset finns ett ouijabräde."
     },
     {
       "id": "runt-bordet",

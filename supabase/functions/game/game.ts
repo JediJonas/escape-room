@@ -14,9 +14,10 @@ import { type CellarView, describeCellar, markArrived, startCellar } from './cel
 import { type RoomsView, describeRooms, hasSolvedOwnRooms, startRooms } from './rooms.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
 import { type FoundItem, describeFound, keepFound } from './found.ts';
+import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'roomForgets' | 'notTrapped' | 'noMoreFuses';
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'roomForgets' | 'notTrapped' | 'noMoreFuses' | 'noDoor';
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
@@ -125,7 +126,8 @@ export function startGame({ state, mission, players, starter, usesPlaceCards, le
   const started: GameState = { ...state, status: 'running', usesPlaceCards, leaderPlays, clock: startClock(minutes, nowMs) };
   const participants = listParticipants(started, players);
   if (participants.length < mission.minPlayers) return { refusal: 'tooFewPlayers' };
-  return { state: enterStep(started, mission, participants, 0) };
+  const placed = mission.house ? placeInHouse(started, mission.house, participants.map((player) => player.id)) : started;
+  return { state: enterStep(placed, mission, participants, 0) };
 }
 
 /** Spelledaren går vidare utan att vänta på alla, till exempel när någon har gått iväg. */
@@ -259,6 +261,8 @@ export type GameView = {
     /** Spelarens roll i steget och bara hennes egna bitar. */
     role: { title: string; pieces: string[] } | null;
     type: MissionStep['type'];
+    /** Saken i huset som öppnar steget, till exempel ouijabrädet. Annars visas steget direkt. */
+    opensFrom: string | null;
     /** Om spelaren trycker Klar i steget, eller blir klar av att komma fram. */
     usesReadyButton: boolean;
     isMeDone: boolean;
@@ -276,6 +280,8 @@ export type GameView = {
   };
   /** Det gruppen har hittat och kan läsa igen, med bara spelarens egna bitar. */
   found: FoundItem[];
+  /** Rummet där spelaren är, med dörrarna och det som har hittats där. Bara i uppdrag med ett hus. */
+  house: HouseView | null;
   /** Bara hos spelledaren: vilka som är klara med steget. */
   progress: { name: string; isMe: boolean; isDone: boolean }[] | null;
   /** Bara hos spelledaren: mobiler som väntar på att få vara med eller ta över en spelare. */
@@ -348,6 +354,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       count: mission.steps.length,
       ...describeStep(step, state, places, viewer.id),
       type: step.type,
+      opensFrom: findOpener(mission.house, step.id),
       usesReadyButton: usesReadyButton(step, state),
       isMeDone: isPlayerDone(step, state, viewer.id),
       hints: step.hints?.slice(0, state.hintsGiven) ?? [],
@@ -365,6 +372,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))
       : null,
     found: describeFound(mission, state.found, viewer.id),
+    house: mission.house && isRunning ? describeHouse({ state, mission, house: mission.house, places, viewerId: viewer.id }) : null,
     pending: showsLeaderTools ? describePending(state, players) : null,
     clock: isRunning && state.clock ? describeClock(state.clock) : null,
     myPlace,

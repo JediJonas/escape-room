@@ -200,6 +200,8 @@ export function App() {
     },
     chooseGuest: (guest) => sendInGame({ type: 'chooseGuest', guest }),
     moveInCellar: (move) => sendInGame({ type: 'moveInCellar', move }),
+    walk: (placeId) => sendInGame({ type: 'walk', placeId }),
+    searchRoom: () => sendInGame({ type: 'searchRoom' }),
     giveHint: () => sendInGame({ type: 'giveHint' }),
     showSolution: () => sendInGame({ type: 'showSolution' }),
     answerPending: (playerId, isAdmitted) => sendInGame({ type: isAdmitted ? 'admitPlayer' : 'rejectPlayer', playerId }),

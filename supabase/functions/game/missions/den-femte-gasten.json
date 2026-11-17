@@ -8,7 +8,84 @@
     "B": "Hallen",
     "C": "Köket",
     "D": "Biblioteket",
-    "E": "Sovrummet"
+    "E": "Sovrummet",
+    "F": "Salongen"
+  },
+  "house": {
+    "start": "F",
+    "rooms": [
+      {
+        "place": "F",
+        "doors": [
+          "B"
+        ],
+        "things": [
+          {
+            "id": "ouijabradet",
+            "name": "Ouijabrädet",
+            "opensStep": "seansen",
+            "isFoundFromStart": true
+          }
+        ]
+      },
+      {
+        "place": "B",
+        "doors": [
+          "F",
+          "C",
+          "D",
+          "E"
+        ],
+        "things": [
+          {
+            "id": "gastboken",
+            "name": "Gästboken",
+            "text": "De fem sista som skrev i boken, alla samma kväll i oktober 1962: Arvid Lund, Elsa Rydén, Margit Holm, Sven Dahl och Vera Sjö.",
+            "fromStep": "tidningsurklippen"
+          },
+          {
+            "id": "kallardorren",
+            "name": "Källardörren",
+            "text": "Dörren är låst. Någon har vridit om nyckeln och tagit den med sig."
+          }
+        ]
+      },
+      {
+        "place": "C",
+        "doors": [
+          "B"
+        ],
+        "things": [
+          {
+            "id": "tavlan",
+            "name": "Tavlan",
+            "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Till Elsa, sommaren 1961.",
+            "fromStep": "tidningsurklippen"
+          }
+        ]
+      },
+      {
+        "place": "D",
+        "doors": [
+          "B"
+        ],
+        "things": [
+          {
+            "id": "byran",
+            "name": "Byrån",
+            "opensStep": "tidningsurklippen",
+            "fromStep": "tidningsurklippen"
+          }
+        ]
+      },
+      {
+        "place": "E",
+        "doors": [
+          "B"
+        ],
+        "things": []
+      }
+    ]
   },
   "steps": [
     {
@@ -41,24 +118,16 @@
     {
       "id": "vera-svarar",
       "type": "scene",
-      "text": "Skenet slocknar. Någon har svarat er, och hon vill ha hjälp. Ni vet inte vem hon är. Leta i huset efter vad som hände här. I biblioteket står en gammal byrå med lådorna på glänt."
+      "text": "Skenet slocknar. Någon har svarat er, och hon vill ha hjälp. Ni vet inte vem hon är. Gå runt i huset och leta efter vad som hände här. Tryck Klar när ni är redo att leta."
     },
     {
       "id": "tidningsurklippen",
       "type": "scene",
-      "text": "I byrån ligger en bunt gamla tidningsurklipp och en gästbok. Var och en har fått några urklipp. Läs dem för varandra och ta reda på vilka gästerna var och hur man känner igen dem. Urklippen sparas i Hittat. Tryck Klar när ni har läst.",
+      "text": "I byrån ligger en bunt gamla tidningsurklipp. Var och en har fått några. Läs dem för varandra och ta reda på vilka gästerna var och hur man känner igen dem. Tryck Klar när ni har läst.",
       "documents": [
         {
           "title": "Ung kvinna försvunnen efter seans",
           "text": "I lördags kväll samlades fem unga gäster i villan på Ekbacken för att hålla en seans. Strax efter nio slocknade ljuset i hela huset. Golvuret i salongen stannade på kvart över nio och har inte gått sedan dess. När ljuset kom tillbaka var bara fyra av gästerna kvar. Ingen av dem kan säga var de var när det blev mörkt. Polisen söker fortfarande den femte."
-        },
-        {
-          "title": "Gästboken i hallen",
-          "text": "De fem sista som skrev i boken, alla samma kväll i oktober 1962: Arvid Lund, Elsa Rydén, Margit Holm, Sven Dahl och Vera Sjö."
-        },
-        {
-          "title": "Tavlan i köket",
-          "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Till Elsa, sommaren 1961."
         }
       ],
       "foundTitle": "Tidningsurklippen",

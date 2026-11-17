@@ -6,6 +6,7 @@
 
 import { type CellarMove, applyCellarMove } from './cellar.ts';
 import { type StateChange, findCurrentTask, findRole, isAtGoal, moveOn } from './game.ts';
+import { searchRoom, walk } from './house.ts';
 import type { Mission } from './mission.ts';
 import { chooseGuest as chooseGuestInRoom, isRoomsSolved } from './rooms.ts';
 import { type BoardTouch, applyBoardTouch } from './seance.ts';
@@ -79,4 +80,23 @@ export function moveInCellar({ state, mission, player, move, nowMs }: {
   const isNewlyCaught = result.cellar.outcome === 'caught' && state.cellar.outcome !== 'caught';
   const marks = isNewlyCaught && !state.marks.includes(step.markWhenCaught) ? [...state.marks, step.markWhenCaught] : state.marks;
   return { state: { ...state, cellar: result.cellar, marks } };
+}
+
+/** Spelaren går genom en dörr i huset. */
+export function walkThroughDoor({ state, mission, player, placeId }: {
+  state: GameState;
+  mission: Mission;
+  player: PlayerRecord;
+  placeId: unknown;
+}): StateChange {
+  if (state.status !== 'running') return { refusal: 'notRunning' };
+  if (!mission.house) return { refusal: 'unknownPlace' };
+  return walk({ state, house: mission.house, playerId: player.id, placeId });
+}
+
+/** Spelaren letar i rummet där hon står. Det hon hittar står sedan i rummets lista för alla. */
+export function searchHere({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
+  if (state.status !== 'running') return { refusal: 'notRunning' };
+  if (!mission.house) return { refusal: 'unknownPlace' };
+  return { state: searchRoom({ state, mission, house: mission.house, playerId: player.id }) };
 }

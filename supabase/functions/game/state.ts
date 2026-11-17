@@ -52,6 +52,8 @@ export type GameState = {
   marks: string[];
   /** Det gruppen har hittat och kan läsa igen, med vem som hade vilka bitar. */
   found: FoundState;
+  /** Sakerna i huset som gruppen har hittat. De står sedan i rummets lista för alla. */
+  foundThings: string[];
 };
 
 export type GameRecord = {
@@ -71,7 +73,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null, cellar: null, marks: [], found: {} };
+  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null, cellar: null, marks: [], found: {}, foundThings: [] };
 }
 
 /**
@@ -107,6 +109,7 @@ export function readGameState(saved: unknown): GameState {
     cellar: readCellarState(fields.cellar),
     marks: readStringList(fields.marks),
     found: readFoundState(fields.found, readRoleByPlayer),
+    foundThings: readStringList(fields.foundThings),
   };
 }
 

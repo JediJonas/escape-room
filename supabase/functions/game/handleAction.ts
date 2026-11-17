@@ -9,7 +9,7 @@
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
 import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
-import { chooseGuest, moveInCellar, touchBoard } from './taskActions.ts';
+import { chooseGuest, moveInCellar, searchHere, touchBoard, walkThroughDoor } from './taskActions.ts';
 import { readCellarMove } from './cellar.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts';
@@ -227,6 +227,23 @@ async function showSolutionAction(action: Action, context: Context): Promise<Act
   });
 }
 
+/** Bara den som går får en ny vy, eftersom ingen annan ser var hon är. */
+async function walkAction(action: Action, context: Context): Promise<ActionResult> {
+  return withParticipant(action, context, async (scope) => {
+    const change = walkThroughDoor({ state: scope.game.state, mission: scope.mission, player: scope.player, placeId: action.placeId });
+    return applyChange(scope, change, { action: { type: 'walk', placeId: action.placeId }, recipients: [scope.player] });
+  });
+}
+
+/** Det som hittas står i rummets lista för alla, så alla får en ny vy om något hittades. */
+async function searchRoomAction(action: Action, context: Context): Promise<ActionResult> {
+  return withParticipant(action, context, async (scope) => {
+    const change = searchHere({ state: scope.game.state, mission: scope.mission, player: scope.player });
+    const isUnchanged = 'state' in change && change.state === scope.game.state;
+    return applyChange(scope, change, { action: { type: 'searchRoom' }, recipients: isUnchanged ? [scope.player] : undefined });
+  });
+}
+
 const HANDLERS: Record<string, (action: Action, context: Context) => Promise<ActionResult>> = {
   createGame,
   joinGame,
@@ -241,6 +258,8 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   touchBoard: touchBoardAction,
   chooseGuest: chooseGuestAction,
   moveInCellar: moveInCellarAction,
+  walk: walkAction,
+  searchRoom: searchRoomAction,
   giveHint: giveHintAction,
   showSolution: showSolutionAction,
   admitPlayer: (action, context) => answerPendingAction(action, context, true),

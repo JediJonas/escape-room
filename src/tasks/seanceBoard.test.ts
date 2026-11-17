@@ -39,7 +39,7 @@ test('raden under brädet visar vem skenet väntar på, vem som släppte och nä
   const broken = { ...VIEW, brokenBy: { name: 'Bo', atMs: 10_000 } };
   assert.equal(describeSeanceStatus(broken, 12_000, false), 'Kontakten bröts. Bo släppte. Det börjar om.');
   assert.equal(describeSeanceStatus(broken, 20_000, false), 'Skenet väntar på Bo och Cia.');
-  assert.equal(describeSeanceStatus({ ...VIEW, isComplete: true }, 0, false), 'Skenet har slocknat.');
+  assert.equal(describeSeanceStatus({ ...VIEW, isComplete: true }, 0, false), '');
   assert.equal(describeSeanceStatus(VIEW, 0, true), 'Skenet väntar på dig.');
   assert.equal(describeSeanceStatus({ ...VIEW, isMeOnGlow: true }, 0, true), 'Skenet väntar på Bo och Cia.');
 });

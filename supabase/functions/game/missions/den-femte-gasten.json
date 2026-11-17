@@ -24,11 +24,11 @@
     {
       "id": "seansen",
       "type": "seance",
-      "text": "Lägg fingret på planchetten och följ skenet. Släpp inte. Ser du en bokstav, säg den högt.",
+      "text": "Lägg fingret på planchetten och följ skenet. Släpp inte.",
       "hints": [
         "Alla måste hålla fingret kvar hela tiden. Lyfter någon börjar meddelandet om.",
         "Skenet väntar tills allas planchetter är framme. Följ det tillsammans.",
-        "Meddelandet är två ord. Bara en av er ser varje bokstav, så säg dem högt."
+        "Meddelandet är två ord. Håll reda på bokstäverna där skenet stannar."
       ],
       "solution": {
         "message": "HJÄLP MIG"

@@ -56,7 +56,6 @@
   -webkit-touch-callout: none;
 }
 
-.seance-board.is-complete { opacity: 0.5; }
 
 .seance-letters {
   position: absolute;
@@ -110,6 +109,7 @@
   box-shadow: 0 0 12px rgb(0 0 0 / 0.6);
 }
 
+.seance-glow[hidden],
 .seance-planchette[hidden] { display: none; }
 
 /* Raderna ovanpå brädet. Fingret går igenom dem till brädet. */
@@ -146,6 +146,7 @@
 }
 
 .seance-status p { margin: 0; }
+.seance-status p:empty { display: none; }
 .seance-status button { pointer-events: auto; }
 
 /* Instruktionen står mitt på brädet tills spelaren lägger fingret på det. Den finns också i menyn. */

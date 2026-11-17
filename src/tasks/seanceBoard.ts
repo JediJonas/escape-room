@@ -90,7 +90,8 @@ function listNames(names: readonly string[]): string {
  * Väntar skenet på spelaren själv står det så, i stället för hennes namn.
  */
 export function describeSeanceStatus(seance: SeanceView, serverNowMs: number, isPlaying: boolean): string {
-  if (seance.isComplete) return 'Skenet har slocknat.';
+  // När meddelandet är klart släcks skenet, och raden är tom (Jonas 2026-11-17).
+  if (seance.isComplete) return '';
   if (seance.brokenBy && serverNowMs - seance.brokenBy.atMs < BROKEN_NOTICE_MS) return `Kontakten bröts. ${seance.brokenBy.name} släppte. Det börjar om.`;
   if (isPlaying && !seance.isMeOnGlow) return 'Skenet väntar på dig.';
   const { waitingFor } = seance;

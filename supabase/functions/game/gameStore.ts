@@ -26,6 +26,8 @@ export type GameTransaction = {
   listPlayers(gameId: string): Promise<PlayerRecord[]>;
   insertPlayer(player: { gameId: string; userId: string; name: string; isLeader: boolean }): Promise<PlayerRecord>;
   deletePlayer(playerId: string): Promise<void>;
+  /** Ger spelaren till en annan mobil, när den förra har försvunnit. */
+  updatePlayerUser(playerId: string, userId: string): Promise<void>;
   logEvent(event: { gameId: string; playerId: string | null; action: object }): Promise<void>;
   sendView(playerId: string, view: object): Promise<void>;
 };
@@ -110,6 +112,9 @@ function createTransaction(sql: Sql): GameTransaction {
     },
     async deletePlayer(playerId) {
       await sql`delete from engine.players where id = ${playerId}`;
+    },
+    async updatePlayerUser(playerId, userId) {
+      await sql`update engine.players set user_id = ${userId} where id = ${playerId}`;
     },
     async logEvent({ gameId, playerId, action }) {
       await sql`

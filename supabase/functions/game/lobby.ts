@@ -37,7 +37,7 @@ export function cleanPlayerName(input: unknown): string | null {
 }
 
 /** Två namn räknas som samma om bara stora och små bokstäver skiljer. */
-function isSameName(first: string, second: string): boolean {
+export function isSameName(first: string, second: string): boolean {
   return first.localeCompare(second, 'sv', { sensitivity: 'accent' }) === 0;
 }
 

@@ -38,6 +38,10 @@ function createMemoryStore() {
     async deletePlayer(playerId) {
       players.splice(players.findIndex((player) => player.id === playerId), 1);
     },
+    async updatePlayerUser(playerId, userId) {
+      const player = players.find((candidate) => candidate.id === playerId);
+      if (player) player.userId = userId;
+    },
     async logEvent(event) {
       events.push(event);
     },
@@ -285,4 +289,58 @@ test('ett spel med ett uppdrag som inte finns längre ger ett fel i stället fö
   const memory = await createGameWithPlayers(['Bo']);
   memory.games[0].missionId = 'borttaget';
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'getView', gameId: memory.games[0].id }), { status: 500, body: { error: 'unknownMission' } });
+});
+
+test('den som kommer sent väntar tills spelledaren släpper in den', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId });
+  memory.sentViews.length = 0;
+  const late = await send(memory.store, 'user-Cia', { type: 'joinGame', joinCode: 'BCDF', name: 'Cia' });
+  assert.deepEqual((late.body as { view: object }).view, { type: 'waiting', gameId, missionTitle: 'Provhuset', me: { playerId: 'player-4', name: 'Cia', isLeader: false }, takesOver: null });
+  // Bara spelledaren och den nya får veta något.
+  assert.deepEqual(memory.sentViews.map(({ view }) => view.me.name).sort(), ['Cia', 'Ledare']);
+  const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
+  assert.deepEqual(leaderView.pending, [{ playerId: 'player-4', name: 'Cia', takesOver: null }]);
+  assert.equal(leaderView.playerCount, 2);
+  // Den som väntar kan inte vara med i uppgifterna än.
+  assert.deepEqual(await send(memory.store, 'user-Cia', { type: 'markReady', gameId }), { status: 409, body: { error: 'notPlaying' } });
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'admitPlayer', gameId, playerId: 'player-4' }), { status: 403, body: { error: 'notLeader' } });
+  const admitted = readGameView((await send(memory.store, 'user-leader', { type: 'admitPlayer', gameId, playerId: 'player-4' })).body);
+  assert.deepEqual({ pending: admitted.pending, count: admitted.playerCount }, { pending: [], count: 3 });
+  const ciaView = readGameView((await send(memory.store, 'user-Cia', { type: 'getView', gameId })).body);
+  assert.equal(ciaView.me.isPlaying, true);
+});
+
+test('en ny mobil med samma namn tar över spelaren när spelledaren säger ja', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId });
+  await send(memory.store, 'user-Bo', { type: 'markReady', gameId });
+  const late = await send(memory.store, 'user-nya', { type: 'joinGame', joinCode: 'BCDF', name: 'bo' });
+  assert.equal((late.body as { view: { takesOver: string } }).view.takesOver, 'Bo');
+  // Spelledarens namn kan inte tas över, och samma spelare bara av en mobil i taget.
+  assert.deepEqual(await send(memory.store, 'user-x', { type: 'joinGame', joinCode: 'BCDF', name: 'Ledare' }), { status: 409, body: { error: 'nameTaken' } });
+  assert.deepEqual(await send(memory.store, 'user-y', { type: 'joinGame', joinCode: 'BCDF', name: 'Bo' }), { status: 409, body: { error: 'nameTaken' } });
+  await send(memory.store, 'user-leader', { type: 'admitPlayer', gameId, playerId: 'player-4' });
+  // Den nya mobilen är nu Bo, med det Bo redan hade gjort, och den gamla är inte med längre.
+  const taken = readGameView((await send(memory.store, 'user-nya', { type: 'getView', gameId })).body);
+  assert.deepEqual({ name: taken.me.name, playerId: taken.me.playerId, isDone: taken.step.isMeDone }, { name: 'Bo', playerId: 'player-3', isDone: true });
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'getView', gameId }), { status: 404, body: { error: 'notInGame' } });
+  assert.equal(memory.players.length, 2);
+});
+
+test('spelledaren kan neka den som väntar, och kan stå utanför spelet', async () => {
+  const memory = await createGameWithPlayers(['Bo', 'Cia']);
+  const gameId = memory.games[0].id;
+  const started = readGameView((await send(memory.store, 'user-leader', { type: 'startGame', gameId, leaderPlays: false })).body);
+  assert.deepEqual({ isPlaying: started.me.isPlaying, count: started.playerCount, progress: started.progress?.map((player) => player.name) }, { isPlaying: false, count: 2, progress: ['Bo', 'Cia'] });
+  assert.deepEqual(await send(memory.store, 'user-leader', { type: 'markReady', gameId }), { status: 409, body: { error: 'notPlaying' } });
+  await send(memory.store, 'user-Bo', { type: 'markReady', gameId });
+  const next = readGameView((await send(memory.store, 'user-Cia', { type: 'markReady', gameId })).body);
+  assert.equal(next.step.number, 2);
+  await send(memory.store, 'user-Dan', { type: 'joinGame', joinCode: 'BCDF', name: 'Dan' });
+  const rejected = readGameView((await send(memory.store, 'user-leader', { type: 'rejectPlayer', gameId, playerId: 'player-5' })).body);
+  assert.deepEqual(rejected.pending, []);
+  assert.deepEqual(await send(memory.store, 'user-Dan', { type: 'getView', gameId }), { status: 404, body: { error: 'notInGame' } });
 });

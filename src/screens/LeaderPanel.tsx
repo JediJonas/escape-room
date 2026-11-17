@@ -4,12 +4,34 @@ import type { GameView } from '../../supabase/functions/game/game.ts';
  * Spelledarens del av skärmen. I en scen syns vilka som är klara, i en
  * uppgift ledtrådarna och facit. Paus finns alltid.
  */
-export function LeaderPanel({ view, isBusy, onSetPaused, onGiveHint, onShowSolution }: {
+/** Mobiler som har kommit efter start och väntar på ett svar. */
+function PendingList({ view, isBusy, onAnswer }: { view: GameView; isBusy: boolean; onAnswer: (playerId: string, isAdmitted: boolean) => void }) {
+  if (!view.pending || view.pending.length === 0) return null;
+  return (
+    <div className="pending-list">
+      <h2>Vill vara med</h2>
+      {view.pending.map((pending) => (
+        <div key={pending.playerId} className="pending">
+          <p>{pending.takesOver ? `En ny mobil vill ta över ${pending.takesOver}.` : `${pending.name} vill vara med.`}</p>
+          <div className="leader-tools">
+            <button type="button" className="secondary small" onClick={() => onAnswer(pending.playerId, true)} disabled={isBusy}>
+              {pending.takesOver ? 'Låt den ta över' : 'Släpp in'}
+            </button>
+            <button type="button" className="secondary small" onClick={() => onAnswer(pending.playerId, false)} disabled={isBusy}>Neka</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function LeaderPanel({ view, isBusy, onSetPaused, onGiveHint, onShowSolution, onAnswerPending }: {
   view: GameView;
   isBusy: boolean;
   onSetPaused: (isPaused: boolean) => void;
   onGiveHint: () => void;
   onShowSolution: () => void;
+  onAnswerPending: (playerId: string, isAdmitted: boolean) => void;
 }) {
   if (!view.progress) return null;
   const { step } = view;
@@ -18,6 +40,7 @@ export function LeaderPanel({ view, isBusy, onSetPaused, onGiveHint, onShowSolut
   const isPaused = view.clock?.isPaused ?? false;
   return (
     <section className="leader-panel" aria-label="Spelledare">
+      <PendingList view={view} isBusy={isBusy} onAnswer={onAnswerPending} />
       {isTask
         ? (
           <>

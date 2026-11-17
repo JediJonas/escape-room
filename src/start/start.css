@@ -164,3 +164,5 @@ button.small { width: auto; padding: 0.5rem 1rem; }
   background: var(--surface);
 }
 .hint-card p:last-child { margin-bottom: 0; }
+.pending-list { margin-bottom: 1rem; }
+.pending { margin-bottom: 0.75rem; }

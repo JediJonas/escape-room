@@ -11,6 +11,9 @@ import type { RoleAssignment } from './roles.ts';
 /** Om spelaren skannade kortet eller valde i listan. Sparas för felsökningens skull. */
 export type PlaceSource = 'scan' | 'list';
 
+/** En mobil som kom efter start och väntar på spelledaren. */
+export type PendingPlayer = { playerId: string; takesOverPlayerId: string | null };
+
 export type GameState = {
   status: 'lobby' | 'running' | 'finished';
   /** Spelledaren kan välja bort platskorten när spelet startar. Då väljer alla i listan. */
@@ -29,6 +32,10 @@ export type GameState = {
   hintsGiven: number;
   /** Om spelledaren har bett om facit i den aktuella uppgiften. */
   isSolutionShown: boolean;
+  /** Om spelledaren spelar med. Annars får hon en ren administrationsvy. */
+  leaderPlays: boolean;
+  /** Mobiler som kom efter start och väntar på att spelledaren svarar. */
+  pendingPlayers: PendingPlayer[];
   /** Nedräkningen. Saknas före start och i spel som startade innan den fanns. */
   clock: GameClock | null;
 };
@@ -50,7 +57,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, clock: null };
+  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null };
 }
 
 /**
@@ -78,8 +85,20 @@ export function readGameState(saved: unknown): GameState {
     readyPlayerIds: readStringList(fields.readyPlayerIds),
     hintsGiven: Number.isInteger(fields.hintsGiven) && (fields.hintsGiven as number) >= 0 ? fields.hintsGiven as number : initial.hintsGiven,
     isSolutionShown: fields.isSolutionShown === true,
+    leaderPlays: fields.leaderPlays !== false,
+    pendingPlayers: readPendingPlayers(fields.pendingPlayers),
     clock: readGameClock(fields.clock),
   };
+}
+
+function readPendingPlayers(saved: unknown): PendingPlayer[] {
+  if (!Array.isArray(saved)) return [];
+  return saved.flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const { playerId, takesOverPlayerId } = item as Record<string, unknown>;
+    if (typeof playerId !== 'string' || (takesOverPlayerId !== null && typeof takesOverPlayerId !== 'string')) return [];
+    return [{ playerId, takesOverPlayerId }];
+  });
 }
 
 function readStringList(saved: unknown): string[] {

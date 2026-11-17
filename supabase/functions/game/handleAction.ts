@@ -14,7 +14,7 @@ import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts
 import { getMission } from './missions/index.ts';
 import { type PlayerRecord, createInitialState } from './state.ts';
 import { answerPendingAction, joinAfterStart } from './latecomers.ts';
-import { readBoardTouch } from './seance.ts';
+import { hasSeanceChanged, readBoardTouch } from './seance.ts';
 import { buildPlayerView } from './views.ts';
 
 export type { ActionError } from './actionKit.ts';
@@ -156,11 +156,12 @@ async function touchBoardAction(action: Action, context: Context): Promise<Actio
   if (!touch) return fail('unknownAction');
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
-    const change = touchBoard({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, touch, letterIndex: action.letterIndex, nowMs });
-    // En handling som kom för sent ändrar ingenting, och då behöver ingen annan en ny vy.
-    const isUnchanged = 'state' in change && change.state.seance === scope.game.state.seance;
-    const recipients = isUnchanged ? [scope.player] : undefined;
-    return applyChange(scope, change, { action: { type: 'touchBoard', touch, letterIndex: action.letterIndex }, recipients });
+    const change = touchBoard({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, touch, nowMs });
+    // Flera mobiler säger till när skenet når bokstaven. Bara den första ändrar något, och bara då behöver alla en ny vy.
+    const before = scope.game.state.seance;
+    const after = 'state' in change ? change.state.seance : null;
+    const isUnchanged = before !== null && after !== null && !hasSeanceChanged(before, after);
+    return applyChange(scope, change, { action: { type: 'touchBoard', touch }, recipients: isUnchanged ? [] : undefined });
   });
 }
 

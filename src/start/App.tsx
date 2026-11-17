@@ -187,8 +187,8 @@ export function App() {
     submitAnswer: (answer) => sendInGame({ type: 'submitAnswer', answer }),
     // Planchetten skickas utan att knapparna blir upptagna, och svaret används inte:
     // vyn kommer i kanalen, i rätt ordning, även när flera anrop är på väg samtidigt.
-    touchBoard: (touch, letterIndex) => {
-      if (gameId) void callGame({ type: 'touchBoard', gameId, touch, letterIndex });
+    touchBoard: (touch) => {
+      if (gameId) void callGame({ type: 'touchBoard', gameId, touch });
     },
     giveHint: () => sendInGame({ type: 'giveHint' }),
     showSolution: () => sendInGame({ type: 'showSolution' }),

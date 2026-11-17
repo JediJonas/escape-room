@@ -4,6 +4,7 @@
  * databasen. Se docs/motorn.md.
  */
 
+import { type GameClock, readGameClock } from './clock.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import type { RoleAssignment } from './roles.ts';
 
@@ -22,6 +23,10 @@ export type GameState = {
   roleByPlayer: Record<string, RoleAssignment>;
   /** Vilka som har haft en framträdande roll, äldst först. */
   prominentHistory: string[];
+  /** De som har tryckt Klar i det aktuella steget. Töms när gruppen går vidare. */
+  readyPlayerIds: string[];
+  /** Nedräkningen. Saknas före start och i spel som startade innan den fanns. */
+  clock: GameClock | null;
 };
 
 export type GameRecord = {
@@ -41,7 +46,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [] };
+  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], clock: null };
 }
 
 /**
@@ -62,11 +67,17 @@ export function readGameState(saved: unknown): GameState {
   return {
     status,
     roleByPlayer: readRoleByPlayer(fields.roleByPlayer),
-    prominentHistory: Array.isArray(fields.prominentHistory) ? fields.prominentHistory.filter((id): id is string => typeof id === 'string') : [],
+    prominentHistory: readStringList(fields.prominentHistory),
     usesPlaceCards: typeof fields.usesPlaceCards === 'boolean' ? fields.usesPlaceCards : initial.usesPlaceCards,
     stepIndex: Number.isInteger(fields.stepIndex) ? fields.stepIndex as number : initial.stepIndex,
     placeByPlayer,
+    readyPlayerIds: readStringList(fields.readyPlayerIds),
+    clock: readGameClock(fields.clock),
   };
+}
+
+function readStringList(saved: unknown): string[] {
+  return Array.isArray(saved) ? saved.filter((item): item is string => typeof item === 'string') : [];
 }
 
 function isRoleAssignment(value: unknown): value is RoleAssignment {

@@ -6,6 +6,7 @@
 import { SUPABASE_PUBLIC_KEY, SUPABASE_URL } from '../config.ts';
 import { VIEW_EVENT, getPlayerTopic } from '../../supabase/functions/game/channels.ts';
 import type { PlayerView } from '../../supabase/functions/game/views.ts';
+import { type ServerPing, summarizeServerPings } from './serverClock.ts';
 import { getSignedInClient } from './supabaseClient.ts';
 
 const SUPABASE_CONFIG = { url: SUPABASE_URL, publicKey: SUPABASE_PUBLIC_KEY };
@@ -52,4 +53,28 @@ export async function listenToPlayerView({ playerId, onView, onListening }: {
   return () => {
     client.removeChannel(channel);
   };
+}
+
+/** Antal anrop när skillnaden mot serverns klocka mäts. Det snabbaste används. */
+const CLOCK_PINGS = 3;
+
+/**
+ * Mäter hur mycket serverns klocka går före mobilens, för nedräkningen.
+ * Ger null om servern inte gick att nå.
+ */
+export async function measureClockOffsetMs(): Promise<number | null> {
+  const pings: ServerPing[] = [];
+  try {
+    const client = await getSignedInClient(SUPABASE_CONFIG);
+    for (let attempt = 0; attempt < CLOCK_PINGS; attempt += 1) {
+      const sentAt = Date.now();
+      const { data, error } = await client.functions.invoke('game', { body: { type: 'ping' } });
+      const receivedAt = Date.now();
+      const serverTime = (data as { serverTime?: unknown } | null)?.serverTime;
+      if (!error && typeof serverTime === 'number') pings.push({ sentAt, receivedAt, serverTime });
+    }
+  } catch {
+    return null;
+  }
+  return summarizeServerPings(pings)?.clockOffsetMs ?? null;
 }

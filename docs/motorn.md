@@ -317,7 +317,17 @@ och 5 miljoner per månad, och projektet pausas aldrig.
    olika bitar. En läckkontroll spelar alla uppdrag med två till tio spelare
    och letar efter andras bitar i varje vy.
 4. **Spelledarvyn.** Starta, pausa, ge ledtråd, hoppa över, visa facit på
-   begäran och låta en mobil ta över en spelare.
+   begäran och låta en mobil ta över en spelare. Byggs i tre delar. Den
+   första tar bort väntan på spelledaren: i en scen trycker varje spelare
+   Klar, och gruppen går vidare när alla har tryckt. En scen som bara skickar
+   alla till en plats går vidare när den sista är framme. Har platsen en text
+   trycker spelaren Klar efter att ha läst den (Jonas 2026-11-17). En uppgift
+   går vidare när den är löst. Spelledaren ser vilka som är klara och kan gå
+   vidare ändå om någon har gått iväg. Hon väljer speltid, 45, 60 eller 75
+   minuter, när hon startar, och kan pausa. Den andra delen ger ledtrådar,
+   att hoppa över och facit, med en enkel provuppgift i Provhuset. Den
+   tredje låter spelledaren stå utanför, släppa in den som kommer sent och
+   låta en mobil ta över en spelare.
 
 Varje del provas på riktiga mobiler innan nästa påbörjas. Uppgiftstyperna
 själva hör till steg 3 i konceptet.

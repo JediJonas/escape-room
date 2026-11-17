@@ -15,7 +15,7 @@
     {
       "id": "valkommen",
       "type": "scene",
-      "text": "Välkommen till provhuset. Det här är ett prov av spelets motor, inte ett riktigt uppdrag. Spelledaren går vidare med knappen Nästa."
+      "text": "Välkommen till provhuset. Det här är ett prov av spelets motor, inte ett riktigt uppdrag. Tryck Klar när du har läst. Spelet går vidare när alla har tryckt."
     },
     {
       "id": "vittnen",
@@ -61,8 +61,7 @@
       "id": "hallen",
       "type": "scene",
       "text": "Gå till hallen. Den som läste lappen i köket säger vad det stod på den.",
-      "goTo": "B",
-      "textAtPlace": "Du är i hallen. Det är tyst här, och ytterdörren är stängd."
+      "goTo": "B"
     },
     {
       "id": "brevet",

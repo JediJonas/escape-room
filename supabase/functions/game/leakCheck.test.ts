@@ -59,12 +59,12 @@ for (const mission of MISSIONS) {
     for (let playerCount = mission.minPlayers; playerCount <= MAX_PLAYERS; playerCount += 1) {
       const players = createPlayers(playerCount);
       const [leader] = players;
-      let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, usesPlaceCards: true }));
+      let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, usesPlaceCards: true, minutes: 60, nowMs: 0 }));
       while (state.status === 'running') {
         // Var annan spelare går till rätt plats, så att både de som är där och de som inte är det kontrolleras.
         const goTo = mission.steps[state.stepIndex].goTo;
         if (goTo) {
-          for (const player of players.filter((_, index) => index % 2 === 0)) state = readState(choosePlace({ state, mission, player, placeId: goTo }));
+          for (const player of players.filter((_, index) => index % 2 === 0)) state = readState(choosePlace({ state, mission, players, player, placeId: goTo }));
         }
         checkStep(mission, state, players);
         state = readState(advanceStep({ state, mission, players, player: leader }));

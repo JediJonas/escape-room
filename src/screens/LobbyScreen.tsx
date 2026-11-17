@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { LobbyView } from '../../supabase/functions/game/lobby.ts';
 import { MAX_PLAYERS } from '../../supabase/functions/game/lobby.ts';
+import { DEFAULT_GAME_MINUTES, GAME_MINUTES } from '../../supabase/functions/game/clock.ts';
 import { JoinQrCode } from './JoinQrCode.tsx';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
@@ -10,16 +11,17 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
   isBusy: boolean;
   error: string;
   onLeave: () => void;
-  onStart: (usesPlaceCards: boolean) => void;
+  onStart: (usesPlaceCards: boolean, minutes: number) => void;
 }) {
   const [usesPlaceCards, setUsesPlaceCards] = useState(true);
+  const [minutes, setMinutes] = useState<number>(DEFAULT_GAME_MINUTES);
   const isLeader = view.me.isLeader;
   const missingPlayers = view.minPlayers - view.players.length;
   return (
     <ScreenLayout
       actions={
         isLeader
-          ? <button type="button" onClick={() => onStart(usesPlaceCards)} disabled={isBusy || missingPlayers > 0}>{isBusy ? 'Startar …' : 'Starta spelet'}</button>
+          ? <button type="button" onClick={() => onStart(usesPlaceCards, minutes)} disabled={isBusy || missingPlayers > 0}>{isBusy ? 'Startar …' : 'Starta spelet'}</button>
           : <button type="button" className="secondary" onClick={onLeave} disabled={isBusy}>Lämna spelet</button>
       }
     >
@@ -44,6 +46,17 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
         ))}
       </ul>
       {missingPlayers > 0 && <p className="hint">Det behövs minst {view.minPlayers} spelare för {view.missionTitle}.</p>}
+      {isLeader && (
+        <fieldset className="choice-field">
+          <legend>Speltid</legend>
+          {GAME_MINUTES.map((option) => (
+            <label key={option}>
+              <input type="radio" name="minutes" value={option} checked={minutes === option} onChange={() => setMinutes(option)} />
+              {option} min
+            </label>
+          ))}
+        </fieldset>
+      )}
       {isLeader && (
         <p className="checkbox-field">
           <input id="uses-place-cards" type="checkbox" checked={usesPlaceCards} onChange={(event) => setUsesPlaceCards(event.target.checked)} />

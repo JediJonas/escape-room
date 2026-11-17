@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
+import { Countdown } from './Countdown.tsx';
 import { PlaceScanner } from './PlaceScanner.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
@@ -8,11 +9,40 @@ import { ScreenLayout } from './ScreenLayout.tsx';
 /** Hur spelaren anger platsen just nu. Utan platskort finns bara listan. */
 type PlaceInput = 'none' | 'scan' | 'list';
 
-export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onLeave }: {
+/** Spelledarens översikt: vilka som är klara, och paus. */
+function LeaderPanel({ view, isBusy, onSetPaused }: { view: GameView; isBusy: boolean; onSetPaused: (isPaused: boolean) => void }) {
+  if (!view.progress) return null;
+  const doneCount = view.progress.filter((player) => player.isDone).length;
+  const isPaused = view.clock?.isPaused ?? false;
+  return (
+    <section className="leader-panel" aria-label="Spelledare">
+      <h2>Klara: {doneCount} av {view.progress.length}</h2>
+      <ul className="player-list">
+        {view.progress.map((player) => (
+          <li key={player.name}>
+            {player.name}
+            {player.isMe && <span className="hint"> · du</span>}
+            {player.isDone && <span className="done"> · klar</span>}
+          </li>
+        ))}
+      </ul>
+      {view.clock && (
+        <button type="button" className="secondary small" onClick={() => onSetPaused(!isPaused)} disabled={isBusy}>
+          {isPaused ? 'Fortsätt spelet' : 'Pausa spelet'}
+        </button>
+      )}
+    </section>
+  );
+}
+
+export function GameScreen({ view, clockOffsetMs, isBusy, error, onNextStep, onMarkReady, onSetPaused, onChoosePlace, onLeave }: {
   view: GameView;
+  clockOffsetMs: number;
   isBusy: boolean;
   error: string;
   onNextStep: () => void;
+  onMarkReady: () => void;
+  onSetPaused: (isPaused: boolean) => void;
   onChoosePlace: (placeId: PlaceId, source: 'scan' | 'list') => void;
   onLeave: () => void;
 }) {
@@ -34,26 +64,33 @@ export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onL
     setPlaceInput('list');
   }
 
+  // Knapparna ligger med huvudhandlingen underst, närmast tummen.
   const actions = [];
-  if (needsPlace && view.usesPlaceCards && shownInput !== 'scan') {
-    actions.push(<button key="scan" type="button" className={shownInput === 'list' ? 'secondary' : undefined} onClick={() => setPlaceInput('scan')}>Skanna platskortet</button>);
+  if (view.me.isLeader && !view.isFinished) {
+    // För när någon har gått iväg och gruppen inte ska behöva vänta.
+    actions.push(<button key="skip" type="button" className="secondary" onClick={onNextStep} disabled={isBusy}>Gå vidare ändå</button>);
   }
   if (needsPlace && view.usesPlaceCards && shownInput === 'scan') {
     actions.push(<button key="list" type="button" className="secondary" onClick={() => showList('')}>Välj i listan i stället</button>);
   }
+  if (needsPlace && view.usesPlaceCards && shownInput !== 'scan') {
+    actions.push(<button key="scan" type="button" className={shownInput === 'list' ? 'secondary' : undefined} onClick={() => setPlaceInput('scan')}>Skanna platskortet</button>);
+  }
+  if (!needsPlace && step.usesReadyButton && !step.isMeDone && !view.isFinished) {
+    actions.push(<button key="ready" type="button" onClick={onMarkReady} disabled={isBusy}>Klar</button>);
+  }
   if (view.isFinished) {
     actions.push(<button key="leave" type="button" onClick={onLeave}>Till startsidan</button>);
-  } else if (view.me.isLeader) {
-    // Tillfällig knapp tills uppgifterna och spelledarvyn finns (steg 4). När
-    // spelaren ska till en plats är skanningen huvudhandlingen och ligger underst.
-    const nextButton = <button key="next" type="button" className={needsPlace ? 'secondary' : undefined} onClick={onNextStep} disabled={isBusy}>Nästa</button>;
-    if (needsPlace) actions.unshift(nextButton);
-    else actions.push(nextButton);
   }
+  const waitingText = step.isMeDone ? 'Väntar på att alla ska bli klara.' : '';
 
   return (
-    <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint">Spelledaren går vidare när alla är klara.</p>}>
-      <p className="hint">{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</p>
+    <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint">{waitingText}</p>}>
+      <p className="hint game-header">
+        <span>{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</span>
+        {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+      </p>
+      {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
       <p className="scene-text">{step.text}</p>
       {step.role && (
         <section className="role-card" aria-label="Bara du ser det här">
@@ -73,6 +110,8 @@ export function GameScreen({ view, isBusy, error, onNextStep, onChoosePlace, onL
           ))}
         </fieldset>
       )}
+      {step.isMeDone && view.me.isLeader && <p className="hint">{waitingText}</p>}
+      <LeaderPanel view={view} isBusy={isBusy} onSetPaused={onSetPaused} />
       <p className="error" role="alert">{error}</p>
     </ScreenLayout>
   );

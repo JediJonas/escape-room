@@ -8,7 +8,7 @@ import { JoinGameScreen } from '../screens/JoinGameScreen.tsx';
 import { LobbyScreen } from '../screens/LobbyScreen.tsx';
 import { StartScreen } from '../screens/StartScreen.tsx';
 import { ViewportProbe } from '../screens/ViewportProbe.tsx';
-import { type GameResponse, callGame, listenToPlayerView } from '../sync/gameServer.ts';
+import { type GameResponse, callGame, listenToPlayerView, measureClockOffsetMs } from '../sync/gameServer.ts';
 import { buildJoinUrl, readJoinCodeFromUrl, removeJoinCodeFromUrl } from './joinLink.ts';
 import { readSavedGameId, readSavedPlayerName, saveGameId, savePlayerName } from './savedGame.ts';
 
@@ -35,6 +35,16 @@ export function App() {
   const currentView = screen.name === 'game' ? screen.view : null;
   const playerId = currentView?.me.playerId ?? null;
   const gameId = currentView?.gameId ?? null;
+  const isPlaying = currentView?.type === 'game';
+  const [clockOffsetMs, setClockOffsetMs] = useState(0);
+
+  // Nedräkningen behöver serverns klocka. Mäts en gång när spelet har börjat.
+  useEffect(() => {
+    if (!isPlaying) return;
+    measureClockOffsetMs().then((offsetMs) => {
+      if (offsetMs !== null) setClockOffsetMs(offsetMs);
+    });
+  }, [isPlaying, gameId]);
 
   const showScreen = useCallback((next: Screen) => {
     setError('');
@@ -133,8 +143,10 @@ export function App() {
     else if (response.view) setScreen({ name: 'game', view: response.view });
   }
 
-  const startGame = (usesPlaceCards: boolean) => sendInGame({ type: 'startGame', usesPlaceCards });
+  const startGame = (usesPlaceCards: boolean, minutes: number) => sendInGame({ type: 'startGame', usesPlaceCards, minutes });
   const nextStep = () => sendInGame({ type: 'nextStep' });
+  const markReady = () => sendInGame({ type: 'markReady' });
+  const setPaused = (isPaused: boolean) => sendInGame({ type: 'setPaused', isPaused });
   const choosePlace = (placeId: PlaceId, source: 'scan' | 'list') => sendInGame({ type: 'choosePlace', placeId, source });
 
   function leaveFinishedGame() {
@@ -160,7 +172,17 @@ export function App() {
         <LobbyScreen view={screen.view} joinUrl={buildJoinUrl(location.href, screen.view.joinCode)} isBusy={isBusy} error={error} onLeave={leaveGame} onStart={startGame} />
       )}
       {screen.name === 'game' && screen.view.type === 'game' && (
-        <GameScreen view={screen.view} isBusy={isBusy} error={error} onNextStep={nextStep} onChoosePlace={choosePlace} onLeave={leaveFinishedGame} />
+        <GameScreen
+          view={screen.view}
+          clockOffsetMs={clockOffsetMs}
+          isBusy={isBusy}
+          error={error}
+          onNextStep={nextStep}
+          onMarkReady={markReady}
+          onSetPaused={setPaused}
+          onChoosePlace={choosePlace}
+          onLeave={leaveFinishedGame}
+        />
       )}
       {SHOWS_VIEWPORT_PROBE && <ViewportProbe />}
     </>

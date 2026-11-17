@@ -19,6 +19,7 @@ const MESSAGES: Record<ActionError, string> = {
   tooFewPlayers: 'Det är för få spelare för att starta.',
   notRunning: 'Spelet är inte igång.',
   unknownPlace: 'Den platsen finns inte i uppdraget.',
+  notAtPlace: 'Gå till platsen först.',
   unknownMission: 'Uppdraget finns inte längre. Starta ett nytt spel.',
 };
 

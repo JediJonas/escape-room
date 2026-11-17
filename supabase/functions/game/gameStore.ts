@@ -8,7 +8,7 @@
  */
 
 import { VIEW_EVENT, getPlayerTopic } from './channels.ts';
-import type { GameRecord, GameState, PlayerRecord } from './lobby.ts';
+import { type GameRecord, type GameState, type PlayerRecord, readGameState } from './state.ts';
 
 /** Den del av postgres-bibliotekets sql som spelet använder. */
 export type Sql = {
@@ -22,6 +22,7 @@ export type GameTransaction = {
   /** Låser spelets rad till transaktionens slut, så att ändringarna sker en i taget. */
   lockGameByCode(joinCode: string): Promise<GameRecord | null>;
   lockGameById(gameId: string): Promise<GameRecord | null>;
+  updateGameState(gameId: string, state: GameState): Promise<void>;
   listPlayers(gameId: string): Promise<PlayerRecord[]>;
   insertPlayer(player: { gameId: string; userId: string; name: string; isLeader: boolean }): Promise<PlayerRecord>;
   deletePlayer(playerId: string): Promise<void>;
@@ -51,7 +52,7 @@ function toGameRecord(row: Record<string, unknown>): GameRecord {
     id: String(row.id),
     joinCode: String(row.join_code),
     missionId: String(row.mission_id),
-    state: row.state as GameState,
+    state: readGameState(row.state),
   };
 }
 
@@ -88,6 +89,11 @@ function createTransaction(sql: Sql): GameTransaction {
         select id, join_code, mission_id, state from engine.games
         where id = ${gameId} for update`;
       return row ? toGameRecord(row) : null;
+    },
+    async updateGameState(gameId, state) {
+      await sql`
+        update engine.games set state = ${toJsonText(state)}::text::jsonb, updated_at = now()
+        where id = ${gameId}`;
     },
     async listPlayers(gameId) {
       const rows = await sql`

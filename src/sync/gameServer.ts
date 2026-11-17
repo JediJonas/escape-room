@@ -5,7 +5,7 @@
 
 import { SUPABASE_PUBLIC_KEY, SUPABASE_URL } from '../config.ts';
 import { VIEW_EVENT, getPlayerTopic } from '../../supabase/functions/game/channels.ts';
-import type { LobbyView } from '../../supabase/functions/game/lobby.ts';
+import type { PlayerView } from '../../supabase/functions/game/views.ts';
 import { getSignedInClient } from './supabaseClient.ts';
 
 const SUPABASE_CONFIG = { url: SUPABASE_URL, publicKey: SUPABASE_PUBLIC_KEY };
@@ -13,7 +13,7 @@ const SUPABASE_CONFIG = { url: SUPABASE_URL, publicKey: SUPABASE_PUBLIC_KEY };
 /** Felkoden när servern inte gick att nå alls. */
 export const NETWORK_ERROR = 'network';
 
-export type GameResponse = { ok: true; view: LobbyView | null } | { ok: false; error: string };
+export type GameResponse = { ok: true; view: PlayerView | null } | { ok: false; error: string };
 
 /** Läser felkoden ur ett svar som inte var 200. Supabase lägger svaret i context. */
 async function readErrorCode(error: { context?: unknown }): Promise<string> {
@@ -27,7 +27,7 @@ export async function callGame(action: { type: string } & Record<string, unknown
     const client = await getSignedInClient(SUPABASE_CONFIG);
     const { data, error } = await client.functions.invoke('game', { body: action });
     if (error) return { ok: false, error: await readErrorCode(error) };
-    return { ok: true, view: (data as { view?: LobbyView } | null)?.view ?? null };
+    return { ok: true, view: (data as { view?: PlayerView } | null)?.view ?? null };
   } catch {
     return { ok: false, error: NETWORK_ERROR };
   }
@@ -40,12 +40,12 @@ export async function callGame(action: { type: string } & Record<string, unknown
  */
 export async function listenToPlayerView({ playerId, onView, onListening }: {
   playerId: string;
-  onView: (view: LobbyView) => void;
+  onView: (view: PlayerView) => void;
   onListening: () => void;
 }): Promise<() => void> {
   const client = await getSignedInClient(SUPABASE_CONFIG);
   const channel = client.channel(getPlayerTopic(playerId), { config: { private: true } });
-  channel.on('broadcast', { event: VIEW_EVENT }, (message: { payload: unknown }) => onView(message.payload as LobbyView));
+  channel.on('broadcast', { event: VIEW_EVENT }, (message: { payload: unknown }) => onView(message.payload as PlayerView));
   channel.subscribe((status: string) => {
     if (status === 'SUBSCRIBED') onListening();
   });

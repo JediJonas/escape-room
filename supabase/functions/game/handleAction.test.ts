@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import type { GameStore, GameTransaction } from './gameStore.ts';
 import { handleAction } from './handleAction.ts';
-import type { GameRecord, LobbyView, PlayerRecord } from './lobby.ts';
+import type { GameView } from './game.ts';
+import type { LobbyView } from './lobby.ts';
+import type { GameRecord, PlayerRecord } from './state.ts';
 
 const SERVER_TIME = new Date('2026-11-16T20:00:00.123Z');
 
@@ -11,7 +13,7 @@ function createMemoryStore() {
   const games: GameRecord[] = [];
   const players: PlayerRecord[] = [];
   const events: object[] = [];
-  const sentViews: { playerId: string; view: LobbyView }[] = [];
+  const sentViews: { playerId: string; view: LobbyView | GameView }[] = [];
   let nextId = 1;
 
   const transaction: GameTransaction = {
@@ -23,6 +25,10 @@ function createMemoryStore() {
     },
     lockGameByCode: async (joinCode) => games.find((game) => game.joinCode === joinCode) ?? null,
     lockGameById: async (gameId) => games.find((game) => game.id === gameId) ?? null,
+    async updateGameState(gameId, state) {
+      const game = games.find((candidate) => candidate.id === gameId);
+      if (game) game.state = state;
+    },
     listPlayers: async (gameId) => players.filter((player) => player.gameId === gameId),
     async insertPlayer({ gameId, userId, name, isLeader }) {
       const player = { id: `player-${nextId}`, gameId, userId, name, isLeader, joinedAtMs: nextId++ };
@@ -36,7 +42,7 @@ function createMemoryStore() {
       events.push(event);
     },
     async sendView(playerId, view) {
-      sentViews.push({ playerId, view: view as LobbyView });
+      sentViews.push({ playerId, view: view as LobbyView | GameView });
     },
   };
   const store: GameStore = {
@@ -110,7 +116,7 @@ test('den som går med syns hos alla, och alla får sin egen vy', async () => {
   assert.equal(memory.sentViews.length, 2);
   for (const { playerId, view } of memory.sentViews) {
     assert.equal(view.me.playerId, playerId);
-    assert.equal(view.players.length, 2);
+    assert.equal((view as LobbyView).players.length, 2);
   }
 });
 
@@ -148,11 +154,87 @@ test('en spelare kan lämna väntrummet, och de andra ser det', async () => {
   assert.equal(result.status, 200);
   assert.deepEqual(memory.players.map((player) => player.name), ['Ledare', 'Cia']);
   assert.equal(memory.sentViews.length, 2);
-  assert.ok(memory.sentViews.every(({ view }) => view.players.length === 2));
+  assert.ok(memory.sentViews.every(({ view }) => (view as LobbyView).players.length === 2));
 });
 
 test('spelledaren kan inte lämna, för då står spelet', async () => {
   const memory = await createGameWithPlayers(['Bo']);
   assert.deepEqual(await send(memory.store, 'user-leader', { type: 'leaveGame', gameId: memory.games[0].id }), { status: 409, body: { error: 'leaderCannotLeave' } });
   assert.equal(memory.players.length, 2);
+});
+
+function readGameView(body: object): GameView {
+  return (body as { view: GameView }).view;
+}
+
+test('bara spelledaren kan starta, och först när det minsta antalet spelare är med', async () => {
+  const alone = await createGameWithPlayers([]);
+  const aloneGameId = alone.games[0].id;
+  assert.deepEqual(await send(alone.store, 'user-leader', { type: 'startGame', gameId: aloneGameId }), { status: 409, body: { error: 'tooFewPlayers' } });
+
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'startGame', gameId }), { status: 403, body: { error: 'notLeader' } });
+  memory.sentViews.length = 0;
+  const result = await send(memory.store, 'user-leader', { type: 'startGame', gameId, usesPlaceCards: false });
+  assert.equal(result.status, 200);
+  const view = readGameView(result.body);
+  assert.equal(view.type, 'game');
+  assert.equal(view.usesPlaceCards, false);
+  assert.equal(view.step.number, 1);
+  assert.equal(memory.sentViews.length, 2);
+  assert.deepEqual(await send(memory.store, 'user-leader', { type: 'startGame', gameId }), { status: 409, body: { error: 'gameStarted' } });
+});
+
+test('platskorten används om spelledaren inte väljer bort dem', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const result = await send(memory.store, 'user-leader', { type: 'startGame', gameId: memory.games[0].id });
+  assert.equal(readGameView(result.body).usesPlaceCards, true);
+});
+
+test('spelledaren går vidare steg för steg, och efter sista steget är spelet slut', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId });
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'nextStep', gameId }), { status: 403, body: { error: 'notLeader' } });
+  let view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  assert.equal(view.step.number, 2);
+  while (!view.isFinished) view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  assert.equal(view.step.number, view.step.count);
+  assert.deepEqual(await send(memory.store, 'user-leader', { type: 'nextStep', gameId }), { status: 409, body: { error: 'notRunning' } });
+});
+
+test('texten på platsen syns bara hos den som är där, och bara hon får en ny vy', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId });
+  const kitchenStep = await send(memory.store, 'user-leader', { type: 'nextStep', gameId });
+  const goTo = readGameView(kitchenStep.body).step.goTo;
+  assert.ok(goTo);
+  memory.sentViews.length = 0;
+
+  const result = await send(memory.store, 'user-Bo', { type: 'choosePlace', gameId, placeId: goTo.id, source: 'scan' });
+  const boView = readGameView(result.body);
+  assert.deepEqual(boView.myPlace, goTo);
+  assert.ok(boView.step.textAtPlace);
+  assert.deepEqual(memory.sentViews.map(({ view }) => view.me.name), ['Bo']);
+  assert.deepEqual(memory.events.at(-1), { gameId, playerId: boView.me.playerId, action: { type: 'choosePlace', placeId: goTo.id, source: 'scan' } });
+
+  const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
+  assert.equal(leaderView.step.textAtPlace, null);
+  assert.ok(!JSON.stringify(leaderView).includes(boView.step.textAtPlace));
+});
+
+test('en plats som uppdraget saknar, eller en plats före start, godtas inte', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'choosePlace', gameId, placeId: 'C' }), { status: 409, body: { error: 'notRunning' } });
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId });
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'choosePlace', gameId, placeId: 'Q' }), { status: 400, body: { error: 'unknownPlace' } });
+});
+
+test('ett spel med ett uppdrag som inte finns längre ger ett fel i stället för att krascha', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  memory.games[0].missionId = 'borttaget';
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'getView', gameId: memory.games[0].id }), { status: 500, body: { error: 'unknownMission' } });
 });

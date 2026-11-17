@@ -1,0 +1,40 @@
+{
+  "format": 1,
+  "id": "prov",
+  "title": "Provhuset",
+  "minPlayers": 2,
+  "places": {
+    "A": "Källaren",
+    "B": "Hallen",
+    "C": "Köket",
+    "D": "Biblioteket",
+    "E": "Sovrummet",
+    "F": "Vinden"
+  },
+  "steps": [
+    {
+      "id": "valkommen",
+      "type": "scene",
+      "text": "Välkommen till provhuset. Det här är ett prov av spelets motor, inte ett riktigt uppdrag. Spelledaren går vidare med knappen Nästa."
+    },
+    {
+      "id": "koket",
+      "type": "scene",
+      "text": "Alla går till köket.",
+      "goTo": "C",
+      "textAtPlace": "Du står i köket. På bordet ligger en lapp där det står 42."
+    },
+    {
+      "id": "hallen",
+      "type": "scene",
+      "text": "Gå till hallen. Den som läste lappen i köket säger vad det stod på den.",
+      "goTo": "B",
+      "textAtPlace": "Du är i hallen. Det är tyst här, och ytterdörren är stängd."
+    },
+    {
+      "id": "slut",
+      "type": "scene",
+      "text": "Provet är slut. Tack för att ni provade!"
+    }
+  ]
+}

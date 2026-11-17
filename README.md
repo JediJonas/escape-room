@@ -25,6 +25,7 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia.
 | `public/` | Bilder som läggs ut som de är, som rundbilderna och testkorten |
 | `supabase/migrations/` | Databasens schema och kanalernas regler |
 | `supabase/functions/game/` | Spelets serverfunktion och motorns rena regler |
+| `supabase/functions/game/missions/` | Uppdragsfilerna, som bara serverfunktionen läser |
 | `supabase/tests/` | Prov av kanalernas regler och serverfunktionens SQL i en vanlig Postgres |
 
 Testerna ligger bredvid det de testar, som `src/sync/sync.test.ts`.

@@ -7,6 +7,7 @@
 
 import { MAX_PLAYERS } from './lobby.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
+import { describeRoomsSolution, findRoomsErrors } from './rooms.ts';
 import { SEANCE_LETTERS } from './seance.ts';
 
 export const MISSION_FORMAT = 1;
@@ -91,21 +92,46 @@ export type SeanceStep = {
   solution: { message: string };
 };
 
+/** Ett rum i Rummen minns: platsen och bitarna, viktigast först. */
+export type Room = { place: PlaceId; pieces: string[] };
+
+/**
+ * Splittrade rum: spelarna går till var sitt rum och väljer vem som stod
+ * där. Se rooms.ts.
+ */
+export type RoomsStep = {
+  id: string;
+  type: 'rooms';
+  /** Det alla ser, före och i rummen. */
+  text: string;
+  goTo?: undefined;
+  textAtPlace?: undefined;
+  roles?: undefined;
+  /** Alla som kan ha stått i ett rum, i den ordning de visas. */
+  guests: string[];
+  rooms: Room[];
+  hints: string[];
+  /** Vem som stod i vilket rum. Lämnar aldrig servern. */
+  solution: { guestByPlace: Partial<Record<PlaceId, string>> };
+};
+
 /** Uppgifter är de steg som gruppen löser, med ledtrådar och facit. */
-export type TaskStep = AnswerStep | SeanceStep;
+export type TaskStep = AnswerStep | SeanceStep | RoomsStep;
 
 export type MissionStep = SceneStep | TaskStep;
 
 /** Facit som text, det som spelledaren ser när hon ber om det. */
-export function describeSolution(step: TaskStep): string {
-  return step.type === 'answer' ? step.solution.answers[0] : step.solution.message;
+export function describeSolution(step: TaskStep, places: readonly Place[]): string {
+  if (step.type === 'answer') return step.solution.answers[0];
+  if (step.type === 'seance') return step.solution.message;
+  return describeRoomsSolution(step, places);
 }
 
 /** Alla texter i facit. Läckkontrollen letar efter dem i vyerna. */
-export function listSolutionTexts(step: MissionStep): string[] {
+export function listSolutionTexts(step: MissionStep, places: readonly Place[]): string[] {
   if (step.type === 'answer') return step.solution.answers;
-  if (step.type === 'seance') return [step.solution.message];
-  return [];
+  if (step.type === 'scene') return [];
+  return [describeSolution(step, places)];
 }
 
 export type Mission = {
@@ -177,14 +203,16 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   const errors: string[] = [];
   if (!isFilledText(step.id)) errors.push('ett steg saknar id');
   const name = `steget ${String(step.id)}`;
-  if (step.type !== 'scene' && step.type !== 'answer' && step.type !== 'seance') errors.push(`${name} har en okänd typ: ${String(step.type)}`);
+  if (!['scene', 'answer', 'seance', 'rooms'].includes(String(step.type))) errors.push(`${name} har en okänd typ: ${String(step.type)}`);
   if (step.type === 'answer') errors.push(...findAnswerErrors(step, name));
   if (step.type === 'seance') errors.push(...findSeanceErrors(step, name));
+  if (step.type === 'rooms') errors.push(...findHintErrors(step, name), ...findRoomsErrors(step, name, places));
+  if (step.type === 'rooms' && (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined)) errors.push(`${name} har egna rum och kan inte ha plats eller roller`);
   if (step.type === 'scene' && (step.hints !== undefined || step.solution !== undefined)) errors.push(`${name} är en scen men har ledtrådar eller facit`);
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);
-  if (step.roles !== undefined && step.type !== 'seance') errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
+  if (step.roles !== undefined && step.type !== 'seance' && step.type !== 'rooms') errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
   return errors;
 }
 

@@ -10,17 +10,26 @@ import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
 import { dealRoles } from './roles.ts';
+import { type RoomsView, chooseGuest as chooseGuestInRoom, describeRooms, hasSolvedOwnRooms, isRoomsSolved, startRooms } from './rooms.ts';
 import { type BoardTouch, type SeanceView, applyBoardTouch, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints';
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'roomForgets';
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
 /** Gruppen kommer till ett steg: rollerna delas ut på nytt, eller tas bort om steget saknar roller. */
 function enterStep(state: GameState, mission: Mission, players: readonly PlayerRecord[], stepIndex: number): GameState {
   const step = mission.steps[stepIndex];
-  const cleared = { ...state, stepIndex, readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, seance: step.type === 'seance' ? startSeance() : null };
+  const cleared = {
+    ...state,
+    stepIndex,
+    readyPlayerIds: [],
+    hintsGiven: 0,
+    isSolutionShown: false,
+    seance: step.type === 'seance' ? startSeance() : null,
+    rooms: step.type === 'rooms' ? startRooms(step, sortByJoinOrder(players).map((player) => player.id)) : null,
+  };
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
   const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory });
@@ -28,7 +37,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
 }
 
 function finish(state: GameState): GameState {
-  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null };
+  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null, rooms: null };
 }
 
 /**
@@ -83,6 +92,7 @@ function usesReadyButton(step: MissionStep, state: GameState): boolean {
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
+  if (step.type === 'rooms') return state.rooms !== null && hasSolvedOwnRooms(state.rooms, playerId);
   if (step.type === 'scene' && isDoneWhenArrived(step)) return isAtGoal(step, state, playerId);
   return usesReadyButton(step, state) && state.readyPlayerIds.includes(playerId);
 }
@@ -207,6 +217,27 @@ export function touchBoard({ state, mission, players, player, touch, nowMs }: {
   return { state: { ...state, seance } };
 }
 
+/**
+ * Spelaren väljer vem som stod i rummet där hon är. När alla rum har rätt
+ * gäst går gruppen vidare.
+ */
+export function chooseGuest({ state, mission, players, player, guest, nowMs }: {
+  state: GameState;
+  mission: Mission;
+  players: readonly PlayerRecord[];
+  player: PlayerRecord;
+  guest: unknown;
+  nowMs: number;
+}): StateChange {
+  const task = findCurrentTask(state, mission);
+  if ('refusal' in task) return { refusal: task.refusal };
+  if (task.step.type !== 'rooms' || !state.rooms) return { refusal: 'notATask' };
+  const choice = chooseGuestInRoom({ rooms: state.rooms, step: task.step, playerId: player.id, placeId: state.placeByPlayer[player.id], guest, nowMs });
+  if ('refusal' in choice) return choice;
+  const chosen = { ...state, rooms: choice.rooms };
+  return { state: isRoomsSolved(choice.rooms, task.step) ? moveOn(chosen, mission, players) : chosen };
+}
+
 /** Spelledaren ger gruppen nästa ledtråd. Alla får den samtidigt. */
 export function giveHint({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
   if (!player.isLeader) return { refusal: 'notLeader' };
@@ -268,6 +299,8 @@ export type GameView = {
     solution: string | null;
     /** Brädet i en seans, med bokstaven bara hos den som ska läsa den. */
     seance: SeanceView | null;
+    /** Spelarens rum i Rummen minns, med bitarna bara i det rum där hon står. */
+    rooms: RoomsView | null;
   };
   /** Bara hos spelledaren: vilka som är klara med steget. */
   progress: { name: string; isMe: boolean; isDone: boolean }[] | null;
@@ -335,9 +368,12 @@ export function buildGameView({ game, mission, players, viewer }: {
       isMeDone: isPlayerDone(step, state, viewer.id),
       hints: step.hints?.slice(0, state.hintsGiven) ?? [],
       hintCount: step.hints?.length ?? 0,
-      solution: viewer.isLeader && state.isSolutionShown && step.type !== 'scene' ? describeSolution(step) : null,
+      solution: viewer.isLeader && state.isSolutionShown && step.type !== 'scene' ? describeSolution(step, places) : null,
       seance: step.type === 'seance' && state.seance && isRunning
         ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })
+        : null,
+      rooms: step.type === 'rooms' && state.rooms && isRunning
+        ? describeRooms({ rooms: state.rooms, step, places, placeId: state.placeByPlayer[viewer.id], viewerId: viewer.id })
         : null,
     },
     progress: showsLeaderTools

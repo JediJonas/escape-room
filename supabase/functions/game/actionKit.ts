@@ -53,6 +53,7 @@ const STATUS_FOR_ERROR: Record<ActionError, number> = {
   noSuchPlayer: HTTP_NOT_FOUND,
   notATask: HTTP_CONFLICT,
   wrongAnswer: HTTP_CONFLICT,
+  roomForgets: HTTP_CONFLICT,
   noMoreHints: HTTP_CONFLICT,
   unknownMission: HTTP_SERVER_ERROR,
   noFreeJoinCode: HTTP_UNAVAILABLE,

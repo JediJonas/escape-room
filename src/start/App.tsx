@@ -190,6 +190,7 @@ export function App() {
     touchBoard: (touch) => {
       if (gameId) void callGame({ type: 'touchBoard', gameId, touch });
     },
+    chooseGuest: (guest) => sendInGame({ type: 'chooseGuest', guest }),
     giveHint: () => sendInGame({ type: 'giveHint' }),
     showSolution: () => sendInGame({ type: 'showSolution' }),
     answerPending: (playerId, isAdmitted) => sendInGame({ type: isAdmitted ? 'admitPlayer' : 'rejectPlayer', playerId }),

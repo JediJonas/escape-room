@@ -40,6 +40,70 @@
       "text": "Skenet slocknar. Någon har svarat er. Hon heter Vera, och hon är fortfarande kvar i huset. Hon vill att ni tar reda på vad som hände henne."
     },
     {
+      "id": "rummen-minns",
+      "type": "rooms",
+      "text": "Huset minns kvällen 1962. Gå till rummet som din skärm visar och se det som det var när ljuset slocknade. Ropa till de andra vad du ser och hör, och välj vem som stod där.",
+      "guests": [
+        "Arvid",
+        "Elsa",
+        "Margit",
+        "Sven",
+        "Vera"
+      ],
+      "rooms": [
+        {
+          "place": "B",
+          "pieces": [
+            "Du ser en kvinna i röd sjal vid ytterdörren. Hon rycker i handtaget, men dörren går inte upp.",
+            "Ur mörkret viskar någon: Margit, sluta gråta. Ditt halsband skramlar, hon hör dig.",
+            "Klockan på väggen har stannat på kvart över nio."
+          ]
+        },
+        {
+          "place": "C",
+          "pieces": [
+            "Du ser en man med runda glasögon vid spisen. Han håller en tändsticksask men har inte hunnit tända.",
+            "Någon skrattar nervöst: Arvid, du och din pipa. Stå inte och rök i mörkret.",
+            "Kranen droppar. Köksklockan har stannat på kvart över nio."
+          ]
+        },
+        {
+          "place": "D",
+          "pieces": [
+            "Du ser en kvinna med pärlhalsband. Hon sitter på golvet bakom fåtöljen och gråter tyst.",
+            "En man väser: Elsa, ta av dig sjalen. Den röda syns ju i mörkret.",
+            "En bok ligger uppslagen på golvet. Pendylen på hyllan har stannat på kvart över nio."
+          ]
+        },
+        {
+          "place": "E",
+          "pieces": [
+            "Du ser en man i kostym vid fönstret, med en pipa i munnen. Han håller för gardinen.",
+            "En kvinna ropar: Sven, var är tändstickorna? Du som har glasögon borde ju se något.",
+            "Någon har suttit på sängen. Väckarklockan har stannat på kvart över nio."
+          ]
+        }
+      ],
+      "hints": [
+        "Det du hör i ditt rum handlar om någon i ett annat rum. Ropa ut det.",
+        "Lyssna efter det som syns: en sjal, ett halsband, en pipa och glasögon.",
+        "Elsa står i hallen och Sven i köket. De andra två hör ni själva."
+      ],
+      "solution": {
+        "guestByPlace": {
+          "B": "Elsa",
+          "C": "Sven",
+          "D": "Margit",
+          "E": "Arvid"
+        }
+      }
+    },
+    {
+      "id": "ingen-vera",
+      "type": "scene",
+      "text": "Fyra gäster i fyra rum, och alla klockor stannade på kvart över nio. Men ingen såg Vera. Hon fanns inte i något av rummen när ljuset slocknade. Kom tillbaka till bordet och tryck Klar."
+    },
+    {
       "id": "slut",
       "type": "scene",
       "text": "Här slutar provet av Den femte gästen. Fler uppgifter kommer."

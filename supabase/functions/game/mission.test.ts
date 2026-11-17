@@ -103,3 +103,19 @@ test('en seans måste ha tre ledtrådar och ett meddelande med versaler', () => 
   }
   assert.match(findMissionErrors(seance({ goTo: 'A' })).join(), /kan inte ha plats eller roller/);
 });
+
+test('rummen måste ha bitar nog för tio spelare och en gäst i facit', () => {
+  const pieces = ['Du ser', 'Du hör', 'Klockan'];
+  const rooms = (fields: object) => ({
+    ...VALID,
+    places: { B: 'Hallen', C: 'Köket' },
+    steps: [{ id: 'rummen', type: 'rooms', text: 'Gå till ditt rum.', guests: ['Elsa', 'Sven', 'Vera'], rooms: [{ place: 'B', pieces: [...pieces, 'Golvet', 'Taket'] }, { place: 'C', pieces: [...pieces, 'Spisen', 'Kranen'] }], hints: ['a', 'b', 'c'], solution: { guestByPlace: { B: 'Elsa', C: 'Sven' } }, ...fields }],
+  });
+  assert.deepEqual(findMissionErrors(rooms({})), []);
+  assert.match(findMissionErrors(rooms({ rooms: [{ place: 'B', pieces }, { place: 'C', pieces }] })).join(), /ska ha minst 5 bitar/);
+  assert.match(findMissionErrors(rooms({ solution: { guestByPlace: { B: 'Elsa', C: 'Okänd' } } })).join(), /rummet C .* saknar en gäst i facit/);
+  assert.match(findMissionErrors(rooms({ solution: { guestByPlace: { B: 'Elsa', C: 'Sven', D: 'Vera' } } })).join(), /facit för ett rum som inte finns/);
+  assert.match(findMissionErrors(rooms({ rooms: [{ place: 'F', pieces: [...pieces, 'a', 'b'] }] })).join(), /plats som uppdraget saknar: F/);
+  assert.match(findMissionErrors(rooms({ guests: ['Elsa', 'Elsa'] })).join(), /minst två gäster med olika namn/);
+  assert.match(findMissionErrors(rooms({ goTo: 'B' })).join(), /kan inte ha plats eller roller/);
+});

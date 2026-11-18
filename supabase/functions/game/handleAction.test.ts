@@ -253,7 +253,7 @@ test('spelledaren kan neka den som väntar, och kan stå utanför spelet', async
   const memory = await createGameWithPlayers(['Bo', 'Cia']);
   const gameId = memory.games[0].id;
   const started = readGameView((await send(memory.store, 'user-leader', { type: 'startGame', gameId, leaderPlays: false })).body);
-  assert.deepEqual({ isPlaying: started.me.isPlaying, count: started.playerCount, progress: started.progress?.map((player) => player.name) }, { isPlaying: false, count: 2, progress: ['Bo', 'Cia'] });
+  assert.deepEqual({ isPlaying: started.me.isPlaying, count: started.playerCount }, { isPlaying: false, count: 2 });
   assert.deepEqual(await send(memory.store, 'user-leader', { type: 'markReady', gameId }), { status: 409, body: { error: 'notPlaying' } });
   await send(memory.store, 'user-Bo', { type: 'markReady', gameId });
   const next = readGameView((await send(memory.store, 'user-Cia', { type: 'markReady', gameId })).body);

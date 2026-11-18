@@ -48,9 +48,10 @@ export function giveReadingHint({ state, mission, players, player }: { state: Ga
 }
 
 /**
- * Alla är klara i urklippen, som väntar på två saker. Spelledaren hoppar
- * över en i taget: först räknas alla som lästa, och nästa tryck hoppar över
- * Rummen minns (Jonas 2026-11-18). I andra steg går gruppen vidare som vanligt.
+ * Hoppa över uppgiften i urklippen, som väntar på två saker. Ett tryck räknar
+ * alla som lästa och hoppar över Rummen minns om den inte är löst, så att
+ * spelledaren inte behöver veta vilka som har läst (Jonas 2026-11-18). I andra
+ * steg går gruppen vidare som vanligt.
  */
 export function skipReading({ state, mission, players, player, nowMs = 0 }: {
   state: GameState;
@@ -63,10 +64,7 @@ export function skipReading({ state, mission, players, player, nowMs = 0 }: {
   const step = mission.steps[state.stepIndex];
   if (!player.isLeader || state.status !== 'running' || step.type !== 'scene' || step.endsWithStep === undefined) return advanceStep({ state, mission, players, player, nowMs });
   const unread = step.foundTitle === undefined ? [] : players.filter((candidate) => !hasRead(state.foundReaders, step.id, candidate.id));
-  if (unread.length > 0) {
-    const readers = [...(state.foundReaders[step.id] ?? []), ...unread.map((candidate) => candidate.id)];
-    return { state: moveOnIfAllDone({ ...state, foundReaders: { ...state.foundReaders, [step.id]: readers } }, mission, players) };
-  }
+  const foundReaders = { ...state.foundReaders, [step.id]: [...(state.foundReaders[step.id] ?? []), ...unread.map((candidate) => candidate.id)] };
   const solvedSteps = state.solvedSteps.includes(step.endsWithStep) ? state.solvedSteps : [...state.solvedSteps, step.endsWithStep];
-  return { state: moveOn({ ...state, solvedSteps }, mission, players) };
+  return { state: moveOn({ ...state, foundReaders, solvedSteps }, mission, players) };
 }

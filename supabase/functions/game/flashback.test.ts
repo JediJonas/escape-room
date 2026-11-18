@@ -221,7 +221,7 @@ test('en scen som väntar på minnet går gruppen förbi direkt, om minnet redan
   assert.equal(early.steps[state.stepIndex].id, 'sedan');
 });
 
-test('Alla är klara medan huset minns får minnet att blekna direkt, och en sen mobil som säger att det har bleknat får inget fel (Jonas 2026-11-18)', () => {
+test('Hoppa över uppgiften medan huset minns får minnet att blekna direkt, och en sen mobil som säger att det har bleknat får inget fel (Jonas 2026-11-18)', () => {
   const later: Mission = { ...FULL, steps: [{ id: 'urklippen', type: 'scene', text: 'Läs.', endsWithStep: STEP.id }, STEP, { id: 'sedan', type: 'scene', text: 'Sedan.' }, { id: 'slut', type: 'scene', text: 'Slut.' }] };
   const [anna] = PLAYERS;
   let state = readState(startGame({ state: createInitialState(), mission: later, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));

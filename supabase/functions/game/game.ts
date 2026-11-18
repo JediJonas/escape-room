@@ -217,7 +217,7 @@ function dealFoundAtStart(state: GameState, mission: Mission, players: readonly 
 
 /**
  * Spelledaren går vidare utan att vänta på alla, till exempel när någon har
- * gått iväg. I urklippen gör `skipReading` i reading.ts det i två steg.
+ * gått iväg. I urklippen gör `skipReading` i reading.ts det.
  */
 export function advanceStep({ state, mission, players, player, nowMs = 0 }: {
   state: GameState;
@@ -233,7 +233,7 @@ export function advanceStep({ state, mission, players, player, nowMs = 0 }: {
 }
 
 /**
- * Minns huset när spelledaren trycker Alla är klara bleknar minnet direkt och
+ * Minns huset när spelledaren trycker Hoppa över uppgiften bleknar minnet direkt och
  * Rummen minns räknas som klarad, så att ingen behöver vänta ut nedräkningen
  * (Jonas 2026-11-18).
  */
@@ -439,8 +439,6 @@ export type GameView = {
   found: FoundItem[];
   /** Rummet där spelaren är, med dörrarna och det som har hittats där. Bara i uppdrag med ett hus. */
   house: HouseView | null;
-  /** Bara hos spelledaren: vilka som är klara med steget. */
-  progress: { name: string; isMe: boolean; isDone: boolean }[] | null;
   /** Bara hos spelledaren: mobiler som väntar på att få vara med eller ta över en spelare. */
   pending: { playerId: string; name: string; takesOver: string | null }[] | null;
   clock: ClockView | null;
@@ -559,9 +557,6 @@ export function buildGameView({ game, mission, players, viewer }: {
         })
         : null,
     },
-    progress: showsLeaderTools
-      ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))
-      : null,
     found: describeFound(mission, state.found, viewer.id),
     house: mission.house && isRunning ? describeHouse({ state, mission, house: mission.house, places, viewerId: viewer.id, participantIds: sortByJoinOrder(participants).map((player) => player.id), mayEnter: findGoal(step, state, viewer.id) }) : null,
     pending: showsLeaderTools ? describePending(state, players) : null,

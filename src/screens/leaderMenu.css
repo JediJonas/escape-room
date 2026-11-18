@@ -92,7 +92,7 @@
 .has-leader-menu > .screen { padding-bottom: var(--leader-menu-row); }
 .has-leader-menu .thing-actions { padding-bottom: var(--leader-menu-row); }
 /*
- * En rad text utan knapp, som Väntar på att alla ska bli klara eller vem
+ * En rad text utan knapp, som Gå runt i huset och leta eller vem
  * skenet väntar på, får stå bredvid hamburgaren (Jonas 2026-11-18).
  */
 .has-leader-menu > .screen:not(:has(.screen-actions button)) { padding-bottom: calc(1rem + var(--bottom-gap)); }
@@ -106,5 +106,3 @@
 /* Svarsrutan på brädet har en knapp och står därför ovanför hamburgaren. */
 .has-leader-menu .seance-status:has(.board-answer) { bottom: var(--leader-menu-row); max-width: calc(100% - 2rem); }
 
-/* Den lilla raden om vilka som är klara, som bara spelledaren ser. */
-.leader-done { display: block; margin-top: 0.15rem; font-size: 0.8rem; }

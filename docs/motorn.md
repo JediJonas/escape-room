@@ -233,8 +233,8 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   (Jonas 2026-11-18). Den som lämnar urklippen med Tillbaka har läst dem
   (`markRead`), också innan berättelsen har kommit dit, och det sparas i
   `foundReaders`. Är båda klara när gruppen kommer till scenen går den förbi
-  den direkt. Spelledarens Alla är klara räknar först alla som lästa, och
-  nästa tryck hoppar över uppgiften (`skipReading`). Medan scenen väntar ger
+  den direkt. Spelledarens Hoppa över uppgiften räknar alla som lästa och
+  hoppar över uppgiften med ett tryck (`skipReading`). Medan scenen väntar ger
   spelledaren uppgiftens ledtrådar vid golvuret och scenens `readingHints`
   vid byrån. Har någon inte läst är byråns första ledtråd i stället att alla inte
   har läst (`isUnreadHintGiven`). Se `reading.ts`. Brädet blir klart på samma sätt, genom att

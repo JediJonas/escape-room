@@ -12,8 +12,7 @@ import { FlashbackScreen, useFlashbackTime } from '../tasks/FlashbackScreen.tsx'
 import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
-import { canHelpWithTask, describeDone, describeSceneSkip } from './leaderMenu.ts';
-import { canLeaderSkip } from './leaderSkip.ts';
+import { canHelpWithTask } from './leaderMenu.ts';
 import { DocumentList } from './FoundDocuments.tsx';
 import { TextView } from './TextView.tsx';
 import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
@@ -128,8 +127,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
 
   // Bara spelledaren har en meny, en hamburgare i nedre högra hörnet. Spelarna har Tillbaka (Jonas 2026-11-18).
   const isLeaderMenuShown = view.me.isLeader && !view.isFinished;
-  const canSkipScene = canLeaderSkip({ isLeaderPlaying: view.me.isPlaying, usesReadyButton: step.usesReadyButton && !step.isDoneByLeaving, isMeDone: step.isMeDone, progress: view.progress ?? [] });
-  const skipSceneLabel = canSkipScene ? describeSceneSkip(view.progress ?? [], step.foundTitle) : null;
   function withLeaderMenu(screen: ReactNode, { stepText = null, isAtTask = false }: { stepText?: string | null; isAtTask?: boolean } = {}) {
     if (!isLeaderMenuShown) return screen;
     // Golvuret får ledtrådar också medan berättelsen väntar på urklippen (Jonas 2026-11-18).
@@ -145,7 +142,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
           stepText={stepText}
           canHelpWithTask={canHelpWithTask({ isTask: step.type !== 'scene' || isAtAwaitedTask, isAtTask: isAtTask || isAtAwaitedTask, isSolved: step.type !== 'scene' && step.usesReadyButton })}
           canHelpWithReading={isAtReading}
-          skipSceneLabel={skipSceneLabel}
           onSetPaused={game.setPaused}
           onGiveHint={game.giveHint}
           onShowSolution={game.showSolution}
@@ -155,15 +151,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       </div>
     );
   }
-  // Väntar på att alla ska bli klara, och bara hos spelledaren hur många som är klara och vilka
-  // (Jonas 2026-11-18). Står hon utanför spelet ser hon raden så länge någon kan bli klar.
-  // I urklippen syns ingen rad. Spelledaren vet kanske inte heller lösningen, och raden skulle avslöja
-  // vad brädet väntar på (Jonas 2026-11-18).
-  const countsReady = (step.type === 'scene' || step.usesReadyButton) && !(step.type === 'scene' && step.isDoneByLeaving);
-  const showsDone = view.me.isLeader && view.progress !== null && countsReady && (step.isMeDone || !view.me.isPlaying) && !view.isFinished;
-  const doneLine = showsDone && view.progress ? <span className="leader-done">{describeDone(view.progress)}</span> : null;
-  const waitingLine = step.isMeDone || doneLine ? <p className="hint">{step.isMeDone && 'Väntar på att alla ska bli klara.'}{doneLine}</p> : null;
-
   // Medan huset minns ser alla minnet, var de än är, och inget av det som finns i nuet (Jonas 2026-11-17).
   if (step.flashback && flashback.isRemembering && !view.isFinished) {
     return withLeaderMenu(
@@ -212,7 +199,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     </>
   );
   const showNarration = (text: string, onOk?: () => void) => withLeaderMenu(
-    <ThingScreen header={narrationHeader} actions={onOk ? <button type="button" onClick={onOk} disabled={isBusy}>Ok</button> : doneLine ?? undefined}>
+    <ThingScreen header={narrationHeader} actions={onOk ? <button type="button" onClick={onOk} disabled={isBusy}>Ok</button> : undefined}>
       {text.split('\n\n').map((paragraph) => <p key={paragraph} className="narration-text">{paragraph}</p>)}
     </ThingScreen>,
   );
@@ -223,8 +210,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       saveReadNarrations(read);
     });
   }
-  // En scen i huset är en berättartext. Efter Ok är spelaren tillbaka i rummet och väntar på de andra
-  // (Jonas 2026-11-18). Spelledaren som står utanför ser texten utan knapp.
+  // En scen i huset är en berättartext. Efter Ok är spelaren tillbaka i rummet och kan leta medan
+  // de andra läser (Jonas 2026-11-18). Spelledaren som står utanför ser texten utan knapp.
   const isNarrationScene = house !== null && step.type === 'scene' && step.opensFrom === null && step.documents.length === 0 && step.goTo === null && step.role === null && !view.isFinished;
   if (isNarrationScene && !step.isMeDone && !openThing) {
     return showNarration(step.text, view.me.isPlaying ? markReady : undefined);
@@ -260,8 +247,9 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   if ((!showsStep || isGoingDown || isNarrationScene) && house) {
     const houseActions = [];
     if (view.me.isPlaying && house.canSearch) houseActions.push(<button key="search" type="button" onClick={game.searchRoom} disabled={isBusy}>Leta i rummet</button>);
-    const houseStatus = isNarrationScene ? 'Väntar på att alla ska bli klara.' : 'Gå runt i huset och leta.';
-    const houseHint = <p className="hint">{isGoingDown ? cellar.goDownText : houseStatus}{doneLine}</p>;
+    // Ingen rad säger att mobilen väntar på de andra, och spelledaren ser inte vilka som är klara.
+    // Steget går vidare av sig självt när alla är klara (Jonas 2026-11-18).
+    const houseHint = <p className="hint">{isGoingDown ? cellar.goDownText : 'Gå runt i huset och leta.'}</p>;
     return withLeaderMenu(
       <ScreenLayout actions={houseActions.length > 0 ? houseActions : houseHint}>
         <p className="hint game-header">
@@ -309,8 +297,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     const canMarkReady = view.me.isPlaying && step.usesReadyButton && !step.isDoneByLeaving && !step.isMeDone;
     const readyButton = canMarkReady ? <button type="button" onClick={markReady} disabled={isBusy}>{step.readyLabel ?? 'Klar'}</button> : null;
     const melodyButton = step.piano?.hasMelody ? <MelodyButton piano={step.piano} /> : null;
-    const waiting = step.usesReadyButton && !step.isDoneByLeaving ? waitingLine : null;
-    const actions = (readyButton ?? melodyButton ?? waiting ?? error) ? <>{error && <p className="error" role="alert">{error}</p>}{melodyButton}{readyButton}{waiting}</> : undefined;
+    const actions = (readyButton ?? melodyButton ?? error) ? <>{error && <p className="error" role="alert">{error}</p>}{melodyButton}{readyButton}</> : undefined;
     return withLeaderMenu(
       <ThingScreen className={step.piano ? 'piano-screen' : undefined} header={screenHeader} actions={actions}>
         {step.piano && view.me.isPlaying && <PianoKeys keys={step.piano.myKeys} onPlayKey={game.playKey} />}
@@ -387,7 +374,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
 
   return withLeaderMenu(
-    <ScreenLayout actions={actions.length > 0 ? actions : waitingLine ?? <p className="hint" />}>
+    <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint" />}>
       <p className="hint game-header">
         {isMenuOverView && <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(false)}>Stäng menyn</button>}
         <span>{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</span>

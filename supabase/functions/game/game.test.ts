@@ -44,7 +44,7 @@ test('spelet tar slut när gruppen kommer till sluttexten, och står kvar där',
   const state = readState(advanceStep({ state: { ...createInitialState(), status: 'running', stepIndex: lastIndex - 1 }, mission: MISSION, players: [LEADER, GUEST], player: LEADER }));
   assert.deepEqual({ status: state.status, stepIndex: state.stepIndex }, { status: 'finished', stepIndex: lastIndex });
   const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: 'prov', state }, mission: MISSION, players: [LEADER, GUEST], viewer: GUEST });
-  assert.deepEqual({ isFinished: view.isFinished, text: view.step.text, progress: view.progress }, { isFinished: true, text: MISSION.steps[lastIndex].text, progress: null });
+  assert.deepEqual({ isFinished: view.isFinished, text: view.step.text }, { isFinished: true, text: MISSION.steps[lastIndex].text });
 });
 
 test('platsen sparas per spelare och bara texten för den egna platsen syns', () => {
@@ -73,9 +73,8 @@ test('scenen går vidare först när alla har tryckt Klar', () => {
   // Att trycka två gånger räknas en gång.
   assert.deepEqual(readState(markReady({ state: first, mission: MISSION, players: PLAYERS, player: GUEST })), first);
   const game: GameRecord = { id: 'g', joinCode: 'BCDF', missionId: 'prov', state: first };
-  const leaderView = buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: LEADER });
-  assert.deepEqual(leaderView.progress, [{ name: 'Ledare', isMe: true, isDone: false }, { name: 'Gäst', isMe: false, isDone: true }]);
-  assert.equal(buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: GUEST }).progress, null);
+  assert.equal(buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: LEADER }).step.isMeDone, false);
+  assert.equal(buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: GUEST }).step.isMeDone, true);
   const second = readState(markReady({ state: first, mission: MISSION, players: PLAYERS, player: LEADER }));
   assert.deepEqual({ stepIndex: second.stepIndex, ready: second.readyPlayerIds }, { stepIndex: 1, ready: [] });
 });

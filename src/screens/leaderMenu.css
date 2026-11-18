@@ -72,12 +72,12 @@
 .leader-menu-actions button { width: 100%; }
 .leader-menu button.secondary { border-color: rgb(240 225 200 / 0.6); color: #f0e1c8; }
 
-/* På en vanlig skärm står knapparna närmare kanten än i fullskärm, och hamburgaren följer dem. */
-.has-leader-menu:has(> .screen) {
-  --leader-menu-bottom: var(--bottom-gap);
-}
-.has-leader-menu:has(> .screen) .leader-menu-button { bottom: var(--leader-menu-bottom); }
-.has-leader-menu:has(> .screen) .leader-menu { bottom: calc(0.5rem + var(--leader-menu-size) + var(--leader-menu-bottom)); }
+/*
+ * Hamburgaren ligger på samma ställe i alla vyer (Jonas 2026-11-18). På en
+ * vanlig skärm, som rummen, får knapparna därför samma luft nertill som i
+ * fullskärm, så att den understa knappen står i höjd med hamburgaren.
+ */
+.has-leader-menu > .screen { padding-bottom: calc(1rem + var(--bottom-gap)); }
 
 /* Den understa raden lämnar plats åt hamburgaren i hörnet. */
 .has-leader-menu { display: contents; }

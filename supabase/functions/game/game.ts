@@ -37,16 +37,18 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     rooms: state.rooms ?? (step.type === 'rooms' ? startRooms(step) : null),
     cellar: step.type === 'cellar' ? startCellar() : null,
   };
+  // Lika fall om stora roller lottas, olika i varje spel och steg (Jonas 2026-11-18).
+  const lotSeed = `${state.clock?.startedAtMs ?? 0}:${step.id}`;
   // Den vars mobil spelar melodin har en framträdande roll, så den roterar som de andra.
   if (step.type === 'piano') {
-    const [melodyPlayer] = sortByLastTurn(sortByJoinOrder(players), state.prominentHistory);
+    const [melodyPlayer] = sortByLastTurn(sortByJoinOrder(players), state.prominentHistory, lotSeed);
     const prominentHistory = melodyPlayer ? [...state.prominentHistory, melodyPlayer.id] : state.prominentHistory;
     const piano = { ...(state.piano ?? startPiano(null)), melodyPlayerId: melodyPlayer?.id ?? null };
     return { ...cleared, roleByPlayer: {}, prominentHistory, piano };
   }
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
-  const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory });
+  const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory, lotSeed });
   return { ...cleared, roleByPlayer: deal.roleByPlayer, prominentHistory: deal.prominentHistory };
 }
 

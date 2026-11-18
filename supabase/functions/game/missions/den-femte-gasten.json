@@ -176,7 +176,7 @@
         {
           "place": "B",
           "pieces": [
-            "En ung kvinna i röd sjal står vid ytterdörren och rycker i handtaget. Dörren går inte upp.",
+            "En ung kvinna i röd sjal står vid ytterdörren och tittar ut i rummet.",
             "Gästboken ligger uppslagen på bordet. Bläcket på den sista raden är fortfarande blankt.",
             "Väggklockan har stannat på kvart över nio."
           ]
@@ -184,7 +184,7 @@
         {
           "place": "C",
           "pieces": [
-            "En ung man med runda glasögon står vid spisen med en tändsticksask i handen. Han har inte hunnit tända.",
+            "En ung man med runda glasögon står vid spisen och häller upp kaffe.",
             "Fem kaffekoppar står på bänken. Fyra är urdruckna, och den femte är full och kall.",
             "Kranen droppar. Köksklockan har stannat på kvart över nio."
           ]
@@ -192,7 +192,7 @@
         {
           "place": "D",
           "pieces": [
-            "En ung kvinna med pärlhalsband sitter på golvet bakom fåtöljen och gråter tyst.",
+            "En ung kvinna med pärlhalsband står vid bokhyllan och tittar ut i rummet.",
             "En bok ligger uppslagen på golvet, som om någon har tappat den i mörkret.",
             "Pendylen på hyllan har stannat på kvart över nio."
           ]
@@ -200,7 +200,7 @@
         {
           "place": "E",
           "pieces": [
-            "En ung man i kostym står vid fönstret med en pipa i munnen och håller för gardinen.",
+            "En ung man står vid fönstret och stoppar sin pipa.",
             "Någon har suttit på sängkanten. Täcket är nedtryckt men tomt.",
             "Väckarklockan på nattduksbordet har stannat på kvart över nio."
           ]

@@ -302,7 +302,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         </p>
         <SeanceBoard seance={step.seance} answer={boardAnswer} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard}  />
       </main>,
-      { stepText: step.text, isAtTask: true },
+      // Vid brädet står ingen text i menyn. Hur man gör är seansens första ledtråd (Jonas 2026-11-18).
+      { stepText: null, isAtTask: true },
     );
   }
   // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet, utan text. Texten finns i spelledarens meny (Jonas 2026-11-18).

@@ -13,7 +13,7 @@ import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
 import { canLeaderSkip } from './leaderSkip.ts';
-import { DocumentList, FoundView } from './FoundDocuments.tsx';
+import { DocumentList } from './FoundDocuments.tsx';
 import { RoomList } from './HouseView.tsx';
 import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { InfoBox } from './InfoBox.tsx';
@@ -81,7 +81,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const [answeredStep, setAnsweredStep] = useState(view.step.number);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
-  const [isFoundOpen, setIsFoundOpen] = useState(false);
   const [openThingId, setOpenThingId] = useState<string | null>(null);
   const { step } = view;
   const memory = useMemoryTime(step.rooms?.remembersUntilMs ?? null, clockOffsetMs, game.fadeMemory);
@@ -94,17 +93,9 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     setAnswer('');
     setIsMenuOpen(false);
     setHasLeftBoard(false);
-    setIsFoundOpen(false);
     setOpenThingId(null);
   }
 
-  if (isFoundOpen) {
-    return (
-      <ScreenLayout actions={<button type="button" onClick={() => setIsFoundOpen(false)}>Tillbaka</button>}>
-        <FoundView found={view.found} />
-      </ScreenLayout>
-    );
-  }
 
   // Medan huset minns ser alla minnet, var de än är, och inget av det som finns i nuet (Jonas 2026-11-17).
   if (step.rooms && memory.isRemembering && !view.isFinished) {
@@ -296,7 +287,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         {isMenuOverView && <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(false)}>Stäng menyn</button>}
       </p>
       {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
-      {view.found.length > 0 && !house && <button type="button" className="secondary small found-button" onClick={() => setIsFoundOpen(true)}>Hittat</button>}
       <p className="scene-text">{step.text}</p>
       <DocumentList documents={step.documents} />
       {step.role && (

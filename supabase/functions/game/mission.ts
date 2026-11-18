@@ -82,9 +82,10 @@ export type SceneStep = {
   /** Det som alla ser i steget, under texten. */
   documents?: MissionDocument[];
   /**
-   * Namnet i listan Hittat. Med ett namn sparas stegets dokument och
-   * spelarens egna bitar, så att de går att läsa igen senare. Se
-   * docs/koncept.md, Rundbilder och Hittat.
+   * Med ett namn sparas stegets dokument och spelarens egna bitar, så att
+   * de går att läsa igen från saken som öppnade steget, som urklippen i
+   * byrån. Se
+   * docs/koncept.md, Inget snabbval än.
    */
   foundTitle?: string;
 };

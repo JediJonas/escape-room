@@ -7,8 +7,8 @@ i koden. Varje begrepp har en kort förklaring och, där det finns, namnet i
 koden. Den förklarar orden, inte reglerna: hur något fungerar står i
 `docs/koncept.md`.
 
-Ord som skiljer sig mellan konceptet och koden, eller som används på två sätt,
-står sist under Förslag att ta ställning till. Där är inget ändrat än.
+Där konceptet och koden använde olika ord har Jonas valt ett. Besluten står
+sist under Namn som är bestämda.
 
 ## Spelet och uppdraget
 
@@ -67,7 +67,7 @@ står sist under Förslag att ta ställning till. Där är inget ändrat än.
 | Huset | Uppdragets rum i mobilen, med dörrar och saker. Spelarna går mellan rummen på skärmen. | `House`, `house` |
 | Rum | En plats i huset, som hallen eller salongen. Ett rum har dörrar och saker. | `HouseRoom` |
 | Dörr | En väg från ett rum till ett annat. I Den femte gästen går alla dörrar via hallen. | `doors`, `walk` |
-| Sak | Något i ett rum som går att trycka på, som ouijabrädet, golvuret, byrån eller tavlan. Öppnar alltid en sakvy. | `HouseThing`, `ThingView` |
+| Sak | Något i ett rum som går att trycka på, som ouijabrädet, golvuret, byrån eller tavlan. Öppnar alltid en sakvy. Också det man undersöker i en rundbild, som tidigare kallades föremål. | `HouseThing`, `ThingView` |
 | Hitta | En sak syns i rummets lista först när någon har hittat den. Det räcker att en spelare gör det. | `foundThings`, `searchRoom` |
 | Leta i rummet | Knappen som hittar det berättelsen har kommit till, tills rundbilderna finns. | `searchRoom` |
 | Kallar | En sak drar till sig gruppen: den skimrar i rummets lista, och i de andra rummen visas en berättartext. | `callsFromHouse`, `isCalling`, `callingText` |
@@ -79,12 +79,12 @@ står sist under Förslag att ta ställning till. Där är inget ändrat än.
 
 | Begrepp | Betydelse | I koden |
 | --- | --- | --- |
-| Textläget | Rummet som en lista: var spelaren är, det som har hittats där och dörrarna. Jonas föreslår namnet textvy. | `RoomList` i `HouseView.tsx` |
-| Rundbildsläget | Rummet som en rundbild, där spelaren trycker på saker och dörrar i bilden. Inte byggt i spelet än. Jonas föreslår namnet rumsvy. | |
-| Sakvy | Det som öppnas när spelaren trycker på en sak: saken i fullskärm, utan rubrik och text, med klockan och Tillbaka överst. Jonas föreslår namnet objektvy. | `ThingScreen` |
-| Berättartext | En text i fullskärm som dyker upp av sig själv, visas en gång och bekräftas med Fortsätt eller Ok. | `story`, `melodyText`, `callingFrom` |
-| Fullskärm | En vy som fyller skärmen. Bakgrunden går kant i kant, men innehållet har en största bredd och höjd. | `ThingScreen` |
-| Tillbaka | Knappen uppe till höger som tar spelaren ut ur en sakvy till det läge hon kom från. Alla har den. | `leaveThing` |
+| Textvy | Rummet som en lista: var spelaren är, det som har hittats där och dörrarna. Hette tidigare textläget. | `TextView` |
+| Rumsvy | Rummet som en rundbild, där spelaren trycker på saker och dörrar i bilden. Nås med Visa rummet. Hette tidigare rundbildsläget. Inte byggd i spelet än. | |
+| Sakvy | Det som öppnas när spelaren trycker på en sak: saken i fullskärm, utan rubrik och text, med klockan och Tillbaka överst. | `ThingScreen` |
+| Berättartext | En text i fullskärm som dyker upp av sig själv, visas en gång och bekräftas med Fortsätt eller Ok. | `narration`, `melodyText`, `callingFrom` |
+| Fullskärm | En vy som fyller skärmen. Inte helskärm. Bakgrunden går kant i kant, men innehållet har en största bredd och höjd. | `ThingScreen` |
+| Tillbaka | Knappen uppe till höger som tar spelaren ut ur en sakvy till textvyn eller rumsvyn, den hon kom från. Alla har den. | `leaveThing` |
 | Meny | Spelledarens hamburgare i nedre högra hörnet. Spelarna har ingen meny, utom den instängda i källaren. | `LeaderMenu` |
 | Inforuta | Rutan längst ner som visar en ny ledtråd hos alla en stund. Går att trycka bort. | `InfoBox` |
 | Huvudhandling | Skärmens viktigaste knapp. Ligger underst, närmast tummen. | `actions` i `ScreenLayout` |
@@ -138,44 +138,30 @@ står sist under Förslag att ta ställning till. Där är inget ändrat än.
 | Tillstånd | Spelets hela läge, sparat som ett JSON-värde på servern. | `GameState` |
 | Handling | Något en mobil ber servern om, som att gå genom en dörr eller slå an en tangent. | `Action` |
 | Vägran | Serverns nej till en handling, med ett skäl. | `Refusal`, till exempel `GameRefusal` |
-| Spelarvy | Det en spelare får från servern: bara det hennes spelare ska se. | `PlayerView`, `GameView` |
-| Läckkontroll | Testet som spelar uppdragen och letar efter facit och andras bitar i varje spelarvy. | `leakCheck.test.ts` |
+| Vy från servern | Det en spelare får från servern, som mobilen bygger hennes skärm av. Innehåller bara det hon ska se. | `PlayerView`, `GameView` |
+| Läckkontroll | Testet som spelar uppdragen och letar efter facit och andras bitar i varje vy från servern. | `leakCheck.test.ts` |
 | Kanal | En realtidskanal i Supabase. Varje spelare har sin egen, och spelet och gruppen har var sin. | `player:<id>`, `game:<id>`, `group:<id>` |
 | Livstecken | Anropet var tionde sekund som säger att mobilen är med och hämtar missade vyer. | |
 | Serverns tid | Tiden som avgör samtidighet. Mobilerna räknar med sin skillnad mot den. | `serverClock`, `clockOffsetMs` |
 | Mobilfunktion | Kamera, rörelse, ljud och liknande. En modul per funktion, med tillstånd och reserv. | `src/device/`, `src/sound/` |
 | Tillstånd för ljud och rörelse | iPhone kräver ett tryck. Det begärs i en scen innan det behövs. | `asksFor` |
 
-## Förslag att ta ställning till
+## Namn som är bestämda
 
-Här skiljer sig orden mellan konceptet, motorn och koden, eller betyder två
-saker. Inget är ändrat. Varje förslag behöver ett beslut av Jonas innan
-koden eller dokumenten döps om.
+Jonas tog ställning till de här namnen den 18 november 2026.
 
-1. **Textläget och rundbildsläget, eller textvy och rumsvy.** Konceptet säger
-   textläget och rundbildsläget. Jonas föreslår textvy och rumsvy, som passar
-   knapparna Visa rummet och Dölj rummet. Förslag: textvy och rumsvy, så att
-   alla skärmar heter något med vy. I koden blir det `TextView` för det som i
-   dag heter `RoomList`, och `RoomView` när rundbildsläget byggs.
-2. **Objektvy eller sakvy.** Konceptet och koden säger sak (`HouseThing`,
-   `ThingScreen`), och konceptet säger också föremål om det man undersöker i
-   rundbilden. Förslag: sak överallt, också i stället för föremål, och sakvy
-   för det som öppnas. Koden behöver då inte döpas om.
-3. **Helskärm eller fullskärm.** Konceptet använder båda. Förslag: fullskärm.
-4. **Berättartext.** Konceptet säger också berättelsetexterna och
-   berättelsen. Koden säger `story`. Förslag: berättartext för texten i
-   fullskärm som visas en gång, berättelsen för helheten, och `narration` i
-   koden i stället för `story`, så att det inte blandas ihop med `scene`.
-5. **Vy på två sätt.** I konceptet är en vy en skärm som spelaren ser. I
-   motorn är en vy också det servern skickar till en spelare. Förslag:
-   spelarvy för det servern skickar, som `PlayerView` redan heter, och vy
-   bara för skärmar.
-6. **Hittat finns kvar i koden.** Konceptet säger att knappen Hittat är
-   borttagen, men koden och motorn har kvar `found`, `foundTitle` och listan
-   Hittat. Den används i dag för att läsa urklippen igen i byrån. Två
-   kommentarer hänvisar till avsnittet Rundbilder och Hittat, som inte finns
-   längre. Förslag: kalla det läsa igen, döpa om `foundTitle` till
-   `rereadTitle` och uppdatera motorn och kommentarerna.
-7. **Rummen minns heter `rooms` i koden.** Det blandas lätt ihop med husets
-   rum (`HouseRoom`, `house.rooms`). Förslag: döpa om uppgiftstypen till
-   `memory`.
+1. **Textvy och rumsvy** i stället för textläget och rundbildsläget. I koden
+   heter textvyn `TextView`. Rumsvyn får namnet `RoomView` när den byggs.
+2. **Sak och sakvy.** Sak används överallt, också i stället för föremål om
+   det man undersöker i en rundbild. Det som öppnas heter sakvy. Koden heter
+   redan `HouseThing` och `ThingScreen`.
+3. **Fullskärm**, inte helskärm.
+4. **Berättartext** för texten i fullskärm som visas en gång, och
+   **berättelsen** för helheten. I koden heter den `narration`.
+5. **Vy** behåller båda betydelserna. Det servern skickar är det spelaren
+   ser, så det behöver inget eget namn.
+6. **Hittat** finns inte längre som lista eller knapp. Namnen `found` och
+   `foundTitle` ligger kvar i koden, eftersom urklippen i byrån går att läsa
+   igen genom dem.
+7. **Rummen minns** får uppgiftstypen `memory` i stället för `rooms`, så att
+   den inte blandas ihop med husets rum. Byts i en egen PR.

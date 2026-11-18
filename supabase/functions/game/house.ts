@@ -2,7 +2,7 @@
  * Huset i mobilen: rummen, dörrarna mellan dem och sakerna som gruppen
  * hittar. Spelaren går mellan rummen genom dörrarna, och en sak går bara att
  * hitta när berättelsen har kommit dit. Det som har hittats står i rummets
- * lista för hela gruppen. Se docs/koncept.md, Rundbilder och två lägen.
+ * lista för hela gruppen. Se docs/koncept.md, Rundbilder, textvyn och rumsvyn.
  *
  * Rena funktioner. Platsen där spelaren är sparas i placeByPlayer, så att
  * uppgifter med en plats fungerar som förut.
@@ -113,7 +113,7 @@ export type ThingView = {
   pages: string[] | null;
   /** Steget som saken öppnar, om det är det steg gruppen är på nu. */
   opensCurrentStep: boolean;
-  /** Steget som saken öppnade tidigare och som går att läsa igen, med namnet i Hittat. */
+  /** Steget som saken öppnade tidigare och som går att läsa igen, med stegets `foundTitle`. */
   opensFound: string | null;
   /** Saken kallar på gruppen, som brädet när det vill fråga något (Jonas 2026-11-17). */
   isCalling: boolean;

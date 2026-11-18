@@ -2,10 +2,10 @@ import type { HouseView } from '../../supabase/functions/game/house.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 
 /**
- * Textläget i huset: var spelaren är, det som har hittats i rummet och
- * dörrarna till rummen intill. Se docs/koncept.md, Rundbilder och två lägen.
+ * Textvyn i huset: var spelaren är, det som har hittats i rummet och
+ * dörrarna till rummen intill. Se docs/koncept.md, Rundbilder, textvyn och rumsvyn.
  */
-export function RoomList({ house, isBusy, onOpen, onWalk }: {
+export function TextView({ house, isBusy, onOpen, onWalk }: {
   house: HouseView;
   isBusy: boolean;
   onOpen: (thingId: string) => void;

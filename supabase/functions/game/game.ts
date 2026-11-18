@@ -129,9 +129,26 @@ function acceptsAnswer(step: MissionStep, state: GameState): boolean {
 function usesReadyButton(step: MissionStep, state: GameState): boolean {
   if (step.type === 'seance') return step.solution.answers === undefined && isSeanceDone(step, state);
   if (step.type === 'cellar') return state.cellar !== null && state.cellar.outcome !== null;
-  // En scen som slutar med nästa uppgift behöver knappen bara om gruppen redan har klarat uppgiften.
-  const isWaitingForTask = step.type === 'scene' && step.endsWithStep !== undefined && !state.solvedSteps.includes(step.endsWithStep);
-  return step.type === 'scene' && !isDoneWhenArrived(step) && !isWaitingForTask;
+  return step.type === 'scene' && !isDoneWhenArrived(step);
+}
+
+/**
+ * Spelaren blir klar av att lämna saken med Tillbaka, utan någon Klar-knapp:
+ * brädet när meddelandet är klart, och urklippen när hon har läst dem
+ * (Jonas 2026-11-18).
+ */
+function isDoneByLeaving(step: MissionStep, state: GameState): boolean {
+  if (step.type === 'seance') return usesReadyButton(step, state);
+  return step.type === 'scene' && step.endsWithStep !== undefined;
+}
+
+/**
+ * En scen som slutar med nästa uppgift, som urklippen, går vidare när alla
+ * har läst och gruppen har klarat uppgiften, i vilken ordning som helst
+ * (Jonas 2026-11-18).
+ */
+function isWaitingForTask(step: MissionStep, state: GameState): boolean {
+  return step.type === 'scene' && step.endsWithStep !== undefined && !state.solvedSteps.includes(step.endsWithStep);
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
@@ -142,9 +159,9 @@ function isPlayerDone(step: MissionStep, state: GameState, playerId: string): bo
 }
 
 /** Går vidare när alla är klara, så att ingen behöver vänta på spelledaren. */
-function moveOnIfAllDone(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
+export function moveOnIfAllDone(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
   const step = mission.steps[state.stepIndex];
-  const isAllDone = state.status === 'running' && players.length > 0 && players.every((player) => isPlayerDone(step, state, player.id));
+  const isAllDone = state.status === 'running' && players.length > 0 && !isWaitingForTask(step, state) && players.every((player) => isPlayerDone(step, state, player.id));
   return isAllDone ? moveOn(state, mission, players) : state;
 }
 
@@ -319,6 +336,8 @@ export type GameView = {
     opensFrom: string | null;
     /** Om spelaren trycker Klar i steget, eller blir klar av att komma fram. */
     usesReadyButton: boolean;
+    /** Spelaren blir klar av att gå därifrån med Tillbaka, och ser ingen Klar-knapp. */
+    isDoneByLeaving: boolean;
     /** Texten på knappen, om scenen har en egen. Annars står det Klar. */
     readyLabel: string | null;
     /** Om gruppen kan skriva ett svar nu, och frågan ovanför fältet när steget har en. */
@@ -437,6 +456,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       type: step.type,
       opensFrom: findOpener(mission.house, step.id),
       usesReadyButton: usesReadyButton(step, state),
+      isDoneByLeaving: isDoneByLeaving(step, state),
       readyLabel: step.type === 'scene' ? step.readyLabel ?? null : null,
       acceptsAnswer: isRunning && acceptsAnswer(step, state),
       question: step.type === 'seance' && isSeanceDone(step, state) ? step.question ?? null : null,

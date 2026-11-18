@@ -208,10 +208,10 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const thingPapers = listPapers(step.documents, step.role?.pieces ?? []);
   const isThingShown = openThing !== null && !view.isFinished && (step.piano !== null || step.rooms !== null || thingPapers.length > 0);
   if (isThingShown && !isMenuOpen) {
-    const canMarkReady = view.me.isPlaying && step.usesReadyButton && !step.isMeDone;
+    const canMarkReady = view.me.isPlaying && step.usesReadyButton && !step.isDoneByLeaving && !step.isMeDone;
     const readyButton = canMarkReady ? <button type="button" onClick={markReady} disabled={isBusy}>{step.readyLabel ?? 'Klar'}</button> : null;
     const melodyButton = step.piano?.hasMelody ? <MelodyButton piano={step.piano} /> : null;
-    const waiting = step.usesReadyButton && step.isMeDone ? <p className="hint">Väntar på att alla ska bli klara.</p> : null;
+    const waiting = step.usesReadyButton && !step.isDoneByLeaving && step.isMeDone ? <p className="hint">Väntar på att alla ska bli klara.</p> : null;
     const actions = (readyButton ?? melodyButton ?? waiting ?? error) ? <>{error && <p className="error" role="alert">{error}</p>}{melodyButton}{readyButton}{waiting}</> : undefined;
     return (
       <ThingScreen className={step.piano ? 'piano-screen' : undefined} header={screenHeader(stepButton)} actions={actions}>
@@ -239,19 +239,18 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
   const isTask = step.type !== 'scene' && !view.isFinished;
 
-  // Tillstånden måste begäras direkt i trycket, annars nekar iPhone. Svaret behövs inte här:
-  // en uppgift som använder rörelse lyssnar bara, och fingret tar över om inga värden kommer.
-  // Tillbaka går till rummet. Att lämna brädet efter meddelandet räknas som klar, så ingen
-  // Klar-knapp behövs (Jonas 2026-11-18).
+  // Tillbaka går till rummet. Att lämna brädet efter meddelandet, eller urklippen efter att ha
+  // läst dem, räknas som klar, så ingen Klar-knapp behövs (Jonas 2026-11-18).
   function leaveThing() {
-    const isBoardDone = step.seance?.isComplete === true && openThing?.opensCurrentStep === true;
-    if (isBoardDone && view.me.isPlaying && step.usesReadyButton && !step.isMeDone) markReady();
+    if (step.isDoneByLeaving && openThing?.opensCurrentStep && view.me.isPlaying && !step.isMeDone) markReady();
     // Utan huset finns inget rum att gå till, så spelaren kommer till stegets sida.
     if (!house && step.seance?.isComplete) setHasLeftBoard(true);
     setIsMenuOpen(false);
     setOpenThingId(null);
   }
 
+  // Tillstånden måste begäras direkt i trycket, annars nekar iPhone. Svaret behövs inte här:
+  // en uppgift som använder rörelse lyssnar bara, och fingret tar över om inga värden kommer.
   function markReady() {
     if (step.asksFor.includes('sound')) gameAudio.unlock();
     if (step.asksFor.includes('motion')) void requestMotionPermission();
@@ -273,12 +272,12 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   if (canFlipFuse) {
     actions.push(<button key="fuse" type="button" onClick={() => game.moveInCellar({ type: 'flipFuse' })} disabled={isBusy}>Tänd lampan i källaren</button>);
   }
-  const canSkip = canLeaderSkip({ isLeaderPlaying: view.me.isPlaying, usesReadyButton: step.usesReadyButton, isMeDone: step.isMeDone, progress: view.progress ?? [] });
+  const canSkip = canLeaderSkip({ isLeaderPlaying: view.me.isPlaying, usesReadyButton: step.usesReadyButton && !step.isDoneByLeaving, isMeDone: step.isMeDone, progress: view.progress ?? [] });
   if (view.me.isLeader && !view.isFinished && canSkip) {
     // För när någon har gått iväg och gruppen inte ska behöva vänta.
     actions.push(<button key="skip" type="button" className="secondary" onClick={game.nextStep} disabled={isBusy}>{isTask ? 'Hoppa över uppgiften' : 'Gå vidare ändå'}</button>);
   }
-  if (view.me.isPlaying && !needsPlace && step.usesReadyButton && !step.isMeDone && !view.isFinished) {
+  if (view.me.isPlaying && !needsPlace && step.usesReadyButton && !step.isDoneByLeaving && !step.isMeDone && !view.isFinished) {
     actions.push(<button key="ready" type="button" onClick={markReady} disabled={isBusy}>{step.readyLabel ?? 'Klar'}</button>);
   }
   if (canAnswer) {

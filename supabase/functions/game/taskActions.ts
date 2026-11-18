@@ -5,7 +5,7 @@
  */
 
 import { type CellarMove, applyCellarMove } from './cellar.ts';
-import { type GameRefusal, type StateChange, findCurrentTask, findRole, isAtGoal, moveOn } from './game.ts';
+import { type GameRefusal, type StateChange, findCurrentTask, findRole, isAtGoal, moveOn, moveOnIfAllDone } from './game.ts';
 import { searchRoom, walk } from './house.ts';
 import type { Mission, MissionStep, RoomsStep } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
@@ -56,14 +56,14 @@ function isTaskDone(state: GameState, step: MissionStep, index: number): boolean
  * En uppgift som är klar. Är det steget gruppen är på går den vidare. Annars
  * sparas den, och gruppen går förbi den när berättelsen kommer dit
  * (Jonas 2026-11-18). Väntar scenen före på just den här uppgiften, som
- * urklippen på golvuret, går gruppen vidare förbi båda.
+ * urklippen på golvuret, går gruppen vidare förbi båda om alla har läst.
  */
 function solveTask(state: GameState, mission: Mission, players: readonly PlayerRecord[], index: number): GameState {
   if (index === state.stepIndex) return moveOn(state, mission, players);
   const saved = { ...state, solvedSteps: [...state.solvedSteps, mission.steps[index].id] };
   const current = mission.steps[state.stepIndex];
   const endsCurrent = current.type === 'scene' && current.endsWithStep === mission.steps[index].id;
-  return endsCurrent ? moveOn(saved, mission, players) : saved;
+  return endsCurrent ? moveOnIfAllDone(saved, mission, players) : saved;
 }
 
 /**

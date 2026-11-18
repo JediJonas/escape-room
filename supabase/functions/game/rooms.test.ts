@@ -186,12 +186,15 @@ test('golvuret går att vrida innan berättelsen har kommit dit, och då hoppar 
   assert.equal(later.steps[state.stepIndex].id, 'slut');
 });
 
-test('urklippen slutar när golvuret är rätt ställt och minnet har bleknat, utan någon knapp (Jonas 2026-11-18)', () => {
+test('urklippen slutar när alla har läst och minnet har bleknat, utan någon knapp (Jonas 2026-11-18)', () => {
   const later: Mission = { ...FULL, steps: [{ id: 'urklippen', type: 'scene', text: 'Läs.', endsWithStep: STEP.id }, STEP, { id: 'sedan', type: 'scene', text: 'Sedan.' }, { id: 'slut', type: 'scene', text: 'Slut.' }] };
   const [anna, bo, cia] = PLAYERS;
   let state = readState(startGame({ state: createInitialState(), mission: later, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));
   const viewOf = (viewer: PlayerRecord) => buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: later.id, state }, mission: later, players: PLAYERS, viewer });
-  assert.equal(viewOf(bo).step.usesReadyButton, false);
+  assert.equal(viewOf(bo).step.isDoneByLeaving, true);
+  // Alla läser urklippen och går därifrån. Steget väntar ändå på golvuret.
+  for (const player of PLAYERS) state = readState(markReady({ state, mission: later, players: PLAYERS, player }));
+  assert.equal(state.stepIndex, 0);
   state = readState(walkThroughDoor({ state, mission: later, player: anna, placeId: 'F', nowMs: 0 }));
   state = readState(turnClock({ state, mission: later, players: PLAYERS, player: anna, minutes: NINE_FIFTEEN, nowMs: 0 }));
   assert.equal(state.stepIndex, 0);
@@ -202,7 +205,7 @@ test('urklippen slutar när golvuret är rätt ställt och minnet har bleknat, u
   assert.equal(later.steps[state.stepIndex].id, 'sedan');
 });
 
-test('har gruppen redan sett minnet när urklippen kommer, får urklippen en vanlig Klar-knapp', () => {
+test('har gruppen redan sett minnet när urklippen kommer, går de vidare när alla har läst', () => {
   const early: Mission = { ...FULL, steps: [{ id: 'forst', type: 'scene', text: 'Först.' }, { id: 'urklippen', type: 'scene', text: 'Läs.', endsWithStep: STEP.id }, STEP, { id: 'sedan', type: 'scene', text: 'Sedan.' }, { id: 'slut', type: 'scene', text: 'Slut.' }] };
   const [anna, bo, cia] = PLAYERS;
   let state = readState(startGame({ state: createInitialState(), mission: early, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));
@@ -215,7 +218,7 @@ test('har gruppen redan sett minnet när urklippen kommer, får urklippen en van
   for (const player of PLAYERS) state = readState(markReady({ state, mission: early, players: PLAYERS, player }));
   assert.equal(early.steps[state.stepIndex].id, 'urklippen');
   const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: early.id, state }, mission: early, players: PLAYERS, viewer: bo });
-  assert.equal(view.step.usesReadyButton, true);
+  assert.equal(view.step.isDoneByLeaving, true);
   for (const player of PLAYERS) state = readState(markReady({ state, mission: early, players: PLAYERS, player }));
   assert.equal(early.steps[state.stepIndex].id, 'sedan');
 });

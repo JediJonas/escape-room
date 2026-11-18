@@ -1,0 +1,56 @@
+{
+  "id": "kallaren",
+  "type": "cellar",
+  "text": "Källardörren står på glänt. Vera viskar: Det finns ett rum bakom källaren. En av er måste gå ner.",
+  "roles": [
+    {
+      "id": "instangd",
+      "title": "Du går ner i källaren",
+      "count": 1,
+      "isProminent": true,
+      "goTo": "A",
+      "pieces": [
+        "Dörren slår igen bakom dig. Stanna i källaren. Vrid dig med mobilen och leta efter en dörr som inte finns på någon karta. Tryck på skärmen när den är mitt i ficklampan."
+      ]
+    },
+    {
+      "id": "lotsar",
+      "title": "Du lotsar från bordet",
+      "count": "rest",
+      "maxPiecesPerPlayer": 2,
+      "pieces": [
+        "Den dolda dörren sitter bakom hyllan med syltburkarna.",
+        "Hyllan med burkarna står mittemot vedtraven.",
+        "Från trappan: vänd dig åt vänster, förbi kistan, tills du ser burkarna.",
+        "Gungstolen står strax till vänster om hyllan.",
+        "Bakom hyllan drar det kallt. Där är springan.",
+        "Fönstret med galler leder ingenstans. Där finns ingen dörr.",
+        "Lyktan på tunnan lyser bara upp vedtraven.",
+        "Under trappan finns bara lådor och en tunna.",
+        "En spade lutar mot väggen bredvid hyllan."
+      ]
+    }
+  ],
+  "trappedRoleId": "instangd",
+  "image": "testsida/rundbilder/kallare-stor.webp",
+  "minutes": 4,
+  "fuses": 3,
+  "lightMs": 3000,
+  "wrongTapMs": 15000,
+  "goDownText": "Du går ner i källaren.",
+  "othersGoDownText": "{name} går ner i källaren.",
+  "foundText": "Bakom hyllan finns ett litet rum. På väggen står namn inristade, vart och ett överstruket och följt av nästa. Det sista är Vera. Under det håller någon på att rista in ett nytt namn: {name}. Berätta det för de andra genom dörren.",
+  "othersFoundText": "{name} har hittat något bakom hyllan. Det har blivit alldeles tyst i källaren. Fråga vad hon ser.",
+  "caughtText": "Ficklampan slocknar. Något andas alldeles intill dig. Sedan går källardörren upp av sig själv.",
+  "othersCaughtText": "Det blir tyst i källaren. Något andas alldeles intill {name}. Sedan går källardörren upp av sig själv, och ingen hann se vad som fanns bakom hyllan.",
+  "markWhenCaught": "fewerNames",
+  "hints": [
+    "Den i källaren beskriver vad hon ser. Ni andra säger vart hon ska vända sig.",
+    "Slå på en säkring när hon tittar ungefär rätt, så ser hon hela väggen.",
+    "Dörren är bakom hyllan med syltburkarna, mittemot vedtraven."
+  ],
+  "solution": {
+    "doorYawDeg": -165,
+    "toleranceDeg": 20
+  }
+}

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { test } from 'vitest';
 import { findMissionErrors, listPlaces } from './mission.ts';
 import { MISSIONS, getMission } from './missions/index.ts';
+import { withCellar } from './shelved/cellarMission.ts';
 
 const VALID = {
   format: 1,
@@ -17,6 +18,10 @@ const VALID = {
 test('alla uppdrag följer formatet', () => {
   assert.ok(MISSIONS.length > 0);
   for (const mission of MISSIONS) assert.deepEqual(findMissionErrors(mission), [], mission.id);
+});
+
+test('den sparade källaren följer formatet i Den femte gästen', () => {
+  assert.deepEqual(findMissionErrors(withCellar(getMission('den-femte-gasten')!)), []);
 });
 
 test('varje uppdragsfil i mappen är med i listan', () => {

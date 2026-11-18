@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
-import { test } from 'vitest';
+import { test, vi } from 'vitest';
 import { createGameWithPlayers, readGameView, send } from './memoryStore.ts';
+
+// Källaren är sparad undan, så den körs i en kopia av Den femte gästen med källaren kvar (Jonas 2026-11-18).
+vi.mock('./missions/index.ts', async (importOriginal) => {
+  const real = await importOriginal<typeof import('./missions/index.ts')>();
+  const { withCellar } = await import('./shelved/cellarMission.ts');
+  const missions = [...real.MISSIONS, withCellar(real.getMission('den-femte-gasten')!)];
+  return { MISSIONS: missions, getMission: (missionId: string) => missions.find((mission) => mission.id === missionId) ?? null };
+});
 
 test('golvuret och minnet syns hos alla, och en mobil som säger att minnet har bleknat ändrar bara en gång', async () => {
   const memory = await createGameWithPlayers(['Bo', 'Cia']);
@@ -39,7 +47,7 @@ test('golvuret och minnet syns hos alla, och en mobil som säger att minnet har 
 test('i källaren tänder de andra lampan, den instängda hittar dörren och alla trycker Klar', async () => {
   const memory = await createGameWithPlayers(['Bo', 'Cia']);
   const gameId = memory.games[0].id;
-  await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten-med-kallaren' });
   let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
   while (view.step.type !== 'cellar') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
   const users = ['user-leader', 'user-Bo', 'user-Cia'];

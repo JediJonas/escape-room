@@ -128,6 +128,21 @@ test('bara spelledaren pausar, och vyn visar tiden som är kvar', () => {
   assert.deepEqual(buildGameView({ game: { ...game, state: resumed }, mission: MISSION, players: PLAYERS, viewer: GUEST }).clock, { isPaused: false, endsAtMs: 46 * 60_000 });
 });
 
+test('pausen stoppar också minnet, skenet och källaren', () => {
+  const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: LEADER, leaderPlays: true, minutes: 45, nowMs: 0 }));
+  const timed: GameState = {
+    ...started,
+    flashback: { dialMinutes: 0, remembersUntilMs: 90_000, choices: [], seenPlaces: [] },
+    seance: { letterIndex: 1, followerIds: ['p1'], progress: 0.5, anchorMs: 50_000, pauseUntilMs: 55_000, brokenBy: { playerId: 'p2', atMs: 40_000 } },
+    cellar: { arrivedAtMs: 30_000, penaltyMs: 0, fusesUsed: 0, litUntilMs: null, outcome: null },
+  };
+  const paused = readState(setPaused({ state: timed, player: LEADER, isPaused: true, nowMs: 60_000 }));
+  const resumed = readState(setPaused({ state: paused, player: LEADER, isPaused: false, nowMs: 80_000 }));
+  assert.equal(resumed.flashback?.remembersUntilMs, 110_000);
+  assert.deepEqual(resumed.seance, { ...timed.seance, anchorMs: 70_000, pauseUntilMs: 75_000, brokenBy: { playerId: 'p2', atMs: 60_000 } });
+  assert.deepEqual(resumed.cellar, { ...timed.cellar, arrivedAtMs: 50_000 });
+});
+
 const TASK_STEP_INDEX = MISSION.steps.findIndex((step) => step.type === 'answer');
 
 test('ett rätt svar för gruppen vidare, oavsett stora bokstäver och mellanslag', () => {

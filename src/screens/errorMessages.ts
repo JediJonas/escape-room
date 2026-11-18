@@ -21,6 +21,7 @@ const MESSAGES: Record<ActionError, string> = {
   unknownPlace: 'Den platsen finns inte i uppdraget.',
   notAtPlace: 'Gå till platsen först.',
   notPlaying: 'Du är inte med i uppgifterna just nu.',
+  paused: 'Spelet är pausat.',
   noSuchPlayer: 'Den mobilen väntar inte längre.',
   notATask: 'Det finns ingen uppgift att svara på just nu.',
   wrongAnswer: 'Det stämmer inte. Försök igen.',

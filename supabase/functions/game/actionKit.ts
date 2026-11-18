@@ -18,6 +18,7 @@ export type ActionError =
   | LateJoinRefusal
   | PendingRefusal
   | 'notPlaying'
+  | 'paused'
   | 'unknownAction'
   | 'noSuchGame'
   | 'notInGame'
@@ -50,6 +51,7 @@ const STATUS_FOR_ERROR: Record<ActionError, number> = {
   notRunning: HTTP_CONFLICT,
   notAtPlace: HTTP_CONFLICT,
   notPlaying: HTTP_CONFLICT,
+  paused: HTTP_CONFLICT,
   noSuchPlayer: HTTP_NOT_FOUND,
   notATask: HTTP_CONFLICT,
   wrongAnswer: HTTP_CONFLICT,
@@ -131,7 +133,10 @@ export async function withOwnPlayer(action: Action, { userId, store }: Context, 
 export async function withParticipant(action: Action, context: Context, work: (scope: GameScope) => Promise<ActionResult>): Promise<ActionResult> {
   return withOwnPlayer(action, context, (scope) => {
     const isParticipant = scope.participants.some((player) => player.id === scope.player.id);
-    return isParticipant ? work(scope) : Promise.resolve(fail('notPlaying'));
+    if (!isParticipant) return Promise.resolve(fail('notPlaying'));
+    // Medan spelet är pausat kan ingen spela, inte heller spelledaren. Hennes meny fungerar (Jonas 2026-11-18).
+    if (scope.game.state.clock?.pausedAtMs != null) return Promise.resolve(fail('paused'));
+    return work(scope);
   });
 }
 

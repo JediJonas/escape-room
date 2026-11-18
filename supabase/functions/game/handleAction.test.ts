@@ -194,6 +194,12 @@ test('spelledaren pausar med databasens klocka', async () => {
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'setPaused', gameId, isPaused: true }), { status: 403, body: { error: 'notLeader' } });
   const paused = readGameView((await send(memory.store, 'user-leader', { type: 'setPaused', gameId, isPaused: true })).body);
   assert.deepEqual(paused.clock, { isPaused: true, remainingMs: 45 * 60_000 });
+  // Medan spelet är pausat kan ingen spela, inte heller spelledaren, men hennes meny fungerar.
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'markReady', gameId }), { status: 409, body: { error: 'paused' } });
+  assert.deepEqual(await send(memory.store, 'user-leader', { type: 'markReady', gameId }), { status: 409, body: { error: 'paused' } });
+  assert.equal((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).status, 200);
+  assert.equal((await send(memory.store, 'user-leader', { type: 'setPaused', gameId, isPaused: false })).status, 200);
+  assert.equal((await send(memory.store, 'user-Bo', { type: 'markReady', gameId })).status, 200);
 });
 
 test('facit går bara till spelledaren, och ett rätt svar ger alla nästa steg', async () => {

@@ -502,7 +502,10 @@ och 5 miljoner per månad, och projektet pausas aldrig.
    spelet tar slut när gruppen kommer dit. Spelledaren ser vilka som är klara och kan gå
    vidare ändå om någon har gått iväg. Har alla andra tryckt Klar döljs Gå
    vidare ändå, eftersom hon då kan trycka Klar själv (Jonas 2026-11-18). Hon väljer speltid, 45, 60 eller 75
-   minuter, när hon startar, och kan pausa. Hon kan också avsluta spelet
+   minuter, när hon startar, och kan pausa. Under pausen svarar servern
+   `paused` på allt spelarna gör, och när spelet fortsätter flyttas minnets,
+   seansens och källarens tider fram lika länge som pausen varade
+   (Jonas 2026-11-18). Hon kan också avsluta spelet
    för alla, efter en fråga eftersom det inte går att ångra. Spelet får då
    status `finished` med `isEndedByLeader`, och väntande mobiler släpps
    (Jonas 2026-11-18). Den andra delen ger ledtrådar,

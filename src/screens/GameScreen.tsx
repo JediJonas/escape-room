@@ -17,6 +17,7 @@ import { DocumentList } from './FoundDocuments.tsx';
 import { TextView } from './TextView.tsx';
 import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { InfoBox } from './InfoBox.tsx';
+import { PauseCover } from './PauseCover.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { readReadNarrations, saveReadNarrations } from '../start/savedGame.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
@@ -102,6 +103,7 @@ export function GameScreen(props: GameScreenProps) {
     <>
       <GameContent {...props} />
       {info && <InfoBox key={info.id} title={info.title} text={info.text} onClose={closeInfo} />}
+      {props.view.clock?.isPaused && !props.view.isFinished && <PauseCover isLeader={props.view.me.isLeader} />}
     </>
   );
 }

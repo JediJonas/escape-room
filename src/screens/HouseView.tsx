@@ -14,7 +14,6 @@ export function RoomList({ house, isBusy, onOpen, onWalk }: {
   return (
     <>
       <h1>{house.room.name}</h1>
-      {house.callingFrom && <p className="status calling-from" role="status">{house.callingFrom}</p>}
       {house.things.length > 0 && (
         <section className="house-list" aria-label="Det som har hittats här">
           {house.things.map((thing) => (

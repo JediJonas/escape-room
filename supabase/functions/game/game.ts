@@ -5,20 +5,20 @@
  */
 
 import { type ClockView, describeClock, pauseClock, resumeClock, shortenClock, startClock } from './clock.ts';
-import { type CellarStep, type Mission, type RoomsStep, type MissionDocument, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
+import { type CellarStep, type Mission, type FlashbackStep, type MissionDocument, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
 import { dealRoles, sortByLastTurn } from './roles.ts';
 import { type PianoRefusal, type PianoView, describePiano, startPiano } from './piano.ts';
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
-import { type RoomsRefusal, type RoomsView, describeRooms, startRooms } from './rooms.ts';
+import { type FlashbackRefusal, type FlashbackView, describeFlashback, startFlashback } from './flashback.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
 import { type FoundItem, describeFound, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | RoomsRefusal | PianoRefusal;
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | FlashbackRefusal | PianoRefusal;
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
@@ -34,7 +34,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     isSolutionShown: false,
     seance: step.type === 'seance' ? startSeance() : null,
     // Golvuret och pianot går att använda hela tiden, så deras läge följer med mellan stegen (Jonas 2026-11-18).
-    rooms: state.rooms ?? (step.type === 'rooms' ? startRooms(step) : null),
+    flashback: state.flashback ?? (step.type === 'flashback' ? startFlashback(step) : null),
     cellar: step.type === 'cellar' ? startCellar() : null,
   };
   // Lika fall om stora roller lottas, olika i varje spel och steg (Jonas 2026-11-18).
@@ -53,7 +53,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
 }
 
 function finish(state: GameState): GameState {
-  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null, rooms: null, cellar: null, piano: null };
+  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null, flashback: null, cellar: null, piano: null };
 }
 
 /**
@@ -153,7 +153,7 @@ function isWaitingForTask(step: MissionStep, state: GameState): boolean {
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
   // Rummen minns och pianot är klara för alla samtidigt. Se taskActions.ts.
-  if (step.type === 'rooms' || step.type === 'piano') return false;
+  if (step.type === 'flashback' || step.type === 'piano') return false;
   if (step.type === 'scene' && isDoneWhenArrived(step)) return isAtGoal(step, state, playerId);
   return usesReadyButton(step, state) && state.readyPlayerIds.includes(playerId);
 }
@@ -354,7 +354,7 @@ export type GameView = {
     /** Brädet i en seans, med bokstaven bara hos den som ska läsa den. */
     seance: SeanceView | null;
     /** Golvuret och minnet i Rummen minns, med bitarna bara i det rum spelaren har valt. */
-    rooms: RoomsView | null;
+    flashback: FlashbackView | null;
     /** Källaren, med bilden bara hos den instängda. */
     cellar: CellarView | null;
     /** Pianot, med melodin bara hos den vars mobil spelar den och tangenterna bara hos den som har dem. */
@@ -415,18 +415,18 @@ function describeCellarFor(step: CellarStep, state: GameState, players: readonly
  * minnet syns också när huset minns innan berättelsen har kommit dit
  * (Jonas 2026-11-18).
  */
-function describeRoomsFor({ mission, step, state, places, viewerId, participantIds }: {
+function describeFlashbackFor({ mission, step, state, places, viewerId, participantIds }: {
   mission: Mission;
   step: MissionStep;
   state: GameState;
   places: readonly Place[];
   viewerId: string;
   participantIds: readonly string[];
-}): RoomsView | null {
-  const roomsStep = mission.steps.find((candidate): candidate is RoomsStep => candidate.type === 'rooms');
-  const isShown = step.type === 'rooms' || state.rooms?.remembersUntilMs !== null;
-  if (state.status !== 'running' || !state.rooms || !roomsStep || !isShown) return null;
-  return describeRooms({ rooms: state.rooms, step: roomsStep, places, viewerId, participantIds });
+}): FlashbackView | null {
+  const flashbackStep = mission.steps.find((candidate): candidate is FlashbackStep => candidate.type === 'flashback');
+  const isShown = step.type === 'flashback' || state.flashback?.remembersUntilMs !== null;
+  if (state.status !== 'running' || !state.flashback || !flashbackStep || !isShown) return null;
+  return describeFlashback({ flashback: state.flashback, step: flashbackStep, places, viewerId, participantIds });
 }
 
 export function buildGameView({ game, mission, players, viewer }: {
@@ -468,7 +468,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       seance: step.type === 'seance' && state.seance && isRunning
         ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })
         : null,
-      rooms: describeRoomsFor({ mission, step, state, places, viewerId: viewer.id, participantIds: participants.map((player) => player.id) }),
+      flashback: describeFlashbackFor({ mission, step, state, places, viewerId: viewer.id, participantIds: participants.map((player) => player.id) }),
       cellar: step.type === 'cellar' && state.cellar && isRunning ? describeCellarFor(step, state, players, viewer.id) : null,
       piano: step.type === 'piano' && state.piano && isRunning
         ? describePiano({

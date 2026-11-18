@@ -8,7 +8,7 @@ import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
 import { MelodyButton, PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
-import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
+import { FlashbackScreen, useFlashbackTime } from '../tasks/FlashbackScreen.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
@@ -34,8 +34,8 @@ export type GameActions = {
   walk: (placeId: PlaceId) => void;
   searchRoom: () => void;
   turnClock: (minutes: number) => void;
-  chooseMemoryRoom: (placeId: PlaceId) => void;
-  fadeMemory: () => void;
+  chooseFlashbackRoom: (placeId: PlaceId) => void;
+  fadeFlashback: () => void;
   playKey: (note: string) => void;
   giveHint: () => void;
   showSolution: () => void;
@@ -86,7 +86,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const [openThingId, setOpenThingId] = useState<string | null>(null);
   const [readNarrations, setReadNarrations] = useState(readReadNarrations);
   const { step } = view;
-  const memory = useMemoryTime(step.rooms?.remembersUntilMs ?? null, clockOffsetMs, game.fadeMemory);
+  const flashback = useFlashbackTime(step.flashback?.remembersUntilMs ?? null, clockOffsetMs, game.fadeFlashback);
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
   const hasPlaceToGo = step.goTo !== null && !isAtGoal;
   const needsPlace = view.me.isPlaying && hasPlaceToGo && !view.isFinished;
@@ -130,14 +130,14 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const waitingLine = step.isMeDone || doneLine ? <p className="hint">{step.isMeDone && 'Väntar på att alla ska bli klara.'}{doneLine}</p> : null;
 
   // Medan huset minns ser alla minnet, var de än är, och inget av det som finns i nuet (Jonas 2026-11-17).
-  if (step.rooms && memory.isRemembering && !view.isFinished) {
+  if (step.flashback && flashback.isRemembering && !view.isFinished) {
     return withLeaderMenu(
       <ScreenLayout className="memory-screen" actions={<p className="hint">Dörrarna är stängda tills minnet bleknar.</p>}>
         <p className="hint game-header">
           <span>{view.missionTitle} · steg {step.number} av {step.count}</span>
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
-        <MemoryScreen rooms={step.rooms} isFading={memory.isFading} msLeft={memory.msLeft} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseMemoryRoom} />
+        <FlashbackScreen flashback={step.flashback} isFading={flashback.isFading} msLeft={flashback.msLeft} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseFlashbackRoom} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>,
     );
@@ -250,7 +250,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
   // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet, utan text. Texten finns i spelledarens meny (Jonas 2026-11-18).
   const thingPapers = listPapers(step.documents, step.role?.pieces ?? []);
-  const isThingShown = openThing !== null && !view.isFinished && (step.piano !== null || step.rooms !== null || thingPapers.length > 0);
+  const isThingShown = openThing !== null && !view.isFinished && (step.piano !== null || step.flashback !== null || thingPapers.length > 0);
   if (isThingShown) {
     const canMarkReady = view.me.isPlaying && step.usesReadyButton && !step.isDoneByLeaving && !step.isMeDone;
     const readyButton = canMarkReady ? <button type="button" onClick={markReady} disabled={isBusy}>{step.readyLabel ?? 'Klar'}</button> : null;
@@ -260,7 +260,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     return withLeaderMenu(
       <ThingScreen className={step.piano ? 'piano-screen' : undefined} header={screenHeader} actions={actions}>
         {step.piano && view.me.isPlaying && <PianoKeys keys={step.piano.myKeys} onPlayKey={game.playKey} />}
-        {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
+        {step.flashback && <GrandfatherClock dialMinutes={step.flashback.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
         {thingPapers.length > 0 && <PaperStack papers={thingPapers} />}
       </ThingScreen>,
       { stepText: step.text, isAtTask: true },
@@ -365,7 +365,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       )}
       {cellar && <CellarStatus cellar={cellar} clockOffsetMs={clockOffsetMs} onTimeUp={timeUpInCellar} />}
       {step.piano && <PianoTask piano={step.piano} canPlay={!isThingShown && view.me.isPlaying && !view.isFinished} onPlayKey={game.playKey} />}
-      {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
+      {step.flashback && <GrandfatherClock dialMinutes={step.flashback.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}
       {needsPlace && (

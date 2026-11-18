@@ -22,7 +22,7 @@ sist under Namn som är bestämda.
 | Steg | En post i uppdragets ordning. Ett steg är antingen en scen eller en uppgift. Spelarna ser till exempel steg 3 av 12. | `MissionStep`, `stepIndex` |
 | Scen | Ett steg med berättelse mellan uppgifterna. Spelarna läser och trycker Klar, eller blir klara av att lämna en sak. | `SceneStep`, `type: 'scene'` |
 | Uppgift | Ett steg där gruppen ska klara något, som Seansen eller Pianot. Har ledtrådar och facit. | `TaskStep` |
-| Uppgiftstyp | En sorts uppgift som byggs en gång i motorn och fylls med innehåll i olika uppdrag, som Samtidigt eller Orkestern. I koden har varje typ ett eget namn. | `type`: `seance`, `rooms`, `piano`, `cellar`, `answer` |
+| Uppgiftstyp | En sorts uppgift som byggs en gång i motorn och fylls med innehåll i olika uppdrag, som Samtidigt eller Orkestern. I koden har varje typ ett eget namn. | `type`: `seance`, `flashback`, `piano`, `cellar`, `answer` |
 | Akt | En av uppdragets tre delar: Kroken, Upptäckterna och Finalen. | |
 | Berättelsen | Det som händer i uppdraget, som spelarna avslöjar själva genom det de hittar. | |
 | Sann bakgrund | Det som verkligen hände, som bara systemet känner till. Spelarna får veta det bit för bit. | |
@@ -120,8 +120,8 @@ sist under Namn som är bestämda.
 | Gästboken | Boken i hallen med namn grupperade per datum. | `pages` |
 | Golvuret | Klockan i salongen. Ställs visarna på 21.15 minns huset. | `GrandfatherClock`, `turnClock` |
 | Pendeln | Pendeln bakom glasluckan i golvuret. Ett villospår som inte påverkar spelet. | `Pendulum` |
-| Rummen minns | Uppgiften där huset minns 1962 och varje spelare väljer ett rum att se. | `rooms` |
-| Minnet | Huset som det var 1962: sepiatonat, med dörrarna stängda. Bleknar efter några minuter. | `MemoryScreen`, `remembersUntilMs` |
+| Rummen minns | Uppgiften där huset minns 1962 och varje spelare väljer ett rum att se. | `flashback` |
+| Minnet | Huset som det var 1962: sepiatonat, med dörrarna stängda. Bleknar efter några minuter. | `FlashbackScreen`, `remembersUntilMs` |
 | Nu | Huset som det är i kväll, med det gruppen har hittat. | |
 | Pianot | Uppgiften där gruppen spelar melodin tillsammans med fyra tangenter var. | `piano`, `PianoTask` |
 | Melodin | De sju tonerna som gruppen ska spela. Spelas högt från en spelares mobil. | `solution.melody`, `hasMelody` |
@@ -163,5 +163,8 @@ Jonas tog ställning till de här namnen den 18 november 2026.
 6. **Hittat** finns inte längre som lista eller knapp. Namnen `found` och
    `foundTitle` ligger kvar i koden, eftersom urklippen i byrån går att läsa
    igen genom dem.
-7. **Rummen minns** får uppgiftstypen `memory` i stället för `rooms`, så att
-   den inte blandas ihop med husets rum. Byts i en egen PR.
+7. **Rummen minns** heter `flashback` i koden i stället för `rooms`, så att
+   den inte blandas ihop med husets rum. Namnet memory valdes bort, eftersom
+   det låter som datorns minne. Också fälten heter så, som `flashbackMinutes`,
+   och handlingarna `chooseFlashbackRoom` och `fadeFlashback`. På svenska
+   heter det fortfarande minnet.

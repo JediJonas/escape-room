@@ -272,10 +272,10 @@ Knackningar togs bort,
 eftersom de var svåra att förstå (Jonas 2026-11-18). En sak i huset kan öppna flera steg med
 `opensSteps`, som ouijabrädet som öppnar båda seanserna.
 
-**Rummen minns** har typen `rooms`. Steget öppnas från golvuret i
+**Rummen minns** har typen `flashback` (Jonas 2026-11-18). Steget öppnas från golvuret i
 salongen, och bara den som står där kan vrida visarna. Steget har
-`clockStart`, tiden som golvuret står på från början, `memoryMinutes`, hur
-länge huset minns, `memoryLabel`, raden överst i minnet, och `rooms`, med en
+`clockStart`, tiden som golvuret står på från början, `flashbackMinutes`, hur
+länge huset minns, `flashbackLabel`, raden överst i minnet, och `rooms`, med en
 plats och bitar för varje rum, viktigast först. Tiden som får huset att minnas
 ligger i `solution.time`. Tiderna skrivs som `21.15` och räknas på en
 tolvtimmars urtavla, på en femte minut. Mobilen skickar visarnas läge när
@@ -290,7 +290,7 @@ minst så många bitar som det kan få spelare med tio i gruppen. Medan huset
 minns är dörrarna stängda. Servern tickar inte: när tiden har gått säger
 mobilerna till, och servern för fram tillståndet. Visarna går då tillbaka till
 starttiden, och har alla rum setts går gruppen vidare. Golvuret och minnet
-syns hos alla, så alla får en ny vy när de ändras. Se `rooms.ts`.
+syns hos alla, så alla får en ny vy när de ändras. Se `flashback.ts`.
 
 **Golvuret och pianot går att använda hela tiden** (Jonas 2026-11-18). En
 sak i huset vars steg inte är det aktuella har `instrument` i vyn: urtavlan
@@ -299,7 +299,7 @@ oavsett steg, men bara från den som står vid saken. Klaras uppgiften innan
 berättelsen har kommit dit sparas stegets id i tillståndets `solvedSteps`,
 och när gruppen sedan kommer dit går den förbi steget. Allt annat i
 berättelsen visas som vanligt, och andra steg kan inte klaras i förväg.
-Rummen och pianot sparas därför över stegen i `rooms` och `piano`. Minnet
+Rummen och pianot sparas därför över stegen i `flashback` och `piano`. Minnet
 visas hos alla så länge huset minns, vilket steg gruppen än är på.
 
 **Källaren** har typen `cellar`. Steget har roller som andra steg, där

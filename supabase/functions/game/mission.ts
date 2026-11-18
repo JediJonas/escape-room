@@ -10,7 +10,7 @@ import { type PlaceId, isPlaceId } from './places.ts';
 import { findCellarErrors } from './cellar.ts';
 import { type House, findHouseErrors } from './house.ts';
 import { type MelodyNote, describePianoSolution, findPianoErrors } from './piano.ts';
-import { describeRoomsSolution, findRoomsErrors } from './rooms.ts';
+import { describeFlashbackSolution, findFlashbackErrors } from './flashback.ts';
 import { SEANCE_LETTERS } from './seance.ts';
 
 export const MISSION_FORMAT = 1;
@@ -148,11 +148,11 @@ export type Room = { place: PlaceId; pieces: string[] };
 
 /**
  * Splittrade rum: golvuret får huset att minnas, och spelarna väljer var
- * sitt rum i minnet. Se rooms.ts.
+ * sitt rum i minnet. Se flashback.ts.
  */
-export type RoomsStep = {
+export type FlashbackStep = {
   id: string;
-  type: 'rooms';
+  type: 'flashback';
   /** Det spelaren ser vid golvuret. */
   text: string;
   goTo?: undefined;
@@ -161,9 +161,9 @@ export type RoomsStep = {
   /** Tiden som golvuret står på från början, som "4.40". */
   clockStart: string;
   /** Hur många minuter huset minns innan minnet bleknar. */
-  memoryMinutes: number;
+  flashbackMinutes: number;
   /** Raden överst i minnet, efter platsens namn, till exempel "kvart över nio, 1962". */
-  memoryLabel: string;
+  flashbackLabel: string;
   rooms: Room[];
   hints: string[];
   /** Tiden som får huset att minnas, som "21.15". Lämnar aldrig servern. */
@@ -235,7 +235,7 @@ export type PianoStep = {
 };
 
 /** Uppgifter är de steg som gruppen löser, med ledtrådar och facit. */
-export type TaskStep = AnswerStep | SeanceStep | RoomsStep | CellarStep | PianoStep;
+export type TaskStep = AnswerStep | SeanceStep | FlashbackStep | CellarStep | PianoStep;
 
 export type MissionStep = SceneStep | TaskStep;
 
@@ -245,7 +245,7 @@ export function describeSolution(step: TaskStep, places: readonly Place[]): stri
   if (step.type === 'seance') return step.solution.answers ? `${step.solution.message}, svar: ${step.solution.answers[0]}` : step.solution.message;
   if (step.type === 'cellar') return `Dörren åt ${step.solution.doorYawDeg} grader i bilden`;
   if (step.type === 'piano') return describePianoSolution(step);
-  return describeRoomsSolution(step, places);
+  return describeFlashbackSolution(step, places);
 }
 
 /** Alla texter i facit. Läckkontrollen letar efter dem i vyerna. */
@@ -348,7 +348,7 @@ function findEndsWithNextErrors(steps: readonly unknown[]): string[] {
     const fields = (step ?? {}) as Record<string, unknown>;
     if (fields.endsWithStep === undefined) return [];
     const next = (steps[index + 1] ?? {}) as Record<string, unknown>;
-    const isValid = fields.type === 'scene' && fields.endsWithStep === next.id && fields.readyLabel === undefined && fields.goTo === undefined && ['rooms', 'piano'].includes(String(next.type));
+    const isValid = fields.type === 'scene' && fields.endsWithStep === next.id && fields.readyLabel === undefined && fields.goTo === undefined && ['flashback', 'piano'].includes(String(next.type));
     return isValid ? [] : [`steget ${String(fields.id)} slutar med nästa steg, men är ingen scen utan knapp och plats, eller följs inte av golvuret eller pianot`];
   });
 }
@@ -359,11 +359,11 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   const name = `steget ${String(step.id)}`;
   if (step.type === 'cellar') errors.push(...findHintErrors(step, name), ...findCellarErrors(step, name));
   if (step.type === 'piano') errors.push(...findHintErrors(step, name), ...findPianoErrors(step, name));
-  if (!['scene', 'answer', 'seance', 'rooms', 'cellar', 'piano'].includes(String(step.type))) errors.push(`${name} har en okänd typ: ${String(step.type)}`);
+  if (!['scene', 'answer', 'seance', 'flashback', 'cellar', 'piano'].includes(String(step.type))) errors.push(`${name} har en okänd typ: ${String(step.type)}`);
   if (step.type === 'answer') errors.push(...findAnswerErrors(step, name));
   if (step.type === 'seance') errors.push(...findSeanceErrors(step, name));
-  if (step.type === 'rooms') errors.push(...findHintErrors(step, name), ...findRoomsErrors(step, name, places));
-  if (step.type === 'rooms' && (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined)) errors.push(`${name} har egna rum och kan inte ha plats eller roller`);
+  if (step.type === 'flashback') errors.push(...findHintErrors(step, name), ...findFlashbackErrors(step, name, places));
+  if (step.type === 'flashback' && (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined)) errors.push(`${name} har egna rum och kan inte ha plats eller roller`);
   if (step.type === 'scene' && (step.hints !== undefined || step.solution !== undefined)) errors.push(`${name} är en scen men har ledtrådar eller facit`);
   if (step.asksFor !== undefined && !(step.type === 'scene' && Array.isArray(step.asksFor) && step.asksFor.every((item) => (PERMISSIONS as readonly unknown[]).includes(item)))) errors.push(`${name} ber om tillstånd som inte finns, eller är ingen scen`);
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
@@ -371,7 +371,7 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   errors.push(...findDocumentErrors(step, name));
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);
-  if (step.roles !== undefined && !['seance', 'rooms', 'piano'].includes(String(step.type))) errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
+  if (step.roles !== undefined && !['seance', 'flashback', 'piano'].includes(String(step.type))) errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
   return errors;
 }
 

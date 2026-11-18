@@ -7,9 +7,9 @@
 import { type CellarMove, applyCellarMove } from './cellar.ts';
 import { type GameRefusal, type StateChange, findCurrentTask, findRole, isAtGoal, moveOn, moveOnIfAllDone } from './game.ts';
 import { searchRoom, walk } from './house.ts';
-import type { Mission, MissionStep, RoomsStep } from './mission.ts';
+import type { Mission, MissionStep, FlashbackStep } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
-import { type RoomsState, advanceRooms, chooseMemoryRoom as chooseRoom, isRemembering, isRoomsSolved, snapDial, startRooms, turnClock as turnClockHands } from './rooms.ts';
+import { type FlashbackState, advanceFlashback, chooseFlashbackRoom as chooseRoom, isRemembering, isFlashbackSolved, snapDial, startFlashback, turnClock as turnClockHands } from './flashback.ts';
 import { type BoardTouch, applyBoardTouch } from './seance.ts';
 import { isPianoSolved, pressKey, startPiano } from './piano.ts';
 import { sortByJoinOrder } from './lobby.ts';
@@ -42,7 +42,7 @@ export function touchBoard({ state, mission, players, player, touch, nowMs }: {
 }
 
 /** Uppdragets första uppgift av en typ, med var i uppdraget den står. */
-function findTaskStep<Type extends 'rooms' | 'piano'>(mission: Mission, type: Type): { step: Extract<MissionStep, { type: Type }>; index: number } | null {
+function findTaskStep<Type extends 'flashback' | 'piano'>(mission: Mission, type: Type): { step: Extract<MissionStep, { type: Type }>; index: number } | null {
   const index = mission.steps.findIndex((step) => step.type === type);
   return index === -1 ? null : { step: mission.steps[index] as Extract<MissionStep, { type: Type }>, index };
 }
@@ -70,16 +70,16 @@ function solveTask(state: GameState, mission: Mission, players: readonly PlayerR
  * Rummen minns, framförd till nu. Golvuret går att vrida hela tiden, så
  * minnet kan komma innan berättelsen har kommit dit (Jonas 2026-11-18).
  */
-function findRoomsTask(state: GameState, mission: Mission, nowMs: number): { step: RoomsStep; index: number; rooms: RoomsState } | { refusal: GameRefusal } {
+function findFlashbackTask(state: GameState, mission: Mission, nowMs: number): { step: FlashbackStep; index: number; flashback: FlashbackState } | { refusal: GameRefusal } {
   if (state.status !== 'running') return { refusal: 'notRunning' };
-  const task = findTaskStep(mission, 'rooms');
+  const task = findTaskStep(mission, 'flashback');
   if (!task || isTaskDone(state, task.step, task.index)) return { refusal: 'notATask' };
-  return { ...task, rooms: advanceRooms(state.rooms ?? startRooms(task.step), task.step, nowMs) };
+  return { ...task, flashback: advanceFlashback(state.flashback ?? startFlashback(task.step), task.step, nowMs) };
 }
 
-function saveRooms({ state, mission, players, task, rooms }: { state: GameState; mission: Mission; players: readonly PlayerRecord[]; task: { step: RoomsStep; index: number }; rooms: RoomsState }): GameState {
-  const saved = { ...state, rooms };
-  return isRoomsSolved(rooms, task.step) ? solveTask(saved, mission, players, task.index) : saved;
+function saveFlashback({ state, mission, players, task, flashback }: { state: GameState; mission: Mission; players: readonly PlayerRecord[]; task: { step: FlashbackStep; index: number }; flashback: FlashbackState }): GameState {
+  const saved = { ...state, flashback };
+  return isFlashbackSolved(flashback, task.step) ? solveTask(saved, mission, players, task.index) : saved;
 }
 
 /** Rummet där saken som öppnar steget står, till exempel salongen med golvuret. */
@@ -106,25 +106,25 @@ export function turnClock({ state, mission, players, player, minutes, nowMs }: {
   nowMs: number;
 }): StateChange {
   if (state.status !== 'running') return { refusal: 'notRunning' };
-  const roomsStep = findTaskStep(mission, 'rooms');
-  if (!roomsStep) return { refusal: 'notATask' };
-  if (!isAtOpener(state, mission, player, roomsStep.step.id)) return { refusal: 'notAtPlace' };
-  const task = findRoomsTask(state, mission, nowMs);
+  const flashbackStep = findTaskStep(mission, 'flashback');
+  if (!flashbackStep) return { refusal: 'notATask' };
+  if (!isAtOpener(state, mission, player, flashbackStep.step.id)) return { refusal: 'notAtPlace' };
+  const task = findFlashbackTask(state, mission, nowMs);
   if ('refusal' in task) {
     const isNumber = typeof minutes === 'number' && Number.isFinite(minutes);
-    return { state: isNumber && state.rooms ? { ...state, rooms: { ...state.rooms, dialMinutes: snapDial(minutes) } } : state };
+    return { state: isNumber && state.flashback ? { ...state, flashback: { ...state.flashback, dialMinutes: snapDial(minutes) } } : state };
   }
-  if (isRoomsSolved(task.rooms, task.step)) return { state: saveRooms({ state, mission, players, task, rooms: task.rooms }) };
-  const turned = turnClockHands({ rooms: task.rooms, step: task.step, minutes, nowMs });
+  if (isFlashbackSolved(task.flashback, task.step)) return { state: saveFlashback({ state, mission, players, task, flashback: task.flashback }) };
+  const turned = turnClockHands({ flashback: task.flashback, step: task.step, minutes, nowMs });
   if ('refusal' in turned) return turned;
-  return { state: { ...state, rooms: turned.rooms } };
+  return { state: { ...state, flashback: turned.flashback } };
 }
 
 /**
  * Spelaren väljer sitt rum i minnet och står sedan där, också när minnet har
  * bleknat. Tar hon ett rum till står hon kvar i det första.
  */
-export function chooseMemoryRoom({ state, mission, players, player, placeId, nowMs }: {
+export function chooseFlashbackRoom({ state, mission, players, player, placeId, nowMs }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
@@ -132,29 +132,29 @@ export function chooseMemoryRoom({ state, mission, players, player, placeId, now
   placeId: unknown;
   nowMs: number;
 }): StateChange {
-  const task = findRoomsTask(state, mission, nowMs);
+  const task = findFlashbackTask(state, mission, nowMs);
   if ('refusal' in task) return task;
-  const chosen = chooseRoom({ rooms: task.rooms, step: task.step, playerId: player.id, participantIds: players.map((participant) => participant.id), placeId, nowMs });
+  const chosen = chooseRoom({ flashback: task.flashback, step: task.step, playerId: player.id, participantIds: players.map((participant) => participant.id), placeId, nowMs });
   if ('refusal' in chosen) return chosen;
-  const isFirstRoom = !task.rooms.choices.some((choice) => choice.playerId === player.id);
+  const isFirstRoom = !task.flashback.choices.some((choice) => choice.playerId === player.id);
   const placeByPlayer = isFirstRoom && isPlaceId(placeId) ? { ...state.placeByPlayer, [player.id]: placeId } : state.placeByPlayer;
-  return { state: { ...state, rooms: chosen.rooms, placeByPlayer } };
+  return { state: { ...state, flashback: chosen.flashback, placeByPlayer } };
 }
 
 /**
  * En mobil säger till att minnet har bleknat. Alla mobiler kan säga det,
  * men servern avgör. Har gruppen sett alla rummen går den vidare.
  */
-export function fadeMemory({ state, mission, players, nowMs }: {
+export function fadeFlashback({ state, mission, players, nowMs }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   nowMs: number;
 }): StateChange {
-  const task = findRoomsTask(state, mission, nowMs);
+  const task = findFlashbackTask(state, mission, nowMs);
   if ('refusal' in task) return task;
-  if (task.rooms === state.rooms) return { state };
-  return { state: saveRooms({ state, mission, players, task, rooms: task.rooms }) };
+  if (task.flashback === state.flashback) return { state };
+  return { state: saveFlashback({ state, mission, players, task, flashback: task.flashback }) };
 }
 
 /**
@@ -184,7 +184,7 @@ export function playKey({ state, mission, players, player, key }: {
 
 /** Medan huset minns står var och en kvar i sitt rum, och dörrarna är stängda (Jonas 2026-11-17). */
 function isHouseRemembering(state: GameState, mission: Mission, nowMs: number): boolean {
-  return mission.steps.some((step) => step.type === 'rooms') && state.rooms !== null && isRemembering(state.rooms, nowMs);
+  return mission.steps.some((step) => step.type === 'flashback') && state.flashback !== null && isRemembering(state.flashback, nowMs);
 }
 
 /**

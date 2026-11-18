@@ -199,8 +199,8 @@ export function App() {
       if (gameId) void callGame({ type: 'touchBoard', gameId, touch });
     },
     turnClock: (minutes) => sendInGame({ type: 'turnClock', minutes }),
-    chooseMemoryRoom: (placeId) => sendInGame({ type: 'chooseMemoryRoom', placeId }),
-    fadeMemory: () => sendInGame({ type: 'fadeMemory' }),
+    chooseFlashbackRoom: (placeId) => sendInGame({ type: 'chooseFlashbackRoom', placeId }),
+    fadeFlashback: () => sendInGame({ type: 'fadeFlashback' }),
     playKey: (key) => sendInGame({ type: 'playKey', key }),
     moveInCellar: (move) => sendInGame({ type: 'moveInCellar', move }),
     walk: (placeId) => sendInGame({ type: 'walk', placeId }),

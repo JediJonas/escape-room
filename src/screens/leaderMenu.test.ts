@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { canHelpWithTask, describeDone } from './leaderMenu.ts';
+import { canHelpWithTask, describeDone, describeSceneSkip, describeUnread } from './leaderMenu.ts';
 
 test('raden räknar de klara och visar deras namn inom parentes', () => {
   const progress = [{ name: 'Anna', isDone: true }, { name: 'Bo', isDone: false }, { name: 'Cia', isDone: true }];
@@ -25,4 +25,16 @@ test('ledtråd och facit syns inte när uppgiften redan är klarad', () => {
 
 test('ledtråd och facit syns inte i en scen', () => {
   assert.equal(canHelpWithTask({ isTask: false, isAtTask: true, isSolved: false }), false);
+});
+
+test('i urklippen ser spelledaren vilka som inte har läst (Jonas 2026-11-18)', () => {
+  const progress = [{ name: 'Anna', isDone: true }, { name: 'Bo', isDone: false }, { name: 'Cia', isDone: false }];
+  assert.equal(describeUnread(progress, 'Tidningsurklippen'), 'Har inte läst tidningsurklippen: Bo, Cia');
+  assert.equal(describeUnread([{ name: 'Anna', isDone: true }], 'Tidningsurklippen'), 'Alla har läst tidningsurklippen.');
+});
+
+test('i urklippen räknar Alla är klara först alla som lästa, och sedan hoppar knappen över uppgiften', () => {
+  assert.equal(describeSceneSkip([{ name: 'Anna', isDone: true }, { name: 'Bo', isDone: false }], 'Tidningsurklippen'), 'Alla är klara');
+  assert.equal(describeSceneSkip([{ name: 'Anna', isDone: true }, { name: 'Bo', isDone: true }], 'Tidningsurklippen'), 'Hoppa över uppgiften');
+  assert.equal(describeSceneSkip([{ name: 'Anna', isDone: true }], null), 'Alla är klara');
 });

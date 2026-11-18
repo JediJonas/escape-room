@@ -4,6 +4,9 @@
  * kvar i koden (Jonas 2026-11-18). När gruppen lämnar ett steg med
  * `foundTitle` sparas vem som hade vilka bitar, så att var och en senare bara
  * ser sina egna. Se docs/koncept.md, Inget snabbval än.
+ *
+ * Den som lämnar urklippen med Tillbaka har läst dem, och berättelsen väntar
+ * på att alla har läst innan brädet frågar VEM ÄR JAG (Jonas 2026-11-18).
  */
 
 import type { Mission, MissionDocument, MissionStep } from './mission.ts';
@@ -38,4 +41,18 @@ export function readFoundState(saved: unknown, readRoles: (saved: unknown) => Re
   const found: FoundState = {};
   for (const [stepId, roles] of Object.entries(saved)) found[stepId] = readRoles(roles);
   return found;
+}
+
+/** Om spelaren har läst det som steget gav att läsa igen. */
+export function hasRead(foundReaders: Record<string, string[]>, stepId: string, playerId: string): boolean {
+  return (foundReaders[stepId] ?? []).includes(playerId);
+}
+
+/** Stegen med något att läsa igen som saken öppnar, som urklippen i byrån. */
+export function findReadSteps(mission: Mission, thingId: unknown): string[] {
+  const thing = mission.house?.rooms.flatMap((room) => room.things).find((candidate) => candidate.id === thingId);
+  return (thing?.opensSteps ?? []).filter((stepId) => {
+    const step = mission.steps.find((candidate) => candidate.id === stepId);
+    return step?.type === 'scene' && step.foundTitle !== undefined;
+  });
 }

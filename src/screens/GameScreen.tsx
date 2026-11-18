@@ -12,7 +12,7 @@ import { FlashbackScreen, useFlashbackTime } from '../tasks/FlashbackScreen.tsx'
 import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
-import { canHelpWithTask, describeDone } from './leaderMenu.ts';
+import { canHelpWithTask, describeDone, describeSceneSkip, describeUnread } from './leaderMenu.ts';
 import { canLeaderSkip } from './leaderSkip.ts';
 import { DocumentList } from './FoundDocuments.tsx';
 import { TextView } from './TextView.tsx';
@@ -26,6 +26,8 @@ import { ScreenLayout } from './ScreenLayout.tsx';
 export type GameActions = {
   nextStep: () => void;
   markReady: () => void;
+  /** Spelaren har lämnat urklippen och har läst dem. */
+  markRead: (thingId: string) => void;
   setPaused: (isPaused: boolean) => void;
   choosePlace: (placeId: PlaceId) => void;
   submitAnswer: (answer: string) => void;
@@ -37,7 +39,8 @@ export type GameActions = {
   chooseFlashbackRoom: (placeId: PlaceId) => void;
   fadeFlashback: () => void;
   playKey: (note: string) => void;
-  giveHint: () => void;
+  /** Vid byrån en ledtråd om urklippen, annars om uppgiften. */
+  giveHint: (isAboutReading: boolean) => void;
   showSolution: () => void;
   answerPending: (playerId: string, isAdmitted: boolean) => void;
   leave: () => void;
@@ -56,6 +59,29 @@ type GameScreenProps = {
 /** Det som visas i inforutan, med ett nummer så att en ny text börjar om tiden. */
 type Info = { id: number; title?: string; text: string };
 
+/** Det gruppen ska läsa, som tidningsurklippen, mitt i en mening. */
+function readingName(step: GameView['step']): string {
+  return (step.foundTitle ?? '').toLocaleLowerCase('sv');
+}
+
+/** Ledtrådarna som gruppen har fått, först de om urklippen vid byrån. */
+function HintCard({ step }: { step: GameView['step'] }) {
+  if (step.hints.length === 0 && step.readingHints.length === 0) return null;
+  return (
+    <section className="hint-card" aria-label="Ledtrådar">
+      {step.readingHints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1} om {readingName(step)}.</strong> {hint}</p>)}
+      {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
+    </section>
+  );
+}
+
+/** Ledtråden som just kom, om uppgiften eller om urklippen vid byrån. */
+function findNewHint(step: GameView['step'], seen: { count: number; readingCount: number }): { title: string; text: string } | null {
+  if (step.readingHints.length > seen.readingCount) return { title: `Ledtråd ${step.readingHints.length} om ${readingName(step)}.`, text: step.readingHints[step.readingHints.length - 1] };
+  if (step.hints.length > seen.count) return { title: `Ledtråd ${step.hints.length}.`, text: step.hints[step.hints.length - 1] };
+  return null;
+}
+
 /**
  * Spelet, med inforutan ovanpå. Ger spelledaren en ledtråd visas den hos
  * alla en stund, eftersom spelarna inte har någon meny (Jonas 2026-11-18).
@@ -63,11 +89,12 @@ type Info = { id: number; title?: string; text: string };
 export function GameScreen(props: GameScreenProps) {
   const { step } = props.view;
   const [info, setInfo] = useState<Info | null>(null);
-  const [hintsSeen, setHintsSeen] = useState({ stepNumber: step.number, count: step.hints.length });
-  if (hintsSeen.stepNumber !== step.number || hintsSeen.count !== step.hints.length) {
-    const isNewHint = hintsSeen.stepNumber === step.number && step.hints.length > hintsSeen.count;
-    setHintsSeen({ stepNumber: step.number, count: step.hints.length });
-    if (isNewHint) setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, title: `Ledtråd ${step.hints.length}.`, text: step.hints[step.hints.length - 1] }));
+  const [hintsSeen, setHintsSeen] = useState({ stepNumber: step.number, count: step.hints.length, readingCount: step.readingHints.length });
+  if (hintsSeen.stepNumber !== step.number || hintsSeen.count !== step.hints.length || hintsSeen.readingCount !== step.readingHints.length) {
+    const isSameStep = hintsSeen.stepNumber === step.number;
+    const newHint = isSameStep ? findNewHint(step, hintsSeen) : null;
+    setHintsSeen({ stepNumber: step.number, count: step.hints.length, readingCount: step.readingHints.length });
+    if (newHint) setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, ...newHint }));
   }
   const closeInfo = useCallback(() => setInfo(null), []);
   return (
@@ -102,8 +129,13 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Bara spelledaren har en meny, en hamburgare i nedre högra hörnet. Spelarna har Tillbaka (Jonas 2026-11-18).
   const isLeaderMenuShown = view.me.isLeader && !view.isFinished;
   const canSkipScene = canLeaderSkip({ isLeaderPlaying: view.me.isPlaying, usesReadyButton: step.usesReadyButton && !step.isDoneByLeaving, isMeDone: step.isMeDone, progress: view.progress ?? [] });
+  const skipSceneLabel = canSkipScene ? describeSceneSkip(view.progress ?? [], step.foundTitle) : null;
   function withLeaderMenu(screen: ReactNode, { stepText = null, isAtTask = false }: { stepText?: string | null; isAtTask?: boolean } = {}) {
     if (!isLeaderMenuShown) return screen;
+    // Golvuret får ledtrådar också medan berättelsen väntar på urklippen (Jonas 2026-11-18).
+    const isAtAwaitedTask = openThing?.opensAwaitedTask === true;
+    // Byrån får ledtrådar om urklippen medan berättelsen väntar på att alla har läst (Jonas 2026-11-18).
+    const isAtReading = openThing?.opensCurrentStep === true && step.readingHintCount > 0;
     return (
       <div className="has-leader-menu">
         {screen}
@@ -111,8 +143,9 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
           view={view}
           isBusy={isBusy}
           stepText={stepText}
-          canHelpWithTask={canHelpWithTask({ isTask: step.type !== 'scene', isAtTask, isSolved: step.type !== 'scene' && step.usesReadyButton })}
-          canSkipScene={canSkipScene}
+          canHelpWithTask={canHelpWithTask({ isTask: step.type !== 'scene' || isAtAwaitedTask, isAtTask: isAtTask || isAtAwaitedTask, isSolved: step.type !== 'scene' && step.usesReadyButton })}
+          canHelpWithReading={isAtReading}
+          skipSceneLabel={skipSceneLabel}
           onSetPaused={game.setPaused}
           onGiveHint={game.giveHint}
           onShowSolution={game.showSolution}
@@ -124,10 +157,11 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
   // Väntar på att alla ska bli klara, och bara hos spelledaren hur många som är klara och vilka
   // (Jonas 2026-11-18). Står hon utanför spelet ser hon raden så länge någon kan bli klar.
-  // Urklippen räknas inte: de går att läsa när som helst, och berättelsen väntar bara på uppgiften (Jonas 2026-11-18).
-  const countsReady = (step.type === 'scene' || step.usesReadyButton) && !(step.type === 'scene' && step.isDoneByLeaving);
-  const showsDone = view.me.isLeader && view.progress !== null && countsReady && (step.isMeDone || !view.me.isPlaying) && !view.isFinished;
-  const doneLine = showsDone && view.progress ? <span className="leader-done">{describeDone(view.progress)}</span> : null;
+  // I urklippen ser spelledaren i stället vilka som inte har läst, hela tiden (Jonas 2026-11-18).
+  const countsReady = step.type === 'scene' || step.usesReadyButton;
+  const showsDone = view.me.isLeader && view.progress !== null && countsReady && (step.isMeDone || !view.me.isPlaying || step.foundTitle !== null) && !view.isFinished;
+  const doneText = view.progress && step.foundTitle !== null ? describeUnread(view.progress, step.foundTitle) : describeDone(view.progress ?? []);
+  const doneLine = showsDone ? <span className="leader-done">{doneText}</span> : null;
   const waitingLine = step.isMeDone || doneLine ? <p className="hint">{step.isMeDone && 'Väntar på att alla ska bli klara.'}{doneLine}</p> : null;
 
   // Medan huset minns ser alla minnet, var de än är, och inget av det som finns i nuet (Jonas 2026-11-17).
@@ -236,11 +270,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         </p>
         {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
         <TextView house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
-        {step.hints.length > 0 && (
-          <section className="hint-card" aria-label="Ledtrådar">
-            {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
-          </section>
-        )}
+        <HintCard step={step} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>,
     );
@@ -311,7 +341,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Tillbaka går till rummet. Att lämna brädet efter meddelandet, eller urklippen efter att ha
   // läst dem, räknas som klar, så ingen Klar-knapp behövs (Jonas 2026-11-18).
   function leaveThing() {
-    if (step.isDoneByLeaving && openThing?.opensCurrentStep && view.me.isPlaying && !step.isMeDone) markReady();
+    if (openThing?.marksRead && view.me.isPlaying) game.markRead(openThing.id);
+    else if (step.isDoneByLeaving && openThing?.opensCurrentStep && view.me.isPlaying && !step.isMeDone) markReady();
     // Utan huset finns inget rum att gå till, så spelaren kommer till stegets sida.
     if (!house && step.seance?.isComplete) setHasLeftBoard(true);
     setIsMenuOpen(false);
@@ -371,11 +402,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
           {step.role.pieces.map((piece) => <p key={piece} className={step.documents.length > 0 ? 'clipping' : undefined}>{piece}</p>)}
         </section>
       )}
-      {step.hints.length > 0 && (
-        <section className="hint-card" aria-label="Ledtrådar">
-          {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
-        </section>
-      )}
+      <HintCard step={step} />
       {!view.me.isPlaying && !view.isFinished && <p className="hint">Du står utanför och leder spelet. Du ser det alla ser, men ingen roll.</p>}
       {step.question && <p className="status" role="status">{step.question}</p>}
       {canAnswer && (

@@ -14,7 +14,7 @@ import { type PianoRefusal, type PianoView, describePiano, startPiano } from './
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
 import { type FlashbackRefusal, type FlashbackView, describeFlashback, startFlashback } from './flashback.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
-import { type FoundItem, describeFound, keepFound } from './found.ts';
+import { type FoundItem, describeFound, hasRead, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
@@ -31,6 +31,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     readyPlayerIds: [],
     wrongAnswers: 0,
     hintsGiven: 0,
+    readingHintsGiven: 0,
     isSolutionShown: false,
     seance: step.type === 'seance' ? startSeance() : null,
     // Golvuret och pianot går att använda hela tiden, så deras läge följer med mellan stegen (Jonas 2026-11-18).
@@ -80,7 +81,19 @@ function jumpTo(state: GameState, mission: Mission, players: readonly PlayerReco
   if (nextIndex >= mission.steps.length) return finish(kept);
   const entered = enterStep(kept, mission, players, nextIndex);
   const isEnding = nextIndex === mission.steps.length - 1 && mission.steps[nextIndex].type === 'scene';
-  return isEnding ? finish(entered) : entered;
+  if (isEnding) return finish(entered);
+  return isDoneOnArrival(entered, mission, players) ? jumpTo(entered, mission, players, nextIndex + 1) : entered;
+}
+
+/**
+ * En scen som väntar på en uppgift, som urklippen, kan vara klar redan när
+ * gruppen kommer dit: alla har läst och golvuret är ställt. Då går gruppen
+ * förbi den direkt, eftersom ingen annars gör något som för den vidare.
+ */
+function isDoneOnArrival(state: GameState, mission: Mission, players: readonly PlayerRecord[]): boolean {
+  const step = mission.steps[state.stepIndex];
+  if (step.type !== 'scene' || step.endsWithStep === undefined) return false;
+  return players.length > 0 && !isWaitingForTask(step, state) && players.every((player) => isPlayerDone(step, state, player.id));
 }
 
 export function findRole(step: MissionStep, state: GameState, playerId: string): Role | undefined {
@@ -138,7 +151,7 @@ function usesReadyButton(step: MissionStep, state: GameState): boolean {
 /**
  * Spelaren blir klar av att lämna saken med Tillbaka, utan någon Klar-knapp:
  * brädet när meddelandet är klart, och urklippen när hon har läst dem
- * (Jonas 2026-11-18).
+ * (Jonas 2026-11-18). Urklippen räknas med `markRead` i reading.ts.
  */
 function isDoneByLeaving(step: MissionStep, state: GameState): boolean {
   if (step.type === 'seance') return usesReadyButton(step, state);
@@ -148,15 +161,16 @@ function isDoneByLeaving(step: MissionStep, state: GameState): boolean {
 /**
  * En scen som slutar med nästa uppgift, som urklippen, går vidare när alla
  * har läst och gruppen har klarat uppgiften, i vilken ordning som helst
- * (Jonas 2026-11-18).
+ * (Jonas 2026-11-18). Brädet frågar alltså VEM ÄR JAG först när gruppen har
+ * sett Rummen minns och alla har läst urklippen.
  */
 function isWaitingForTask(step: MissionStep, state: GameState): boolean {
   return step.type === 'scene' && step.endsWithStep !== undefined && !state.solvedSteps.includes(step.endsWithStep);
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
-  // Urklippen går att läsa när som helst, så berättelsen väntar bara på uppgiften (Jonas 2026-11-18).
-  if (step.type === 'scene' && step.endsWithStep !== undefined) return true;
+  // Urklippen går att läsa när som helst. Den som har lämnat dem med Tillbaka har läst (Jonas 2026-11-18).
+  if (step.type === 'scene' && step.endsWithStep !== undefined) return step.foundTitle === undefined || hasRead(state.foundReaders, step.id, playerId);
   // Rummen minns och pianot är klara för alla samtidigt. Se taskActions.ts.
   if (step.type === 'flashback' || step.type === 'piano') return false;
   if (step.type === 'scene' && isDoneWhenArrived(step)) return isAtGoal(step, state, playerId);
@@ -205,7 +219,10 @@ function dealFoundAtStart(state: GameState, mission: Mission, players: readonly 
   return { ...state, found };
 }
 
-/** Spelledaren går vidare utan att vänta på alla, till exempel när någon har gått iväg. */
+/**
+ * Spelledaren går vidare utan att vänta på alla, till exempel när någon har
+ * gått iväg. I urklippen gör `skipReading` i reading.ts det i två steg.
+ */
 export function advanceStep({ state, mission, players, player }: {
   state: GameState;
   mission: Mission;
@@ -303,10 +320,29 @@ export function nextWrongAnswerCost(minutes: number, wrongAnswers: number): numb
   return minutes * (wrongAnswers + 1);
 }
 
+/**
+ * Uppgiften som spelledaren kan ge ledtråd och facit i: den aktuella, eller
+ * den som scenen väntar på, som golvuret medan berättelsen väntar på
+ * urklippen (Jonas 2026-11-18).
+ */
+export function findHelpTask(state: GameState, mission: Mission): { step: TaskStep } | { refusal: GameRefusal } {
+  const task = findCurrentTask(state, mission);
+  if (!('refusal' in task) || task.refusal !== 'notATask') return task;
+  const awaited = findAwaitedTask(mission.steps[state.stepIndex], state, mission);
+  return awaited ? { step: awaited } : task;
+}
+
+/** Uppgiften som scenen väntar på, om gruppen inte har klarat den än. */
+function findAwaitedTask(step: MissionStep, state: GameState, mission: Mission): TaskStep | null {
+  if (!isWaitingForTask(step, state) || step.type !== 'scene') return null;
+  const awaited = mission.steps.find((candidate) => candidate.id === step.endsWithStep);
+  return awaited && awaited.type !== 'scene' ? awaited : null;
+}
+
 /** Spelledaren ger gruppen nästa ledtråd. Alla får den samtidigt. */
 export function giveHint({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
   if (!player.isLeader) return { refusal: 'notLeader' };
-  const task = findCurrentTask(state, mission);
+  const task = findHelpTask(state, mission);
   if ('refusal' in task) return { refusal: task.refusal };
   if (state.hintsGiven >= task.step.hints.length) return { refusal: 'noMoreHints' };
   return { state: { ...state, hintsGiven: state.hintsGiven + 1 } };
@@ -315,7 +351,7 @@ export function giveHint({ state, mission, player }: { state: GameState; mission
 /** Facit visas bara hos spelledaren, och bara när hon ber om det. */
 export function showSolution({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
   if (!player.isLeader) return { refusal: 'notLeader' };
-  const task = findCurrentTask(state, mission);
+  const task = findHelpTask(state, mission);
   if ('refusal' in task) return { refusal: task.refusal };
   return { state: { ...state, isSolutionShown: true } };
 }
@@ -365,6 +401,8 @@ export type GameView = {
     isDoneByLeaving: boolean;
     /** Texten på knappen, om scenen har en egen. Annars står det Klar. */
     readyLabel: string | null;
+    /** Det alla ska ha läst innan berättelsen går vidare, som Tidningsurklippen. */
+    foundTitle: string | null;
     /** Om gruppen kan skriva ett svar nu, och frågan ovanför fältet när steget har en. */
     acceptsAnswer: boolean;
     question: string | null;
@@ -374,6 +412,9 @@ export type GameView = {
     /** Ledtrådarna som gruppen har fått, och hur många uppgiften har. */
     hints: string[];
     hintCount: number;
+    /** Ledtrådarna om urklippen som gruppen har fått vid byrån, och hur många det finns. */
+    readingHints: string[];
+    readingHintCount: number;
     /** Bara hos spelledaren och bara när hon har bett om det. */
     solution: string | null;
     /** Brädet i en seans, med bokstaven bara hos den som ska läsa den. */
@@ -468,6 +509,8 @@ export function buildGameView({ game, mission, players, viewer }: {
   const isRunning = state.status === 'running';
   const participants = listParticipants(state, players);
   const showsLeaderTools = viewer.isLeader && isRunning;
+  // Ledtrådarna hör till golvuret också medan berättelsen väntar på urklippen.
+  const helpStep = findAwaitedTask(step, state, mission) ?? step;
   return {
     type: 'game',
     gameId: game.id,
@@ -483,13 +526,16 @@ export function buildGameView({ game, mission, players, viewer }: {
       usesReadyButton: usesReadyButton(step, state),
       isDoneByLeaving: isDoneByLeaving(step, state),
       readyLabel: step.type === 'scene' ? step.readyLabel ?? null : null,
+      foundTitle: step.type === 'scene' && step.endsWithStep !== undefined ? step.foundTitle ?? null : null,
       acceptsAnswer: isRunning && acceptsAnswer(step, state),
       question: step.type === 'seance' && isSeanceDone(step, state) ? step.question ?? null : null,
       wrongAnswers: step.type === 'seance' && step.wrongAnswerMinutes !== undefined ? { count: state.wrongAnswers, nextMinutes: nextWrongAnswerCost(step.wrongAnswerMinutes, state.wrongAnswers) } : null,
       isMeDone: isPlayerDone(step, state, viewer.id),
-      hints: step.hints?.slice(0, state.hintsGiven) ?? [],
-      hintCount: step.hints?.length ?? 0,
-      solution: viewer.isLeader && state.isSolutionShown && step.type !== 'scene' ? describeSolution(step, places) : null,
+      hints: helpStep.hints?.slice(0, state.hintsGiven) ?? [],
+      hintCount: helpStep.hints?.length ?? 0,
+      readingHints: step.type === 'scene' ? step.readingHints?.slice(0, state.readingHintsGiven) ?? [] : [],
+      readingHintCount: step.type === 'scene' ? step.readingHints?.length ?? 0 : 0,
+      solution: viewer.isLeader && state.isSolutionShown && helpStep.type !== 'scene' ? describeSolution(helpStep, places) : null,
       seance: step.type === 'seance' && state.seance && isRunning
         ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })
         : null,

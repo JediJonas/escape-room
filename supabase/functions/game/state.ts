@@ -32,6 +32,8 @@ export type GameState = {
   wrongAnswers: number;
   /** Hur många av uppgiftens ledtrådar som gruppen har fått. Töms när gruppen går vidare. */
   hintsGiven: number;
+  /** Hur många ledtrådar gruppen har fått vid byrån, för urklippen. Töms när gruppen går vidare. */
+  readingHintsGiven: number;
   /** Om spelledaren har bett om facit i den aktuella uppgiften. */
   isSolutionShown: boolean;
   /** Om spelledaren spelar med. Annars får hon en ren administrationsvy. */
@@ -59,6 +61,11 @@ export type GameState = {
   found: FoundState;
   /** Sakerna i huset som gruppen har hittat. De står sedan i rummets lista för alla. */
   foundThings: string[];
+  /**
+   * Vilka som har läst det som går att läsa igen, efter stegets id. Den som
+   * har lämnat urklippen med Tillbaka har läst dem (Jonas 2026-11-18).
+   */
+  foundReaders: Record<string, string[]>;
 };
 
 export type GameRecord = {
@@ -78,7 +85,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, flashback: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [] };
+  return { status: 'lobby', stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, readingHintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, flashback: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [], foundReaders: {} };
 }
 
 /**
@@ -105,6 +112,7 @@ export function readGameState(saved: unknown): GameState {
     readyPlayerIds: readStringList(fields.readyPlayerIds),
     wrongAnswers: Number.isInteger(fields.wrongAnswers) && (fields.wrongAnswers as number) >= 0 ? fields.wrongAnswers as number : initial.wrongAnswers,
     hintsGiven: Number.isInteger(fields.hintsGiven) && (fields.hintsGiven as number) >= 0 ? fields.hintsGiven as number : initial.hintsGiven,
+    readingHintsGiven: Number.isInteger(fields.readingHintsGiven) && (fields.readingHintsGiven as number) >= 0 ? fields.readingHintsGiven as number : initial.readingHintsGiven,
     isSolutionShown: fields.isSolutionShown === true,
     leaderPlays: fields.leaderPlays !== false,
     pendingPlayers: readPendingPlayers(fields.pendingPlayers),
@@ -117,6 +125,7 @@ export function readGameState(saved: unknown): GameState {
     marks: readStringList(fields.marks),
     found: readFoundState(fields.found, readRoleByPlayer),
     foundThings: readStringList(fields.foundThings),
+    foundReaders: readStringListsByKey(fields.foundReaders),
   };
 }
 
@@ -128,6 +137,11 @@ function readPendingPlayers(saved: unknown): PendingPlayer[] {
     if (typeof playerId !== 'string' || (takesOverPlayerId !== null && typeof takesOverPlayerId !== 'string')) return [];
     return [{ playerId, takesOverPlayerId }];
   });
+}
+
+function readStringListsByKey(saved: unknown): Record<string, string[]> {
+  if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return {};
+  return Object.fromEntries(Object.entries(saved).map(([key, list]) => [key, readStringList(list)]));
 }
 
 function readStringList(saved: unknown): string[] {

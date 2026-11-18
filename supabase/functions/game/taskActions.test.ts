@@ -7,14 +7,15 @@ test('golvuret och minnet syns hos alla, och en mobil som säger att minnet har 
   const gameId = memory.games[0].id;
   await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
   let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
-  while (view.step.type !== 'flashback') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
-  assert.equal(view.step.opensFrom, 'Golvuret');
+  // Berättelsen väntar på urklippen och golvuret. Där får spelledaren ge ledtrådar om golvuret (Jonas 2026-11-18).
+  while (view.step.number < 5) view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 600 }), { status: 409, body: { error: 'notAtPlace' } });
-  await send(memory.store, 'user-Bo', { type: 'walk', gameId, placeId: 'F' });
+  const atClock = readGameView((await send(memory.store, 'user-Bo', { type: 'walk', gameId, placeId: 'F' })).body);
+  assert.equal(atClock.house?.things.find((thing) => thing.id === 'golvuret')?.opensAwaitedTask, true);
 
   memory.sentViews.length = 0;
   const turned = readGameView((await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 600 })).body);
-  assert.equal(turned.step.flashback?.dialMinutes, 600);
+  assert.deepEqual(turned.house?.things.find((thing) => thing.id === 'golvuret')?.instrument, { type: 'clock', dialMinutes: 600 });
   assert.equal(memory.sentViews.length, 3);
   const remembering = readGameView((await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 555 })).body);
   assert.ok(remembering.step.flashback?.remembersUntilMs);
@@ -26,8 +27,8 @@ test('golvuret och minnet syns hos alla, och en mobil som säger att minnet har 
   memory.clock.nowMs += 3 * 60_000;
   memory.sentViews.length = 0;
   const faded = readGameView((await send(memory.store, 'user-Cia', { type: 'fadeFlashback', gameId })).body);
-  assert.equal(faded.step.flashback?.remembersUntilMs, null);
-  assert.equal(faded.step.flashback?.dialMinutes, 280);
+  assert.equal(faded.step.flashback, null);
+  assert.equal(memory.games[0].state.flashback?.dialMinutes, 280);
   assert.equal(memory.sentViews.length, 3);
   memory.sentViews.length = 0;
   await send(memory.store, 'user-Bo', { type: 'fadeFlashback', gameId });

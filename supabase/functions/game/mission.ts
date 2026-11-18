@@ -88,6 +88,11 @@ export type SceneStep = {
    * docs/koncept.md, Inget snabbval än.
    */
   foundTitle?: string;
+  /**
+   * Ledtrådar vid saken där det finns något att läsa, som byrån, medan
+   * berättelsen väntar på att alla har läst (Jonas 2026-11-18).
+   */
+  readingHints?: string[];
 };
 
 /** Det som en mobil måste be om tillstånd för, eller låsa upp med ett tryck. */
@@ -319,6 +324,9 @@ function findDocumentErrors(step: Record<string, unknown>, name: string): string
   };
   if (documents !== undefined && !(Array.isArray(documents) && documents.length > 0 && documents.every(isDocument))) errors.push(`${name} har dokument utan rubrik eller text`);
   if (foundTitle !== undefined && !isFilledText(foundTitle)) errors.push(`${name} har ett tomt namn i Hittat`);
+  const { readingHints } = step;
+  const hasReadingHints = Array.isArray(readingHints) && readingHints.length === HINT_COUNT && readingHints.every(isFilledText);
+  if (readingHints !== undefined && !(hasReadingHints && foundTitle !== undefined && step.endsWithStep !== undefined)) errors.push(`${name} ska ha ${HINT_COUNT} ledtrådar för läsningen, och något att läsa som berättelsen väntar på`);
   return errors;
 }
 

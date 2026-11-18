@@ -105,7 +105,7 @@ sist under Namn som är bestämda.
 | Ledtråd | En av uppgiftens tre hjälptexter i stigande tydlighet. Spelledaren ger dem en i taget, och alla ser dem. | `hints`, `giveHint` |
 | Facit | Uppgiftens rätta svar. Ligger på servern och visas bara för spelledaren när hon ber om det. | `solution`, `showSolution` |
 | Hoppa över | Spelledaren går förbi en uppgift som har låst sig. | `nextStep` |
-| Alla är klara | Spelledaren låter gruppen gå vidare i en scen när någon har gått iväg. | `nextStep`, `canLeaderSkip` |
+| Alla är klara | Spelledaren låter gruppen gå vidare i en scen när någon har gått iväg. I urklippen räknas först alla som lästa, och sedan hoppar knappen över Rummen minns. | `nextStep`, `canLeaderSkip`, `skipReading` |
 | Stegets text | Texten som beskriver steget. Syns överst i spelledarens meny vid saken, men inte hos spelarna. | `step.text`, `stepText` |
 | Klara: 2 av 3 | Raden som bara spelledaren ser, med vilka som är klara. | `progress` |
 

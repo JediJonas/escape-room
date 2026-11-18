@@ -13,6 +13,7 @@ import { type PlaceId, isPlaceId } from './places.ts';
 import { SEANCE_LETTERS, isSeanceComplete } from './seance.ts';
 import { type PianoKey, listKeyPlayers, listMyKeys } from './piano.ts';
 import { readDialTime } from './flashback.ts';
+import { findReadSteps, hasRead } from './found.ts';
 import type { GameState } from './state.ts';
 
 /** En sak i ett rum som spelaren kan trycka på. Den öppnar alltid en vy. */
@@ -139,6 +140,13 @@ export type ThingView = {
   instrument: Instrument | null;
   /** Det brädet bokstaverar av sig självt när steget det öppnar inte är det gruppen är på, annars null. */
   echo: string | null;
+  /** Spelaren har inte läst det som saken ger, som urklippen. Tillbaka räknas då som läst (Jonas 2026-11-18). */
+  marksRead: boolean;
+  /**
+   * Saken öppnar uppgiften som scenen väntar på, som golvuret medan
+   * berättelsen väntar på urklippen. Där kan spelledaren ge ledtråd (Jonas 2026-11-18).
+   */
+  opensAwaitedTask: boolean;
 };
 
 export type Instrument = { type: 'clock'; dialMinutes: number } | { type: 'piano'; keys: PianoKey[] };
@@ -169,6 +177,12 @@ function isStepCalling(step: MissionStep, state: GameState): boolean {
   return step.type === 'seance' && step.callsFromHouse === true && state.seance !== null && !isSeanceComplete(state.seance, step.solution.message);
 }
 
+/** Om scenen väntar på en uppgift som saken öppnar och som gruppen inte har klarat än. */
+function isAwaitedBy(step: MissionStep | undefined, state: GameState, thing: HouseThing): boolean {
+  if (step?.type !== 'scene' || step.endsWithStep === undefined || state.solvedSteps.includes(step.endsWithStep)) return false;
+  return thing.opensSteps?.includes(step.endsWithStep) ?? false;
+}
+
 function describeThing(thing: HouseThing, mission: Mission, state: GameState, viewer?: { id: string; participantIds: readonly string[] }): ThingView {
   const opened = (thing.opensSteps ?? []).flatMap((stepId) => {
     const step = mission.steps.find((candidate) => candidate.id === stepId);
@@ -187,6 +201,8 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     isCalling: current !== undefined && isStepCalling(current.step, state),
     instrument: current === undefined && viewer ? describeInstrument(opened.map(({ step }) => step), state, viewer.id, viewer.participantIds) : null,
     echo: current === undefined ? (thing.echoes ?? []).filter((echo) => state.stepIndex >= stepIndexOf(mission, echo.fromStep)).at(-1)?.message ?? null : null,
+    opensAwaitedTask: isAwaitedBy(mission.steps[state.stepIndex], state, thing),
+    marksRead: viewer !== undefined && findReadSteps(mission, thing.id).some((stepId) => !hasRead(state.foundReaders, stepId, viewer.id)),
   };
 }
 

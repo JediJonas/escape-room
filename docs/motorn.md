@@ -228,9 +228,15 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   (Jonas 2026-11-18). Det gäller scener utan sak, dokument, plats och roller.
   Utan huset kan en scen ha en egen text på knappen med `readyLabel`, och
   annars står det Klar (Jonas 2026-11-18). En scen med `endsWithStep`
-  har ingen knapp och slutar när gruppen har klarat uppgiften i nästa steg.
-  Urklippen går att läsa när som helst, så scenen väntar inte på att alla har
-  läst dem (Jonas 2026-11-18). Brädet blir klart på samma sätt, genom att
+  har ingen knapp och slutar när gruppen har klarat uppgiften i nästa steg
+  och alla har läst det som går att läsa igen, som urklippen
+  (Jonas 2026-11-18). Den som lämnar urklippen med Tillbaka har läst dem
+  (`markRead`), också innan berättelsen har kommit dit, och det sparas i
+  `foundReaders`. Är båda klara när gruppen kommer till scenen går den förbi
+  den direkt. Spelledarens Alla är klara räknar först alla som lästa, och
+  nästa tryck hoppar över uppgiften (`skipReading`). Medan scenen väntar ger
+  spelledaren uppgiftens ledtrådar vid golvuret och scenens `readingHints`
+  vid byrån. Se `reading.ts`. Brädet blir klart på samma sätt, genom att
   spelaren lämnar det med Tillbaka när meddelandet är klart (`isDoneByLeaving`).
 - **Följder.** Ett misslyckande kan kosta minuter eller sätta en markering som
   senare steg och slut läser.
@@ -363,7 +369,8 @@ rum dörrarna och sakerna. En sak har en text att visa, sidor att bläddra i
 Saker går alltid att hitta och undersöka, och `fromStep` på en sak ger fel. Det
 som inte ska nås för tidigt låses i stället (Jonas 2026-11-18). Ett steg med
 `foundTitle`, som urklippen, delas ut redan när spelet startar och går att
-läsa från saken direkt. Scenen väntar bara på uppgiften i `endsWithStep`.
+läsa från saken direkt. Scenen väntar på uppgiften i `endsWithStep` och på
+att alla har läst.
 Var spelaren är sparas i `placeByPlayer`, som platskorten använder, och det
 gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr,
 och `searchRoom` hittar allt som finns i rummet. Ett

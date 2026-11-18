@@ -38,10 +38,16 @@ export type LeaderMenuProps = {
   stepText: string | null;
   /** Ge ledtråd och Visa facit för mig, bara vid saken som är uppgiften och inte är klarad. */
   canHelpWithTask: boolean;
-  /** Alla är klara, för när någon har gått iväg och gruppen inte ska behöva vänta. */
-  canSkipScene: boolean;
+  /** Ge ledtråd om urklippen, vid byrån medan berättelsen väntar på att alla har läst (Jonas 2026-11-18). */
+  canHelpWithReading: boolean;
+  /**
+   * Alla är klara, för när någon har gått iväg och gruppen inte ska behöva
+   * vänta, eller null när knappen inte ska synas. När alla har läst urklippen
+   * hoppar knappen i stället över uppgiften som berättelsen väntar på.
+   */
+  skipSceneLabel: string | null;
   onSetPaused: (isPaused: boolean) => void;
-  onGiveHint: () => void;
+  onGiveHint: (isAboutReading: boolean) => void;
   onShowSolution: () => void;
   onNextStep: () => void;
   onAnswerPending: (playerId: string, isAdmitted: boolean) => void;
@@ -52,7 +58,7 @@ export type LeaderMenuProps = {
  * (Jonas 2026-11-18). Där finns paus, Alla är klara i en scen, Hoppa över i
  * en uppgift, och vid saken som är uppgiften ledtrådar och facit.
  */
-export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canSkipScene, onSetPaused, onGiveHint, onShowSolution, onNextStep, onAnswerPending }: LeaderMenuProps) {
+export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWithReading, skipSceneLabel, onSetPaused, onGiveHint, onShowSolution, onNextStep, onAnswerPending }: LeaderMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { step } = view;
   // Ett nytt steg börjar med menyn stängd.
@@ -85,6 +91,7 @@ export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canSkipSce
           <section className="leader-menu" aria-label="Spelledarens meny">
             <PendingList view={view} isBusy={isBusy} onAnswer={onAnswerPending} />
             {stepText && <p className="leader-menu-text">{stepText}</p>}
+            {canHelpWithReading && <p className="hint">Gruppen har fått {step.readingHints.length} av {step.readingHintCount} ledtrådar om {(step.foundTitle ?? '').toLocaleLowerCase('sv')}.</p>}
             {canHelpWithTask && (
               <>
                 <p className="hint">Gruppen har fått {step.hints.length} av {step.hintCount} ledtrådar.</p>
@@ -92,14 +99,19 @@ export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canSkipSce
               </>
             )}
             <div className="leader-menu-actions">
+              {canHelpWithReading && (
+                <button type="button" className="secondary" onClick={runAndClose(() => onGiveHint(true))} disabled={isBusy || step.readingHints.length >= step.readingHintCount}>
+                  Ge ledtråd
+                </button>
+              )}
               {canHelpWithTask && (
-                <button type="button" className="secondary" onClick={runAndClose(onGiveHint)} disabled={isBusy || step.hints.length >= step.hintCount}>
+                <button type="button" className="secondary" onClick={runAndClose(() => onGiveHint(false))} disabled={isBusy || step.hints.length >= step.hintCount}>
                   Ge ledtråd
                 </button>
               )}
               {canHelpWithTask && !step.solution && <button type="button" className="secondary" onClick={onShowSolution} disabled={isBusy}>Visa facit för mig</button>}
               {isTask && <button type="button" className="secondary" onClick={runAndClose(onNextStep)} disabled={isBusy}>Hoppa över uppgiften</button>}
-              {!isTask && canSkipScene && <button type="button" className="secondary" onClick={runAndClose(onNextStep)} disabled={isBusy}>Alla är klara</button>}
+              {!isTask && skipSceneLabel && <button type="button" className="secondary" onClick={runAndClose(onNextStep)} disabled={isBusy}>{skipSceneLabel}</button>}
               {view.clock && (
                 <button type="button" className="secondary" onClick={runAndClose(() => onSetPaused(!isPaused))} disabled={isBusy}>
                   {isPaused ? 'Fortsätt spelet' : 'Pausa spelet'}

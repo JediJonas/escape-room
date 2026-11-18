@@ -57,6 +57,12 @@
   padding: 0.5rem 0.75rem;
 }
 
+/*
+ * En sak utan knapp underst, som golvuret, slutar ovanför spelledarens meny i
+ * hörnet i stället för under den. Spelarna får samma luft (Jonas 2026-11-18).
+ */
+.thing-stage:last-child { padding-bottom: calc(4.5rem + var(--bottom-gap)); }
+
 .thing-actions {
   width: 100%;
   max-width: var(--stage-max-width);

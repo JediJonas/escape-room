@@ -35,7 +35,7 @@ function MelodyPanel({ piano }: { piano: PianoView }) {
 /** Den svarta tangentens plats räknas i procent av pianots bredd. */
 const PERCENT = 100;
 
-/** Vita tangenter som har en svart tangent emellan, som på ett riktigt piano. Mellan E och F och mellan H och C finns ingen. */
+/** Vita tangenter som har en svart tangent emellan, som på ett riktigt piano. Mellan E och F och mellan B och C finns ingen. */
 const HAS_BLACK_AFTER = new Set(['C', 'D', 'F', 'G', 'A']);
 
 /** Den svarta tangenten efter en vit, till exempel C#4 efter C4, eller null. */

@@ -36,12 +36,11 @@ export function isNote(value: unknown): value is string {
   return typeof value === 'string' && NOTE_PATTERN.test(value);
 }
 
-/** Tonens namn på svenska, där B heter H, till exempel "C" eller "Fiss". */
+/** Tonens namn, till exempel "C", "B" eller "Fiss". B heter B och inte H, som på de flesta klistermärken och i appar (Jonas 2026-11-18). */
 export function nameNote(note: string): string {
   const match = NOTE_PATTERN.exec(note);
   if (!match) return note;
-  const letter = match[1] === 'B' ? 'H' : match[1];
-  return match[2] === '#' ? `${letter}iss` : letter;
+  return match[2] === '#' ? `${match[1]}iss` : match[1];
 }
 
 export function startPiano(melodyPlayerId: string | null): PianoState {

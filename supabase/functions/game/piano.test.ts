@@ -63,14 +63,14 @@ test('var och en får fyra intilliggande tangenter, och varje tangent finns hos 
   assert.deepEqual(dealKeys(keys, ['a']).a, keys);
 });
 
-test('tonerna heter som på svenska, där B är H', () => {
+test('tonerna heter med bokstäver, där B är B och inte H', () => {
   assert.equal(nameNote('C4'), 'C');
-  assert.equal(nameNote('B4'), 'H');
+  assert.equal(nameNote('B4'), 'B');
   assert.equal(nameNote('F#4'), 'Fiss');
 });
 
 test('gruppen spelar som den vill, och de senaste tonerna avgör', () => {
-  // Annas mobil spelar melodin. Bo har C D E F, Cia har G A H C.
+  // Annas mobil spelar melodin. Bo har C D E F, Cia har G A B C.
   const piano = startPiano('p0');
   const press = (state: typeof piano, playerId: string, key: string) => {
     const result = pressKey({ piano: state, step: STEP, playerId, participantIds: IDS, key });
@@ -147,7 +147,7 @@ test('pianot går att spela innan berättelsen har kommit dit, med tangenterna d
   const [anna, bo, cia] = PLAYERS;
   const thing = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: LATER.id, state: started }, mission: LATER, players: PLAYERS, viewer: anna }).house?.things[0];
   assert.equal(thing?.opensCurrentStep, false);
-  // Ingen spelar melodin än, så alla har tangenter: Anna C D E F, Bo E F G A och Cia G A H C.
+  // Ingen spelar melodin än, så alla har tangenter: Anna C D E F, Bo E F G A och Cia G A B C.
   assert.deepEqual(thing?.instrument?.type === 'piano' && thing.instrument.keys.map((key) => key.name), ['C', 'D', 'E', 'F']);
   // Utanför steget får ingen en ny vy av en ton, så tillståndet ändras bara i det tysta.
   let state = readState(playKey({ state: started, mission: LATER, players: PLAYERS, player: cia, key: 'B4' }));

@@ -7,7 +7,7 @@ import { requestMotionPermission } from '../device/motion.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
-import { PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
+import { PianoScreen, PianoTask } from '../tasks/PianoTask.tsx';
 import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
@@ -99,11 +99,14 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (openThing && !openThing.opensCurrentStep) {
     // Golvuret och pianot går att använda hela tiden, också innan berättelsen har kommit dit (Jonas 2026-11-18).
     const { instrument } = openThing;
+    if (instrument?.type === 'piano' && view.me.isPlaying) {
+      const header = <>{view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}<button type="button" className="secondary seance-menu-button" onClick={() => setOpenThingId(null)}>Tillbaka</button></>;
+      return <PianoScreen keys={instrument.keys} piano={null} header={header} onPlayKey={game.playKey} />;
+    }
     return (
       <ScreenLayout actions={closeThing}>
         <ThingContent thing={openThing} found={view.found} />
         {instrument?.type === 'clock' && <GrandfatherClock dialMinutes={instrument.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
-        {instrument?.type === 'piano' && view.me.isPlaying && <PianoKeys keys={instrument.keys} onPlayKey={game.playKey} />}
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>
     );
@@ -148,6 +151,18 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
       </main>
     );
   }
+  // Vid pianot fyller tangenterna skärmen, som brädet. Texten ligger i menyn (Jonas 2026-11-18).
+  const isPianoShown = step.piano !== null && openThing !== null && view.me.isPlaying && !view.isFinished;
+  if (step.piano && isPianoShown && !isMenuOpen) {
+    const header = (
+      <>
+        {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+        {view.clock?.isPaused && <span className="paused">Pausat</span>}
+        <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
+      </>
+    );
+    return <PianoScreen keys={step.piano.myKeys} piano={step.piano} header={header} onPlayKey={game.playKey} />;
+  }
   // I källaren ser den instängda bara mörkret och ficklampan. Resten ligger i menyn, som i seansen.
   const { cellar } = step;
   const isCellarShown = cellar?.image !== null && cellar?.image !== undefined && cellar.outcome === null && !view.isFinished;
@@ -186,6 +201,9 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (openThing) actions.push(closeThing);
   if (isBoardShown) {
     actions.push(<button key="board" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till brädet</button>);
+  }
+  if (isPianoShown) {
+    actions.push(<button key="piano" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till pianot</button>);
   }
   if (isCellarShown) {
     actions.push(<button key="cellar" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till källaren</button>);
@@ -247,7 +265,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         </form>
       )}
       {cellar && <CellarStatus cellar={cellar} clockOffsetMs={clockOffsetMs} onTimeUp={timeUpInCellar} />}
-      {step.piano && <PianoTask piano={step.piano} canPlay={view.me.isPlaying && !view.isFinished} onPlayKey={game.playKey} />}
+      {step.piano && <PianoTask piano={step.piano} canPlay={!isPianoShown && view.me.isPlaying && !view.isFinished} onPlayKey={game.playKey} />}
       {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}

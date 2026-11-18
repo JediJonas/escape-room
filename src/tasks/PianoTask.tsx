@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type PointerEvent, useState } from 'react';
+import { type KeyboardEvent, type PointerEvent, type ReactNode, useState } from 'react';
 import type { PianoKey, PianoView } from '../../supabase/functions/game/piano.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { playMelody, playNote } from '../sound/piano.ts';
@@ -9,8 +9,8 @@ const KEY_LENGTH_S = 0.5;
 /** Lite tid efter melodin innan den kan spelas igen, så att den hinner klinga ut. */
 const AFTER_MELODY_MS = 600;
 
-/** Melodin spelas högt från en mobil, så att alla hör den, så många gånger gruppen vill (Jonas 2026-11-18). */
-function MelodyPanel({ piano }: { piano: PianoView }) {
+/** Knappen som spelar melodin högt från en mobil, så att alla hör den, så många gånger gruppen vill (Jonas 2026-11-18). */
+function MelodyButton({ piano }: { piano: PianoView }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const { melody } = piano;
   if (!melody) return null;
@@ -23,11 +23,16 @@ function MelodyPanel({ piano }: { piano: PianoView }) {
     setTimeout(() => setIsPlaying(false), melodyMs);
   }
 
+  return <button type="button" className="piano-melody" onClick={listen} disabled={isPlaying}>{isPlaying ? 'Melodin spelas…' : 'Spela melodin'}</button>;
+}
+
+function MelodyPanel({ piano }: { piano: PianoView }) {
+  if (!piano.melody) return null;
   return (
-    <section className="role-card piano-melody" aria-label="Melodin finns i din mobil">
+    <section className="role-card" aria-label="Melodin finns i din mobil">
       <h2>Melodin finns i din mobil</h2>
       <p>Höj volymen och spela den för de andra. Ni kan höra den hur många gånger som helst.</p>
-      <button type="button" onClick={listen} disabled={isPlaying}>{isPlaying ? 'Melodin spelas…' : 'Spela melodin'}</button>
+      <MelodyButton piano={piano} />
     </section>
   );
 }
@@ -126,5 +131,28 @@ export function PianoTask({ piano, canPlay, onPlayKey }: {
       {piano.hasMelody && piano.myKeys.length > 0 && <p className="hint">Spela den sedan tillsammans på era tangenter.</p>}
       {canPlay && <PianoKeys keys={piano.myKeys} onPlayKey={onPlayKey} />}
     </div>
+  );
+}
+
+/**
+ * Pianot i fullskärm, som ouijabrädet: bara tangenterna, och melodiknappen
+ * hos den som har melodin. Rubrik och text behövs inte (Jonas 2026-11-18).
+ * Överst ligger klockan och en knapp tillbaka eller till menyn.
+ */
+export function PianoScreen({ keys, piano, header, onPlayKey }: {
+  keys: readonly PianoKey[];
+  /** Pianosteget, när berättelsen har kommit dit, annars null. */
+  piano: PianoView | null;
+  header: ReactNode;
+  onPlayKey: (note: string) => void;
+}) {
+  return (
+    <main className="piano-screen">
+      <p className="hint game-header">{header}</p>
+      <div className="piano-stage">
+        <PianoKeys keys={keys} onPlayKey={onPlayKey} />
+        {piano?.hasMelody && <MelodyButton piano={piano} />}
+      </div>
+    </main>
   );
 }

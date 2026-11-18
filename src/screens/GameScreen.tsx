@@ -198,7 +198,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Efteråt bokstaverar brädet av sig självt, om och om igen, som VERA (Jonas 2026-11-18).
   if (openThing && !openThing.opensCurrentStep && openThing.echo) {
     return withLeaderMenu(
-      <main className="seance-screen">
+      <main className="thing-screen seance-screen">
         <p className="hint game-header">{screenHeader}</p>
         <EchoBoard message={openThing.echo} clockOffsetMs={clockOffsetMs} />
       </main>,
@@ -261,7 +261,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   ) : undefined;
   if (step.seance && isBoardShown) {
     return withLeaderMenu(
-      <main className="seance-screen">
+      <main className="thing-screen seance-screen">
         <p className="hint game-header">
           <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>
           {view.clock?.isPaused && <span className="paused">Pausat</span>}

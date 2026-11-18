@@ -190,6 +190,7 @@ export function App() {
   const gameActions: GameActions = {
     nextStep: () => sendInGame({ type: 'nextStep' }),
     markReady: () => sendInGame({ type: 'markReady' }),
+    markRead: (thingId) => sendInGame({ type: 'markRead', thingId }),
     setPaused: (isPaused) => sendInGame({ type: 'setPaused', isPaused }),
     choosePlace: (placeId) => sendInGame({ type: 'choosePlace', placeId }),
     submitAnswer: (answer) => sendInGame({ type: 'submitAnswer', answer }),
@@ -205,7 +206,7 @@ export function App() {
     moveInCellar: (move) => sendInGame({ type: 'moveInCellar', move }),
     walk: (placeId) => sendInGame({ type: 'walk', placeId }),
     searchRoom: () => sendInGame({ type: 'searchRoom' }),
-    giveHint: () => sendInGame({ type: 'giveHint' }),
+    giveHint: (isAboutReading) => sendInGame({ type: 'giveHint', isAboutReading }),
     showSolution: () => sendInGame({ type: 'showSolution' }),
     answerPending: (playerId, isAdmitted) => sendInGame({ type: isAdmitted ? 'admitPlayer' : 'rejectPlayer', playerId }),
     leave: () => {

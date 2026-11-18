@@ -46,7 +46,7 @@ test('alla börjar i salongen, och seansbordet står i listan från början och 
   const view = viewFor(start());
   assert.equal(view.house?.room.name, 'Salongen');
   assert.deepEqual(view.house?.doors.map((door) => door.name), ['Hallen']);
-  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, cover: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null, echo: null }]);
+  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, cover: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null, echo: null, marksRead: false, opensAwaitedTask: false }]);
   assert.equal(view.step.opensFrom, 'Ouijabrädet');
 });
 
@@ -98,7 +98,7 @@ test('en sak går att hitta från början, öppnar sitt steg när gruppen är d�
   assert.equal(viewFor(state, PLAYERS[2]).house?.things[0].name, 'Byrån');
 
   state = moveOn(state, MISSION, PLAYERS);
-  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: 'En gammal byrå.', pages: null, cover: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null });
+  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: 'En gammal byrå.', pages: null, cover: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null, marksRead: true, opensAwaitedTask: false });
 });
 
 test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns', () => {

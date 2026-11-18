@@ -177,6 +177,11 @@
         }
       ],
       "foundTitle": "Tidningsurklippen",
+      "readingHints": [
+        "Kanske finns de fem gästerna från seansen 1962 med i tidningsurklippen. Läs era urklipp högt för varandra.",
+        "Varje urklipp ger bara hälften: ett namn eller ett kännetecken, som ett pärlhalsband eller en pipa. Leta efter urklipp som talar om samma person.",
+        "Elsa finns bara till hälften i urklippen. Tavlan i köket visar vad hon bär."
+      ],
       "roles": [
         {
           "id": "urklipp",

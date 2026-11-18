@@ -8,7 +8,8 @@
 
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
-import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
+import { giveReadingHint, markRead, skipReading } from './reading.ts';
+import { type StateChange, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
 import { chooseFlashbackRoom, fadeFlashback, moveInCellar, playKey, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
 import { readCellarMove } from './cellar.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
@@ -109,6 +110,15 @@ async function markReadyAction(action: Action, context: Context): Promise<Action
   });
 }
 
+/** Spelaren har lämnat urklippen med Tillbaka och har läst dem (Jonas 2026-11-18). */
+async function markReadAction(action: Action, context: Context): Promise<ActionResult> {
+  return withParticipant(action, context, async (scope) => {
+    const change = markRead({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, thingId: action.thingId });
+    const isUnchanged = 'state' in change && change.state === scope.game.state;
+    return applyChange(scope, change, { action: { type: 'markRead', thingId: action.thingId }, recipients: isUnchanged ? [scope.player] : findRecipients(scope, change) });
+  });
+}
+
 async function setPausedAction(action: Action, context: Context): Promise<ActionResult> {
   const nowMs = await context.store.readServerTimeMs();
   return withOwnPlayer(action, context, async (scope) => {
@@ -121,7 +131,7 @@ async function setPausedAction(action: Action, context: Context): Promise<Action
 async function nextStep(action: Action, context: Context): Promise<ActionResult> {
   const nowMs = await context.store.readServerTimeMs();
   return withOwnPlayer(action, context, async (scope) => {
-    const change = advanceStep({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, nowMs });
+    const change = skipReading({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, nowMs });
     return applyChange(scope, change, { action: { type: 'nextStep', fromStepIndex: scope.game.state.stepIndex } });
   });
 }
@@ -230,8 +240,10 @@ async function playKeyAction(action: Action, context: Context): Promise<ActionRe
 
 async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
-    const change = giveHint({ state: scope.game.state, mission: scope.mission, player: scope.player });
-    return applyChange(scope, change, { action: { type: 'giveHint', stepIndex: scope.game.state.stepIndex } });
+    const isAboutReading = action.isAboutReading === true;
+    const input = { state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player };
+    const change = isAboutReading ? giveReadingHint(input) : giveHint(input);
+    return applyChange(scope, change, { action: { type: 'giveHint', stepIndex: scope.game.state.stepIndex, isAboutReading } });
   });
 }
 
@@ -270,6 +282,7 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   nextStep,
   choosePlace: choosePlaceAction,
   markReady: markReadyAction,
+  markRead: markReadAction,
   setPaused: setPausedAction,
   submitAnswer: submitAnswerAction,
   touchBoard: touchBoardAction,

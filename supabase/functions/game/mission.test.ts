@@ -30,6 +30,7 @@ test('ett korrekt uppdrag har inga fel', () => {
 
 test('skrivfel i ett uppdrag syns i testerna och inte mitt i ett spel', () => {
   const withStep = (step: object) => ({ ...VALID, steps: [{ ...VALID.steps[0], ...step }] });
+  assert.match(findMissionErrors(withStep({ readingHints: ['a', 'b', 'c'] })).join(), /ledtrådar för läsningen/);
   assert.match(findMissionErrors({ ...VALID, format: 2 }).join(), /formatet/);
   assert.match(findMissionErrors({ ...VALID, minPlayers: 0 }).join(), /minPlayers/);
   assert.match(findMissionErrors({ ...VALID, places: { G: 'Garaget' } }).join(), /okänd plats: G/);

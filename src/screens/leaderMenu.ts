@@ -12,6 +12,15 @@ export function describeDone(progress: readonly DoneEntry[]): string {
   return done.length > 0 ? `${count} (${done.join(', ')})` : count;
 }
 
+/**
+ * Knappen som hoppar över det berättelsen väntar på i urklippen. Först
+ * räknas alla som lästa, och sedan hoppar knappen över uppgiften
+ * (Jonas 2026-11-18).
+ */
+export function describeSceneSkip(progress: readonly DoneEntry[], foundTitle: string | null): string {
+  return foundTitle !== null && progress.every((player) => player.isDone) ? 'Hoppa över uppgiften' : 'Alla är klara';
+}
+
 /** Det spelledarens mobil vet när den väljer om Ge ledtråd och Visa facit för mig ska synas. */
 export type TaskHelpInput = {
   isTask: boolean;

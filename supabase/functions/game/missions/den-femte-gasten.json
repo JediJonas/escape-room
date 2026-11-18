@@ -2,7 +2,7 @@
   "format": 1,
   "id": "den-femte-gasten",
   "title": "Den femte gästen",
-  "minPlayers": 3,
+  "minPlayers": 2,
   "places": {
     "A": "Källaren",
     "B": "Hallen",

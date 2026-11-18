@@ -19,7 +19,7 @@ test('golvuret och minnet syns hos alla, och en mobil som säger att minnet har 
   const remembering = readGameView((await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 555 })).body);
   assert.ok(remembering.step.rooms?.remembersUntilMs);
   const chosen = readGameView((await send(memory.store, 'user-Cia', { type: 'chooseMemoryRoom', gameId, placeId: 'D' })).body);
-  assert.equal(chosen.step.rooms?.myRoom?.place.name, 'Biblioteket');
+  assert.equal(chosen.step.rooms?.myRooms[0]?.place.name, 'Biblioteket');
   assert.equal(chosen.house?.room.name, 'Biblioteket');
   assert.deepEqual(await send(memory.store, 'user-Cia', { type: 'walk', gameId, placeId: 'B' }), { status: 409, body: { error: 'houseRemembers' } });
 

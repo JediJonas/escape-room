@@ -193,7 +193,7 @@ async function turnClockAction(action: Action, context: Context): Promise<Action
 async function chooseMemoryRoomAction(action: Action, context: Context): Promise<ActionResult> {
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
-    const change = chooseMemoryRoom({ state: scope.game.state, mission: scope.mission, player: scope.player, placeId: action.placeId, nowMs });
+    const change = chooseMemoryRoom({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, placeId: action.placeId, nowMs });
     return applyChange(scope, change, { action: { type: 'chooseMemoryRoom', placeId: action.placeId } });
   });
 }

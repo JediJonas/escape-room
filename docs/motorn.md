@@ -268,7 +268,9 @@ tolvtimmars urtavla, på en femte minut. Mobilen skickar visarnas läge när
 spelaren släpper, och servern hakar i och avgör. Servern sparar var visarna
 står, när minnet bleknar, vilka som har valt vilket rum i den ordning de
 valde, och vilka rum som har setts. Ett rum går bara att välja om inget annat
-rum har färre spelare, och den som väljer ett rum står sedan där. Står flera i
+rum har färre spelare, och den som väljer ett rum står sedan där. Är spelarna
+färre än rummen kan den som har minst antal rum ta ett tomt rum till när alla
+har valt, och står kvar i sitt första. Står flera i
 samma rum delas bitarna mellan dem i den ordning de valde. Varje rum har därför
 minst så många bitar som det kan få spelare med tio i gruppen. Medan huset
 minns är dörrarna stängda. Servern tickar inte: när tiden har gått säger

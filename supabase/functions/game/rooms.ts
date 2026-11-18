@@ -115,35 +115,70 @@ export function listChoosablePlaces(rooms: RoomsState, step: RoomsStep): PlaceId
   return step.rooms.map((room) => room.place).filter((place) => counts.get(place) === fewest);
 }
 
-/** Spelaren väljer sitt rum i minnet. Hon stannar där tills minnet bleknar. */
-export function chooseMemoryRoom({ rooms, step, playerId, placeId, nowMs }: {
+function countRoomsOf(rooms: RoomsState, playerId: string): number {
+  return rooms.choices.filter((choice) => choice.playerId === playerId).length;
+}
+
+/**
+ * Om spelaren får välja ett rum till. Är spelarna färre än rummen tar någon
+ * ett tomt rum till, så att gruppen ser alla rum i samma minne
+ * (Jonas 2026-11-18). Det går först när alla har ett rum, och bara för den
+ * som inte har fler rum än någon annan, så att rummen delas jämnt.
+ */
+function canTakeAnotherRoom(rooms: RoomsState, step: RoomsStep, playerId: string, participantIds: readonly string[]): boolean {
+  const mine = countRoomsOf(rooms, playerId);
+  if (mine === 0) return false;
+  const hasEmptyRoom = [...countByPlace(rooms, step).values()].includes(0);
+  const fewest = Math.min(...participantIds.map((id) => countRoomsOf(rooms, id)));
+  return hasEmptyRoom && fewest > 0 && mine === fewest;
+}
+
+/** Varför spelaren inte kan välja, eller null om hon kan. */
+function findChoiceRefusal(rooms: RoomsState, step: RoomsStep, playerId: string, participantIds: readonly string[]): RoomsRefusal | null {
+  if (countRoomsOf(rooms, playerId) === 0) return null;
+  return canTakeAnotherRoom(rooms, step, playerId, participantIds) ? null : 'alreadyChosen';
+}
+
+/**
+ * Spelaren väljer sitt rum i minnet. Hon stannar där tills minnet bleknar.
+ * Är spelarna färre än rummen kan hon ta ett tomt rum till när alla har valt.
+ */
+export function chooseMemoryRoom({ rooms, step, playerId, participantIds, placeId, nowMs }: {
   rooms: RoomsState;
   step: RoomsStep;
   playerId: string;
+  /** Alla som är med i uppgiften, för att se om alla har ett rum. */
+  participantIds: readonly string[];
   placeId: unknown;
   nowMs: number;
 }): { rooms: RoomsState } | { refusal: RoomsRefusal } {
   if (!isRemembering(rooms, nowMs)) return { refusal: 'notRemembering' };
-  if (rooms.choices.some((choice) => choice.playerId === playerId)) return { refusal: 'alreadyChosen' };
+  const refusal = findChoiceRefusal(rooms, step, playerId, participantIds);
+  if (refusal) return { refusal };
   if (!isPlaceId(placeId) || !step.rooms.some((room) => room.place === placeId)) return { refusal: 'unknownPlace' };
+  if (rooms.choices.some((choice) => choice.playerId === playerId && choice.place === placeId)) return { refusal: 'alreadyChosen' };
   if (!listChoosablePlaces(rooms, step).includes(placeId)) return { refusal: 'roomFull' };
   const seenPlaces = rooms.seenPlaces.includes(placeId) ? rooms.seenPlaces : [...rooms.seenPlaces, placeId];
   return { rooms: { ...rooms, choices: [...rooms.choices, { playerId, place: placeId }], seenPlaces } };
 }
 
 /**
- * Bitarna som spelaren ser i sitt rum. Står flera i samma rum delas bitarna
- * mellan dem i den ordning de valde, så att ingen får samma skärm.
+ * Bitarna som spelaren ser i sina rum, i den ordning hon valde dem. Står
+ * flera i samma rum delas bitarna mellan dem i den ordning de valde, så att
+ * ingen får samma skärm.
  */
-function findMyPieces(rooms: RoomsState, step: RoomsStep, playerId: string): { place: PlaceId; pieces: string[] } | null {
-  const mine = rooms.choices.find((choice) => choice.playerId === playerId);
-  const room = step.rooms.find((candidate) => candidate.place === mine?.place);
-  if (!mine || !room) return null;
-  const holders = rooms.choices.filter((choice) => choice.place === mine.place);
-  const holderIndex = holders.indexOf(mine);
-  const pieces = room.pieces.filter((_, pieceIndex) => pieceIndex % holders.length === holderIndex);
-  return { place: mine.place, pieces };
+function findMyRooms(rooms: RoomsState, step: RoomsStep, playerId: string): { place: PlaceId; pieces: string[] }[] {
+  return rooms.choices.filter((choice) => choice.playerId === playerId).flatMap((mine) => {
+    const room = step.rooms.find((candidate) => candidate.place === mine.place);
+    if (!room) return [];
+    const holders = rooms.choices.filter((choice) => choice.place === mine.place);
+    const holderIndex = holders.indexOf(mine);
+    return [{ place: mine.place, pieces: room.pieces.filter((_, pieceIndex) => pieceIndex % holders.length === holderIndex) }];
+  });
 }
+
+/** Om spelaren kan välja, väntar på att få ta ett rum till, eller har sina rum. */
+export type MemoryChoiceState = 'choose' | 'waitForOthers' | 'takeAnother' | 'done';
 
 /** Det en spelare ser av uppgiften. Bitarna i ett rum syns bara för den som har valt rummet. */
 export type RoomsView = {
@@ -155,25 +190,40 @@ export type RoomsView = {
   memoryLabel: string;
   /** Alla rum i minnet, och om spelaren kan välja dem just nu. */
   rooms: { place: Place; isChoosable: boolean }[];
-  /** Spelarens rum i minnet och det hon ser där, när hon har valt. */
-  myRoom: { place: Place; pieces: string[] } | null;
+  /** Spelarens rum i minnet och det hon ser där, i den ordning hon valde dem. */
+  myRooms: { place: Place; pieces: string[] }[];
+  /** Om spelaren kan välja ett rum nu, eller ett rum till när de andra har valt. */
+  choice: MemoryChoiceState;
 };
 
-export function describeRooms({ rooms, step, places, viewerId }: {
+function findChoiceState(rooms: RoomsState, step: RoomsStep, viewerId: string, participantIds: readonly string[]): MemoryChoiceState {
+  const mine = countRoomsOf(rooms, viewerId);
+  if (mine === 0) return 'choose';
+  if (canTakeAnotherRoom(rooms, step, viewerId, participantIds)) return 'takeAnother';
+  const hasEmptyRoom = [...countByPlace(rooms, step).values()].includes(0);
+  const someoneHasNone = participantIds.some((id) => countRoomsOf(rooms, id) === 0);
+  return hasEmptyRoom && someoneHasNone ? 'waitForOthers' : 'done';
+}
+
+export function describeRooms({ rooms, step, places, viewerId, participantIds }: {
   rooms: RoomsState;
   step: RoomsStep;
   places: readonly Place[];
   viewerId: string;
+  participantIds: readonly string[];
 }): RoomsView {
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
-  const mine = findMyPieces(rooms, step, viewerId);
-  const choosable = rooms.remembersUntilMs !== null && !mine ? listChoosablePlaces(rooms, step) : [];
+  const mine = findMyRooms(rooms, step, viewerId);
+  const choice = findChoiceState(rooms, step, viewerId, participantIds);
+  const canChoose = rooms.remembersUntilMs !== null && (choice === 'choose' || choice === 'takeAnother');
+  const choosable = canChoose ? listChoosablePlaces(rooms, step) : [];
   return {
     dialMinutes: rooms.dialMinutes,
     remembersUntilMs: rooms.remembersUntilMs,
     memoryLabel: step.memoryLabel,
     rooms: step.rooms.map((room) => ({ place: findPlace(room.place), isChoosable: choosable.includes(room.place) })),
-    myRoom: mine ? { place: findPlace(mine.place), pieces: mine.pieces } : null,
+    myRooms: mine.map((room) => ({ place: findPlace(room.place), pieces: room.pieces })),
+    choice,
   };
 }
 

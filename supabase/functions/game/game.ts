@@ -405,7 +405,7 @@ export function buildGameView({ game, mission, players, viewer }: {
         ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })
         : null,
       rooms: step.type === 'rooms' && state.rooms && isRunning
-        ? describeRooms({ rooms: state.rooms, step, places, viewerId: viewer.id })
+        ? describeRooms({ rooms: state.rooms, step, places, viewerId: viewer.id, participantIds: participants.map((player) => player.id) })
         : null,
       cellar: step.type === 'cellar' && state.cellar && isRunning ? describeCellarFor(step, state, players, viewer.id) : null,
     },

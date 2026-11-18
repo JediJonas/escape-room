@@ -22,6 +22,7 @@ const STEP: RoomsStep = {
 };
 const PLACES = [{ id: 'B', name: 'Hallen' }, { id: 'C', name: 'Köket' }, { id: 'D', name: 'Biblioteket' }, { id: 'E', name: 'Sovrummet' }] as const;
 const NINE_FIFTEEN = 555;
+const SEVEN = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6'];
 
 test('tiderna läses som minuter på en tolvtimmars urtavla, och visarna hakar i var femte minut', () => {
   assert.equal(readDialTime('21.15'), NINE_FIFTEEN);
@@ -50,30 +51,60 @@ test('rummen fylls jämnt: ett rum går bara att välja om inget annat rum har f
   assert.ok('rooms' in started);
   let rooms = started.rooms;
   const choose = (playerId: string, placeId: string) => {
-    const chosen = chooseRoom({ rooms, step: STEP, playerId, placeId, nowMs: 1 });
+    const chosen = chooseRoom({ rooms, step: STEP, playerId, participantIds: SEVEN, placeId, nowMs: 1 });
     assert.ok('rooms' in chosen, JSON.stringify(chosen));
     rooms = chosen.rooms;
   };
   choose('p0', 'B');
-  assert.deepEqual(chooseRoom({ rooms, step: STEP, playerId: 'p1', placeId: 'B', nowMs: 1 }), { refusal: 'roomFull' });
-  assert.deepEqual(chooseRoom({ rooms, step: STEP, playerId: 'p0', placeId: 'C', nowMs: 1 }), { refusal: 'alreadyChosen' });
+  assert.deepEqual(chooseRoom({ rooms, step: STEP, playerId: 'p1', participantIds: SEVEN, placeId: 'B', nowMs: 1 }), { refusal: 'roomFull' });
+  assert.deepEqual(chooseRoom({ rooms, step: STEP, playerId: 'p0', participantIds: SEVEN, placeId: 'C', nowMs: 1 }), { refusal: 'alreadyChosen' });
   for (const [playerId, placeId] of [['p1', 'C'], ['p2', 'D'], ['p3', 'E']]) choose(playerId, placeId);
   // Med sex spelare blir det två i två av rummen och en i de andra, aldrig tre i ett.
   choose('p4', 'B');
   assert.deepEqual(listChoosablePlaces(rooms, STEP), ['C', 'D', 'E']);
   choose('p5', 'D');
-  assert.deepEqual(chooseRoom({ rooms, step: STEP, playerId: 'p6', placeId: 'B', nowMs: 1 }), { refusal: 'roomFull' });
+  assert.deepEqual(chooseRoom({ rooms, step: STEP, playerId: 'p6', participantIds: SEVEN, placeId: 'B', nowMs: 1 }), { refusal: 'roomFull' });
   // Två i hallen delar på bitarna. Den som står ensam ser allt.
-  assert.deepEqual(describeRooms({ rooms, step: STEP, places: PLACES, viewerId: 'p0' }).myRoom?.pieces, ['B gäst', 'B klocka']);
-  assert.deepEqual(describeRooms({ rooms, step: STEP, places: PLACES, viewerId: 'p4' }).myRoom?.pieces, ['B sak']);
-  assert.deepEqual(describeRooms({ rooms, step: STEP, places: PLACES, viewerId: 'p1' }).myRoom?.pieces, ['C gäst', 'C sak', 'C klocka']);
-  assert.deepEqual(chooseRoom({ rooms, step: STEP, playerId: 'p6', placeId: 'C', nowMs: 3 * MINUTE_MS }), { refusal: 'notRemembering' });
+  assert.deepEqual(describeRooms({ rooms, step: STEP, places: PLACES, viewerId: 'p0', participantIds: SEVEN }).myRooms[0]?.pieces, ['B gäst', 'B klocka']);
+  assert.deepEqual(describeRooms({ rooms, step: STEP, places: PLACES, viewerId: 'p4', participantIds: SEVEN }).myRooms[0]?.pieces, ['B sak']);
+  assert.deepEqual(describeRooms({ rooms, step: STEP, places: PLACES, viewerId: 'p1', participantIds: SEVEN }).myRooms[0]?.pieces, ['C gäst', 'C sak', 'C klocka']);
+  assert.deepEqual(chooseRoom({ rooms, step: STEP, playerId: 'p6', participantIds: SEVEN, placeId: 'C', nowMs: 3 * MINUTE_MS }), { refusal: 'notRemembering' });
+});
+
+test('är spelarna färre än rummen tar de ett tomt rum till när alla har valt, så att två ser alla fyra', () => {
+  const started = turnHands({ rooms: startRooms(STEP), step: STEP, minutes: NINE_FIFTEEN, nowMs: 0 });
+  assert.ok('rooms' in started);
+  let rooms = started.rooms;
+  const two = ['p0', 'p1'];
+  const choose = (playerId: string, placeId: string) => chooseRoom({ rooms, step: STEP, playerId, participantIds: two, placeId, nowMs: 1 });
+  const take = (playerId: string, placeId: string) => {
+    const chosen = choose(playerId, placeId);
+    assert.ok('rooms' in chosen, JSON.stringify(chosen));
+    rooms = chosen.rooms;
+  };
+  const choiceOf = (viewerId: string) => describeRooms({ rooms, step: STEP, places: PLACES, viewerId, participantIds: two }).choice;
+  take('p0', 'B');
+  // Ett rum till går först när alla har valt.
+  assert.equal(choiceOf('p0'), 'waitForOthers');
+  assert.deepEqual(choose('p0', 'C'), { refusal: 'alreadyChosen' });
+  take('p1', 'C');
+  assert.equal(choiceOf('p0'), 'takeAnother');
+  assert.deepEqual(choose('p0', 'C'), { refusal: 'roomFull' });
+  take('p0', 'D');
+  // Nu har Anna två rum, så Bo tar det sista.
+  assert.equal(choiceOf('p0'), 'done');
+  assert.deepEqual(choose('p0', 'E'), { refusal: 'alreadyChosen' });
+  take('p1', 'E');
+  assert.equal(choiceOf('p1'), 'done');
+  const anna = describeRooms({ rooms, step: STEP, places: PLACES, viewerId: 'p0', participantIds: two });
+  assert.deepEqual(anna.myRooms.map((room) => [room.place.name, room.pieces.length]), [['Hallen', 3], ['Biblioteket', 3]]);
+  assert.deepEqual(rooms.seenPlaces, ['B', 'C', 'D', 'E']);
 });
 
 test('när minnet bleknar går visarna tillbaka, och uppgiften är klar först när alla rum är sedda', () => {
   const started = turnHands({ rooms: startRooms(STEP), step: STEP, minutes: NINE_FIFTEEN, nowMs: 0 });
   assert.ok('rooms' in started);
-  const chosen = chooseRoom({ rooms: started.rooms, step: STEP, playerId: 'p0', placeId: 'B', nowMs: 1 });
+  const chosen = chooseRoom({ rooms: started.rooms, step: STEP, playerId: 'p0', participantIds: ['p0'], placeId: 'B', nowMs: 1 });
   assert.ok('rooms' in chosen);
   assert.equal(advanceRooms(chosen.rooms, STEP, 3 * MINUTE_MS - 1), chosen.rooms);
   const faded = advanceRooms(chosen.rooms, STEP, 3 * MINUTE_MS);
@@ -99,7 +130,7 @@ function readState(change: { state: GameState } | { refusal: string }): GameStat
   return change.state;
 }
 
-test('med tre spelare minns huset två gånger, dörrarna är stängda under minnet, och sedan går gruppen vidare', () => {
+test('med tre spelare ser gruppen alla rum i ett minne, dörrarna är stängda under minnet, och sedan går gruppen vidare', () => {
   const [anna, bo, cia] = PLAYERS;
   let state = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: anna, usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
   // Golvuret står i salongen, och alla börjar i hallen.
@@ -111,7 +142,7 @@ test('med tre spelare minns huset två gånger, dörrarna är stängda under min
     assert.ok(state.rooms?.remembersUntilMs);
   };
   const choose = (player: PlayerRecord, placeId: string) => {
-    state = readState(chooseMemoryRoom({ state, mission: MISSION, player, placeId, nowMs }));
+    state = readState(chooseMemoryRoom({ state, mission: MISSION, players: PLAYERS, player, placeId, nowMs }));
   };
   remember();
   assert.deepEqual(walkThroughDoor({ state, mission: MISSION, player: bo, placeId: 'C', nowMs }), { refusal: 'houseRemembers' });
@@ -121,15 +152,10 @@ test('med tre spelare minns huset två gånger, dörrarna är stängda under min
   // Den som väljer ett rum står sedan där.
   assert.equal(state.placeByPlayer[cia.id], 'D');
   const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: cia });
-  assert.equal(view.step.rooms?.myRoom?.place.name, 'Biblioteket');
-  nowMs += 3 * MINUTE_MS;
-  state = readState(fadeMemory({ state, mission: MISSION, players: PLAYERS, nowMs }));
-  assert.equal(state.rooms?.dialMinutes, 280);
-  assert.equal(state.status, 'running');
-  // Sovrummet är kvar. Någon går tillbaka till golvuret och vrider igen.
-  state = readState(walkThroughDoor({ state, mission: MISSION, player: anna, placeId: 'F', nowMs }));
-  remember();
-  choose(bo, 'E');
+  assert.equal(view.step.rooms?.myRooms[0]?.place.name, 'Biblioteket');
+  // Sovrummet står tomt. Anna tar det också, men står kvar i hallen.
+  choose(anna, 'E');
+  assert.equal(state.placeByPlayer[anna.id], 'B');
   nowMs += 3 * MINUTE_MS;
   state = readState(fadeMemory({ state, mission: MISSION, players: PLAYERS, nowMs }));
   assert.equal(state.status, 'finished');

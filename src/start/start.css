@@ -144,7 +144,6 @@ button.secondary {
 .document-card p:last-child { margin-bottom: 0; }
 .clipping { font-family: Georgia, 'Times New Roman', serif; }
 .role-card .clipping + .clipping { padding-top: 0.75rem; border-top: 1px solid var(--border); }
-.found-button { margin: 0 0 1rem; }
 .house-list { display: grid; gap: 0.5rem; margin: 0 0 1rem; }
 .house-list h2 { margin-bottom: 0; font-size: 1rem; }
 

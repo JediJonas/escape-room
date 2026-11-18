@@ -46,7 +46,7 @@ test('alla börjar i salongen, och seansbordet står i listan från början och 
   const view = viewFor(start());
   assert.equal(view.house?.room.name, 'Salongen');
   assert.deepEqual(view.house?.doors.map((door) => door.name), ['Hallen']);
-  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null }]);
+  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null }]);
   assert.equal(view.step.opensFrom, 'Ouijabrädet');
 });
 
@@ -78,7 +78,7 @@ test('en sak hittas först när berättelsen har kommit dit, och syns sedan för
   assert.equal(viewFor(state, PLAYERS[2]).house?.things[0].name, 'Byrån');
 
   state = moveOn(state, MISSION, PLAYERS);
-  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null });
+  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, pages: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null });
 });
 
 test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns', () => {
@@ -88,6 +88,13 @@ test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns
     'dörren från F till B går inte tillbaka',
     'saken x i huset pekar på ett steg som inte finns: saknas',
     'en sak i huset saknar id eller har samma id som en annan',
-    'saken x i huset har varken text eller steg att öppna',
+    'saken x i huset har varken text, sidor eller steg att öppna',
   ]);
+});
+
+test('en bok har sidor med text', () => {
+  const book = (pages: unknown) => ({ start: 'F', rooms: [{ place: 'F', doors: [], things: [{ id: 'bok', name: 'Bok', pages }] }] });
+  assert.deepEqual(findHouseErrors(book(['Sida ett', 'Sida två']), MISSION.places, []), []);
+  assert.deepEqual(findHouseErrors(book([]), MISSION.places, []), ['saken bok i huset har sidor som är tomma eller inte är en lista']);
+  assert.deepEqual(findHouseErrors(book(['Sida ett', ' ']), MISSION.places, []), ['saken bok i huset har sidor som är tomma eller inte är en lista']);
 });

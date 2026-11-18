@@ -12,6 +12,7 @@
  */
 
 import type { PianoStep } from './mission.ts';
+import { hashText } from './roles.ts';
 
 export type PianoState = {
   /** Den vars mobil spelar melodin. Väljs när gruppen kommer till steget. */
@@ -36,12 +37,11 @@ export function isNote(value: unknown): value is string {
   return typeof value === 'string' && NOTE_PATTERN.test(value);
 }
 
-/** Tonens namn på svenska, där B heter H, till exempel "C" eller "Fiss". */
+/** Tonens namn, till exempel "C", "B" eller "Fiss". B heter B och inte H, som på de flesta klistermärken och i appar (Jonas 2026-11-18). */
 export function nameNote(note: string): string {
   const match = NOTE_PATTERN.exec(note);
   if (!match) return note;
-  const letter = match[1] === 'B' ? 'H' : match[1];
-  return match[2] === '#' ? `${letter}iss` : letter;
+  return match[2] === '#' ? `${match[1]}iss` : match[1];
 }
 
 export function startPiano(melodyPlayerId: string | null): PianoState {
@@ -72,9 +72,18 @@ export function dealKeys(keys: readonly string[], playerIds: readonly string[]):
   return keysByPlayer;
 }
 
-/** Spelarna som har tangenter, i den ordning de gick med. */
-function listKeyPlayers(piano: PianoState, participantIds: readonly string[]): string[] {
-  return participantIds.filter((playerId) => playerId !== piano.melodyPlayerId);
+/**
+ * Spelarna som har tangenter, i lottad ordning så att det inte alltid är
+ * den som gick med först som får de lägsta (Jonas 2026-11-18). Lotten räknas
+ * ur spelarnas id och vem som spelar melodin, så den blir densamma vid varje
+ * anrop. Den som spelar melodin har inga tangenter, utom när de bara är två.
+ * Då får båda tangenter, så att de måste samarbeta (Jonas 2026-11-18).
+ */
+export function listKeyPlayers(melodyPlayerId: string | null, participantIds: readonly string[]): string[] {
+  const others = participantIds.filter((playerId) => playerId !== melodyPlayerId);
+  const keyPlayers = others.length > 1 ? others : [...participantIds];
+  const lot = (playerId: string) => hashText(`${melodyPlayerId ?? ''}:${playerId}`);
+  return keyPlayers.sort((first, second) => lot(first) - lot(second));
 }
 
 /** Klart när de senaste tonerna är melodin, i rätt ordning. */
@@ -93,7 +102,7 @@ export function pressKey({ piano, step, playerId, participantIds, key }: {
   key: unknown;
 }): { piano: PianoState } | { refusal: PianoRefusal } {
   if (!isNote(key) || !step.keys.includes(key)) return { refusal: 'unknownKey' };
-  const mine = dealKeys(step.keys, listKeyPlayers(piano, participantIds))[playerId] ?? [];
+  const mine = dealKeys(step.keys, listKeyPlayers(piano.melodyPlayerId, participantIds))[playerId] ?? [];
   if (!mine.includes(key)) return { refusal: 'notYourKey' };
   if (isPianoSolved(piano, step)) return { piano };
   return { piano: { ...piano, recentKeys: [...piano.recentKeys, key].slice(-step.solution.melody.length) } };
@@ -103,7 +112,7 @@ export function pressKey({ piano, step, playerId, participantIds, key }: {
 export type MelodyNote = { note: string; beats: number };
 
 export type PianoView = {
-  /** Om melodin spelas från spelarens mobil. Då har hon inga tangenter. */
+  /** Om melodin spelas från spelarens mobil. Då har hon inga tangenter, utom när de bara är två. */
   hasMelody: boolean;
   melodyPlayerName: string;
   /** Melodin, bara hos den vars mobil spelar den. */
@@ -135,7 +144,7 @@ export function describePiano({ piano, step, viewerId, participantIds, melodyPla
     melodyPlayerName,
     melody: hasMelody ? step.solution.melody : null,
     beatMs: step.beatMs,
-    myKeys: listMyKeys(step.keys, listKeyPlayers(piano, participantIds), viewerId),
+    myKeys: listMyKeys(step.keys, listKeyPlayers(piano.melodyPlayerId, participantIds), viewerId),
   };
 }
 

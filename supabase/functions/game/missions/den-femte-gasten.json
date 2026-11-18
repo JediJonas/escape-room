@@ -63,7 +63,12 @@
           {
             "id": "gastboken",
             "name": "Gästboken",
-            "text": "De sista sidorna i gästboken. Efter den sista raden är sidorna tomma.\n14 juni 1958. Ingrid Lindahl, Tore Lindahl, Birgitta Nyberg, Lennart Nyberg, Ulla Forsén.\n26 december 1959. Gunnar Ahl, Karin Ahl, Olof Nyman, Maj Sundin, Bertil Sundin.\n15 april 1961. Astrid Lindqvist, Rut Malm, Harald Malm, Signe Ström, Nils Ström.\n27 oktober 1962. Arvid Lund, Elsa Rydén, Margit Holm, Sven Dahl, Vera Sjö.",
+            "pages": [
+              "14 juni 1958\nIngrid Lindahl\nTore Lindahl\nBirgitta Nyberg\nLennart Nyberg\nUlla Forsén",
+              "26 december 1959\nGunnar Ahl\nKarin Ahl\nOlof Nyman\nMaj Sundin\nBertil Sundin",
+              "15 april 1961\nAstrid Lindqvist\nRut Malm\nHarald Malm\nSigne Ström\nNils Ström",
+              "27 oktober 1962\nArvid Lund\nElsa Rydén\nMargit Holm\nSven Dahl\nVera Sjö\nEfter den här sidan är boken tom."
+            ],
             "fromStep": "tidningsurklippen"
           },
           {
@@ -133,7 +138,7 @@
       "type": "seance",
       "text": "Lägg fingret på planchetten och följ skenet. Släpp inte.",
       "hints": [
-        "Alla måste hålla fingret kvar hela tiden. Lyfter någon börjar meddelandet om.",
+        "Lägg fingret på planchetten och följ skenet. Alla måste hålla fingret kvar hela tiden. Lyfter någon börjar meddelandet om.",
         "Skenet väntar tills allas planchetter är framme. Följ det tillsammans.",
         "Meddelandet är två ord. Håll reda på bokstäverna där skenet stannar."
       ],
@@ -151,7 +156,7 @@
       "id": "tidningsurklippen",
       "type": "scene",
       "text": "I byrån ligger en bunt gamla tidningsurklipp. Var och en har fått några. Läs dem för varandra och ta reda på vilka gästerna var och hur man känner igen dem.",
-      "readyLabel": "Jag har läst",
+      "endsWithStep": "rummen-minns",
       "documents": [
         {
           "title": "Ung kvinna försvunnen efter seans",
@@ -266,14 +271,14 @@
       "text": "Locket är uppfällt och noterna står uppslagna, men bladen är tomma. Melodin som spelades när ljuset slocknade 1962 finns i en av era mobiler. Spela den för varandra, och spela den sedan på era tangenter.",
       "callsFromHouse": true,
       "keys": [
-        "C4",
-        "D4",
         "E4",
         "F4",
         "G4",
         "A4",
         "B4",
-        "C5"
+        "C5",
+        "D5",
+        "E5"
       ],
       "beatMs": 550,
       "hints": [

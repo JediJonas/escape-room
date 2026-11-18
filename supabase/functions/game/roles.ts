@@ -28,15 +28,22 @@ function pickPlayers(role: Role, candidates: PlayerRecord[], history: readonly s
 /** FNV-1a:s startvärde och primtal för 32 bitar. */
 const FNV_OFFSET = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
+/** Murmur3:s slutblandning, så att små skillnader i texten sprids över alla bitar. */
+const MIX_SHIFT_LONG = 16;
+const MIX_SHIFT_SHORT = 13;
+const MIX_FIRST = 0x85ebca6b;
+const MIX_SECOND = 0xc2b2ae35;
 
-/** Ett tal ur en text (FNV-1a), så att lotten blir densamma varje gång servern räknar. */
-function hashText(text: string): number {
+/** Ett tal ur en text (FNV-1a och Murmur3:s slutblandning), så att lotten blir densamma varje gång servern räknar. */
+export function hashText(text: string): number {
   let hash = FNV_OFFSET;
   for (let index = 0; index < text.length; index += 1) {
     hash ^= text.charCodeAt(index);
     hash = Math.imul(hash, FNV_PRIME) >>> 0;
   }
-  return hash;
+  hash = Math.imul(hash ^ (hash >>> MIX_SHIFT_LONG), MIX_FIRST);
+  hash = Math.imul(hash ^ (hash >>> MIX_SHIFT_SHORT), MIX_SECOND);
+  return (hash ^ (hash >>> MIX_SHIFT_LONG)) >>> 0;
 }
 
 /**
@@ -63,13 +70,14 @@ function dealPieces(role: Role, playerCount: number, playerIndex: number): numbe
 
 export function dealRoles({ roles, players, prominentHistory, lotSeed }: {
   roles: readonly Role[];
-  /** I den ordning de gick med, så att utdelningen blir densamma varje gång. */
   players: readonly PlayerRecord[];
   prominentHistory: readonly string[];
-  /** Det som lika fall lottas med, olika för varje spel och steg. */
+  /** Det som rollerna och bitarna lottas med, olika för varje spel och steg. */
   lotSeed: string;
 }): RoleDeal {
-  let remaining = [...players];
+  // Alla roller och bitar lottas, i stället för att gå på ordningen spelarna gick med i (Jonas 2026-11-18).
+  const lot = (player: PlayerRecord) => hashText(`${lotSeed}:${player.id}`);
+  let remaining = [...players].sort((first, second) => lot(first) - lot(second));
   const chosen = new Map<Role, PlayerRecord[]>();
   // Framträdande roller väljs först, sedan de med bestämt antal och sist resten.
   const order = [...roles].sort((first, second) => rolePriority(first) - rolePriority(second));

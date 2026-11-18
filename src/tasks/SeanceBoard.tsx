@@ -1,4 +1,4 @@
-import { type PointerEvent, useEffect, useRef, useState } from 'react';
+import { type PointerEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { BOARD_LETTERS, type BoardPoint, type BoardTouch, START_CELL, type SeanceView, findGlowProgress, findPointOnSegment } from '../../supabase/functions/game/seance.ts';
 import { LIFT_GRACE_MS, clampToBoard, describeSeanceStatus, CATCH_UP_SPEED, holdGlowProgress, isPlanchetteOnGlow, shouldReportArrival } from './seanceBoard.ts';
 import './seance.css';
@@ -26,16 +26,18 @@ function describeLetterTurn(seance: SeanceView): string {
  * till servern, och när skenet når en bokstav. Se docs/motorn.md, Rörelser
  * går förbi React.
  */
-export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, onLeave }: {
+export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, answer }: {
   seance: SeanceView;
-  /** Uppgiftens text, ovanför brädet. */
-  text: string;
   clockOffsetMs: number;
   /** Spelledaren som står utanför ser brädet men har ingen planchett. */
   canTouch: boolean;
   onTouch: (touch: BoardTouch) => void;
-  /** Spelaren lämnar själv brädet när skenet har slocknat. */
-  onLeave: () => void;
+  /**
+   * Svarsrutan längst ner, när brädet har ställt en fråga som gruppen svarar
+   * på, som VEM ÄR JAG (Jonas 2026-11-18). Spelaren lämnar brädet med
+   * Tillbaka överst, som alla saker.
+   */
+  answer?: ReactNode;
 }) {
   const glowRef = useRef<HTMLDivElement>(null);
   const planchetteRef = useRef<HTMLDivElement>(null);
@@ -45,8 +47,6 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
   const reportedOn = useRef(false);
   const latest = useRef({ seance, clockOffsetMs, onTouch });
   const [nowMs, setNowMs] = useState(() => Date.now());
-  // Instruktionen står på brädet tills spelaren har lagt fingret på det första gången.
-  const [hasTouched, setHasTouched] = useState(false);
 
   useEffect(() => {
     latest.current = { seance, clockOffsetMs, onTouch };
@@ -126,7 +126,6 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
   function press(event: PointerEvent<HTMLDivElement>) {
     if (!canTouch || pointerId.current !== null) return;
     pointerId.current = event.pointerId;
-    setHasTouched(true);
     event.currentTarget.setPointerCapture(event.pointerId);
     if (liftTimer.current) clearTimeout(liftTimer.current);
     liftTimer.current = null;
@@ -152,6 +151,8 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
   }
 
   const isWaiting = !seance.isComplete && seance.movesFromMs === null;
+  const status = describeSeanceStatus(seance, nowMs + clockOffsetMs, canTouch);
+  const boardAnswer = seance.isComplete ? answer : undefined;
   return (
     <section className="seance" aria-label="Seansen">
       <div
@@ -171,11 +172,13 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
         <div ref={glowRef} className={`seance-glow${isWaiting ? ' is-waiting' : ''}`} hidden={seance.isComplete} />
         <div ref={planchetteRef} className="seance-planchette" hidden />
       </div>
-      {canTouch && !hasTouched && !seance.isComplete && <p className="seance-instruction">{text}</p>}
-      <div className="seance-status">
-        <p role="status">{describeSeanceStatus(seance, nowMs + clockOffsetMs, canTouch)}</p>
-        {seance.isComplete && <button type="button" onClick={onLeave}>Lämna brädet</button>}
-      </div>
+      {/* Rutan i underkant syns bara när den har något att säga. */}
+      {(status || boardAnswer) && (
+        <div className="seance-status">
+          <p role="status">{status}</p>
+          {boardAnswer}
+        </div>
+      )}
     </section>
   );
 }

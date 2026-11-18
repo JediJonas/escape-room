@@ -128,6 +128,15 @@ test('bara en scen kan ha en egen knapptext, och den får inte vara tom', () => 
   assert.match(findMissionErrors({ ...VALID, steps: [{ id: 's', type: 'answer', text: 'T', readyLabel: 'Ja', hints: ['a', 'b', 'c'], solution: { answers: ['x'] } }] }).join(), /tom knapptext, eller är ingen scen/);
 });
 
+test('en scen som slutar med nästa steg följs av golvuret eller pianot och har ingen knapp', () => {
+  const steps = (fields: object, next: object) => ({ ...VALID, steps: [{ id: 'ett', type: 'scene', text: 'Läs.', ...fields }, next] });
+  const piano = { id: 'p', type: 'piano', text: 'T', hints: ['a', 'b', 'c'], solution: { melody: ['E4'] } };
+  const errorsOf = (fields: object, next: object) => findMissionErrors(steps(fields, next)).filter((error) => error.includes('slutar med nästa steg'));
+  assert.deepEqual(errorsOf({ endsWithStep: 'p' }, piano), []);
+  assert.equal(errorsOf({ endsWithStep: 'p', readyLabel: 'Jag har läst' }, piano).length, 1);
+  assert.equal(errorsOf({ endsWithStep: 'b' }, { ...VALID.steps[0], id: 'b' }).length, 1);
+});
+
 test('bara en scen kan be om tillstånd, och bara om ljud och rörelse', () => {
   const scene = (fields: object) => ({ ...VALID, steps: [{ ...VALID.steps[0], ...fields }] });
   assert.deepEqual(findMissionErrors(scene({ asksFor: ['sound', 'motion'] })), []);

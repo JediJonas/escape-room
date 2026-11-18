@@ -9,8 +9,8 @@ const KEY_LENGTH_S = 0.5;
 /** Lite tid efter melodin innan den kan spelas igen, så att den hinner klinga ut. */
 const AFTER_MELODY_MS = 600;
 
-/** Melodin spelas högt från en mobil, så att alla hör den, så många gånger gruppen vill (Jonas 2026-11-18). */
-function MelodyPanel({ piano }: { piano: PianoView }) {
+/** Knappen som spelar melodin högt från en mobil, så att alla hör den, så många gånger gruppen vill (Jonas 2026-11-18). */
+export function MelodyButton({ piano }: { piano: PianoView }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const { melody } = piano;
   if (!melody) return null;
@@ -23,11 +23,16 @@ function MelodyPanel({ piano }: { piano: PianoView }) {
     setTimeout(() => setIsPlaying(false), melodyMs);
   }
 
+  return <button type="button" className="piano-melody" onClick={listen} disabled={isPlaying}>{isPlaying ? 'Melodin spelas…' : 'Spela melodin'}</button>;
+}
+
+function MelodyPanel({ piano }: { piano: PianoView }) {
+  if (!piano.melody) return null;
   return (
-    <section className="role-card piano-melody" aria-label="Melodin finns i din mobil">
+    <section className="role-card" aria-label="Melodin finns i din mobil">
       <h2>Melodin finns i din mobil</h2>
       <p>Höj volymen och spela den för de andra. Ni kan höra den hur många gånger som helst.</p>
-      <button type="button" onClick={listen} disabled={isPlaying}>{isPlaying ? 'Melodin spelas…' : 'Spela melodin'}</button>
+      <MelodyButton piano={piano} />
     </section>
   );
 }
@@ -35,8 +40,11 @@ function MelodyPanel({ piano }: { piano: PianoView }) {
 /** Den svarta tangentens plats räknas i procent av pianots bredd. */
 const PERCENT = 100;
 
-/** Vita tangenter som har en svart tangent emellan, som på ett riktigt piano. Mellan E och F och mellan H och C finns ingen. */
+/** Vita tangenter som har en svart tangent emellan, som på ett riktigt piano. Mellan E och F och mellan B och C finns ingen. */
 const HAS_BLACK_AFTER = new Set(['C', 'D', 'F', 'G', 'A']);
+
+/** De vita tangenterna i en oktav, från C. */
+const WHITE_LETTERS = 'CDEFGAB';
 
 /** Den svarta tangenten efter en vit, till exempel C#4 efter C4, eller null. */
 function findBlackAfter(note: string): string | null {
@@ -44,9 +52,30 @@ function findBlackAfter(note: string): string | null {
   return match && HAS_BLACK_AFTER.has(match[1]) ? `${match[1]}#${match[2]}` : null;
 }
 
+/** Den vita tangenten närmast under, till exempel B3 under C4. */
+function findWhiteBelow(note: string): string | null {
+  const match = /^([A-G])(\d)$/.exec(note);
+  if (!match) return null;
+  const index = WHITE_LETTERS.indexOf(match[1]);
+  const octave = Number(match[2]);
+  return index === 0 ? `B${octave - 1}` : `${WHITE_LETTERS[index - 1]}${octave}`;
+}
+
+/**
+ * De svarta tangenterna och var de ligger, räknat i vita tangenter från
+ * vänster. Den före den första och den efter den sista hamnar i kanten och
+ * syns till hälften, som på ett riktigt piano (Jonas 2026-11-18).
+ */
+function placeBlackKeys(keys: readonly PianoKey[]): { note: string; position: number }[] {
+  const below = findWhiteBelow(keys[0].note);
+  const edges = [below === null ? null : findBlackAfter(below), ...keys.map((key) => findBlackAfter(key.note))];
+  return edges.flatMap((note, position) => (note === null ? [] : [{ note, position }]));
+}
+
 /**
  * Spelarens tangenter, ritade som en bit av ett riktigt piano: fyra
- * intilliggande vita tangenter och de svarta däremellan (Jonas 2026-11-18).
+ * intilliggande vita tangenter och de svarta däremellan och i kanterna
+ * (Jonas 2026-11-18).
  * En vit tangent låter i den egna mobilen och skickas till servern, som avgör
  * om de senaste tonerna är melodin. De svarta finns inte i melodin, så de
  * låter bara i mobilen. Inget säger till om en fel ton (Jonas 2026-11-18).
@@ -73,21 +102,17 @@ export function PianoKeys({ keys, onPlayKey }: { keys: readonly PianoKey[]; onPl
           {key.name}
         </button>
       ))}
-      {keys.slice(0, -1).map((key, index) => {
-        const black = findBlackAfter(key.note);
-        if (!black) return null;
-        return (
-          <button
-            key={black}
-            type="button"
-            className="piano-key piano-key-black"
-            aria-label={`Svart tangent mellan ${key.name} och ${keys[index + 1].name}`}
-            style={{ left: `${((index + 1) / keys.length) * PERCENT}%` }}
-            onPointerDown={(event) => strike(event, black, false)}
-            onKeyDown={(event) => strike(event, black, false)}
-          />
-        );
-      })}
+      {placeBlackKeys(keys).map(({ note, position }) => (
+        <button
+          key={note}
+          type="button"
+          className="piano-key piano-key-black"
+          aria-label="Svart tangent"
+          style={{ left: `${(position / keys.length) * PERCENT}%` }}
+          onPointerDown={(event) => strike(event, note, false)}
+          onKeyDown={(event) => strike(event, note, false)}
+        />
+      ))}
     </section>
   );
 }
@@ -103,7 +128,9 @@ export function PianoTask({ piano, canPlay, onPlayKey }: {
     <div className="piano">
       {piano.hasMelody && <MelodyPanel piano={piano} />}
       {!piano.hasMelody && <p className="hint">{piano.melodyPlayerName} har melodin i sin mobil. Lyssna när den spelas, och spela den sedan på era tangenter. Varje tangent hörs bara i din egen mobil.</p>}
+      {piano.hasMelody && piano.myKeys.length > 0 && <p className="hint">Spela den sedan tillsammans på era tangenter.</p>}
       {canPlay && <PianoKeys keys={piano.myKeys} onPlayKey={onPlayKey} />}
     </div>
   );
 }
+

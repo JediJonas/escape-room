@@ -219,10 +219,17 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   hand till den som har väntat längst sedan sin senaste framträdande roll. Lika fall
   lottas med ett tal ur spelets starttid, stegets id och spelarens id, så att
   lotten blir densamma varje gång servern räknar (Jonas 2026-11-18).
+  Också vem som får vilken roll och vilka bitar lottas, i stället för att
+  gå på ordningen spelarna gick med i (Jonas 2026-11-18).
   Ordningen sparas i tillståndet som `prominentHistory`.
 - **Berättelsen mellan uppgifterna** är steg av typen `scene`. En scen kan
   ha en egen text på knappen med `readyLabel`, till exempel "Jag har läst".
-  Utan den står det Klar (Jonas 2026-11-18).
+  Utan den står det Klar (Jonas 2026-11-18). En scen med `endsWithStep`
+  har ingen knapp. Spelaren blir klar av att lämna saken med Tillbaka
+  (`isDoneByLeaving` i vyn), och scenen slutar när alla är klara och gruppen
+  har klarat uppgiften i nästa steg, i vilken ordning som helst. Urklippen
+  slutar alltså när alla har läst dem och minnet har bleknat
+  (Jonas 2026-11-18). Brädet fungerar på samma sätt när meddelandet är klart.
 - **Följder.** Ett misslyckande kan kosta minuter eller sätta en markering som
   senare steg och slut läser.
 - **Språk.** Texterna står direkt på svenska. Fler språk blir en fil per språk
@@ -313,7 +320,8 @@ Melodin står i `solution.melody` som toner med antal slag. När gruppen
 kommer till steget väljer servern vems mobil som spelar melodin, som en
 framträdande roll, så att den roterar. Bara den mobilens vy har melodin, och
 den spelas högt så att alla hör (Jonas 2026-11-18). Tangenterna delas mellan
-de andra i den ordning de gick med. Var och en får fyra intilliggande
+de andra i lottad ordning, eller mellan båda när de bara är två
+(Jonas 2026-11-18). Var och en får fyra intilliggande
 tangenter, och fönstren sprids jämnt så att varje tangent finns hos någon
 (Jonas 2026-11-18). De svarta tangenterna ritas och låter i mobilen, men
 skickas inte till servern. Innan någon spelar melodin delas de mellan alla.
@@ -332,7 +340,8 @@ vilka bitar i tillståndets `found`, och varje spelare ser sedan dokumenten
 och bara sina egna bitar. Se `found.ts`.
 
 **Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
-rum dörrarna och sakerna. En sak har en text att visa eller ett steg som den
+rum dörrarna och sakerna. En sak har en text att visa, sidor att bläddra i
+(`pages`, som gästboken) eller ett steg som den
 öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna), och kan hittas först från ett visst steg (`fromStep`).
 Var spelaren är sparas i `placeByPlayer`, som platskorten använder, och det
 gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr,

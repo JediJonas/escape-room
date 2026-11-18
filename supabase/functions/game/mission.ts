@@ -62,6 +62,13 @@ export type SceneStep = {
   goTo?: PlaceId;
   /** Texten på knappen som spelaren trycker på, till exempel "Jag har läst". Utan text står det Klar (Jonas 2026-11-18). */
   readyLabel?: string;
+  /**
+   * Scenen har ingen knapp och slutar när gruppen har klarat nästa steg, som
+   * urklippen som slutar när golvuret är rätt ställt (Jonas 2026-11-18).
+   * Nästa steg är en uppgift som går att klara när som helst. Har gruppen
+   * redan klarat den när scenen börjar, får scenen en vanlig Klar-knapp.
+   */
+  endsWithStep?: string;
   /** Det som bara den som har kommit fram till platsen ser. */
   textAtPlace?: string;
   /** Utan roller ser alla samma sak. */
@@ -329,6 +336,17 @@ function findAnswerErrors(step: Record<string, unknown>, name: string): string[]
   return errors;
 }
 
+/** En scen som slutar med nästa steg har ingen knapptext eller plats, och följs av golvuret eller pianot. */
+function findEndsWithNextErrors(steps: readonly unknown[]): string[] {
+  return steps.flatMap((step, index) => {
+    const fields = (step ?? {}) as Record<string, unknown>;
+    if (fields.endsWithStep === undefined) return [];
+    const next = (steps[index + 1] ?? {}) as Record<string, unknown>;
+    const isValid = fields.type === 'scene' && fields.endsWithStep === next.id && fields.readyLabel === undefined && fields.goTo === undefined && ['rooms', 'piano'].includes(String(next.type));
+    return isValid ? [] : [`steget ${String(fields.id)} slutar med nästa steg, men är ingen scen utan knapp och plats, eller följs inte av golvuret eller pianot`];
+  });
+}
+
 function findStepErrors(step: Record<string, unknown>, places: Record<string, unknown>, minPlayers: number): string[] {
   const errors: string[] = [];
   if (!isFilledText(step.id)) errors.push('ett steg saknar id');
@@ -379,6 +397,7 @@ export function findMissionErrors(data: unknown): string[] {
     stepIds.add(stepFields.id);
     errors.push(...findStepErrors(stepFields, places ?? {}, Number.isInteger(minPlayers) ? minPlayers as number : 0));
   }
+  errors.push(...findEndsWithNextErrors(mission.steps));
   if (mission.house !== undefined) errors.push(...findHouseErrors(mission.house, places ?? {}, [...stepIds]));
   return errors;
 }

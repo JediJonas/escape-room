@@ -26,8 +26,10 @@
   position: absolute;
   inset: 0 0 auto;
   z-index: 3;
-  margin: 0;
-  padding: calc(0.5rem + env(safe-area-inset-top)) 1rem 0;
+  /* Tillbaka och klockan står i brädets kanter, inte i skärmens (Jonas 2026-11-18). */
+  max-width: var(--stage-max-width);
+  margin: 0 auto;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0;
   align-items: center;
   color: rgb(230 220 200 / 0.8);
   pointer-events: none;

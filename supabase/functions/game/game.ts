@@ -12,7 +12,7 @@ import { describePending, listParticipants } from './participants.ts';
 import { dealRoles, sortByLastTurn } from './roles.ts';
 import { type PianoRefusal, type PianoView, describePiano, startPiano } from './piano.ts';
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
-import { type FlashbackRefusal, type FlashbackView, describeFlashback, startFlashback } from './flashback.ts';
+import { type FlashbackRefusal, type FlashbackView, describeFlashback, endFlashbackNow, isRemembering, startFlashback } from './flashback.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
 import { type FoundItem, describeFound, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
@@ -206,15 +206,29 @@ function dealFoundAtStart(state: GameState, mission: Mission, players: readonly 
 }
 
 /** Spelledaren går vidare utan att vänta på alla, till exempel när någon har gått iväg. */
-export function advanceStep({ state, mission, players, player }: {
+export function advanceStep({ state, mission, players, player, nowMs = 0 }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   player: PlayerRecord;
+  /** Serverns tid, för att se om huset minns just nu. */
+  nowMs?: number;
 }): StateChange {
   if (!player.isLeader) return { refusal: 'notLeader' };
   if (state.status !== 'running') return { refusal: 'notRunning' };
-  return { state: moveOn(state, mission, players) };
+  return { state: moveOn(endMemoryNow(state, mission, nowMs), mission, players) };
+}
+
+/**
+ * Minns huset när spelledaren trycker Alla är klara bleknar minnet direkt och
+ * Rummen minns räknas som klarad, så att ingen behöver vänta ut nedräkningen
+ * (Jonas 2026-11-18).
+ */
+function endMemoryNow(state: GameState, mission: Mission, nowMs: number): GameState {
+  const step = mission.steps.find((candidate): candidate is FlashbackStep => candidate.type === 'flashback');
+  if (!step || !state.flashback || !isRemembering(state.flashback, nowMs)) return state;
+  const solvedSteps = state.solvedSteps.includes(step.id) ? state.solvedSteps : [...state.solvedSteps, step.id];
+  return { ...state, flashback: endFlashbackNow(step), solvedSteps };
 }
 
 /** Spelaren har läst och gjort sitt i steget. Den sista som blir klar för gruppen vidare. */
@@ -509,7 +523,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))
       : null,
     found: describeFound(mission, state.found, viewer.id),
-    house: mission.house && isRunning ? describeHouse({ state, mission, house: mission.house, places, viewerId: viewer.id, participantIds: sortByJoinOrder(participants).map((player) => player.id) }) : null,
+    house: mission.house && isRunning ? describeHouse({ state, mission, house: mission.house, places, viewerId: viewer.id, participantIds: sortByJoinOrder(participants).map((player) => player.id), mayEnter: findGoal(step, state, viewer.id) }) : null,
     pending: showsLeaderTools ? describePending(state, players) : null,
     clock: isRunning && state.clock ? describeClock(state.clock) : null,
     myPlace,

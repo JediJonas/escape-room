@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { buildGameView, moveOn, startGame } from './game.ts';
-import { type House, findHouseErrors, searchRoom, walk } from './house.ts';
+import { type House, describeHouse, findHouseErrors, searchRoom, walk } from './house.ts';
 import type { Mission } from './mission.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
@@ -46,7 +46,7 @@ test('alla börjar i salongen, och seansbordet står i listan från början och 
   const view = viewFor(start());
   assert.equal(view.house?.room.name, 'Salongen');
   assert.deepEqual(view.house?.doors.map((door) => door.name), ['Hallen']);
-  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null, echo: null }]);
+  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, cover: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null, echo: null }]);
   assert.equal(view.step.opensFrom, 'Ouijabrädet');
 });
 
@@ -98,7 +98,7 @@ test('en sak går att hitta från början, öppnar sitt steg när gruppen är d�
   assert.equal(viewFor(state, PLAYERS[2]).house?.things[0].name, 'Byrån');
 
   state = moveOn(state, MISSION, PLAYERS);
-  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: 'En gammal byrå.', pages: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null });
+  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: 'En gammal byrå.', pages: null, cover: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null });
 });
 
 test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns', () => {
@@ -133,4 +133,38 @@ test('de tomma sidorna kommer efter de skrivna i bokens vy', () => {
   const state = readState(startGame({ state: createInitialState(), mission, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
   const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state }, mission, players: PLAYERS, viewer: PLAYERS[1] });
   assert.deepEqual(view.house?.things[0].pages, ['1962\nVera', '', '']);
+});
+
+test('boken börjar med en första sida med titeln, som Gästbok Ekbacken (Jonas 2026-11-18)', () => {
+  const bookHouse: House = { start: 'F', rooms: [{ place: 'F', doors: [], things: [{ id: 'bok', name: 'Gästboken', cover: 'Gästbok Ekbacken', pages: ['1962\nVera'], isFoundFromStart: true }] }] };
+  const mission: Mission = { ...MISSION, house: bookHouse };
+  const state = readState(startGame({ state: createInitialState(), mission, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state }, mission, players: PLAYERS, viewer: PLAYERS[1] });
+  assert.equal(view.house?.things[0].cover, 'Gästbok Ekbacken');
+  const book = (thing: Record<string, unknown>) => ({ start: 'F', rooms: [{ place: 'F', doors: [], things: [{ id: 'bok', name: 'Gästboken', ...thing }] }] });
+  assert.deepEqual(findHouseErrors(book({ cover: 'Gästbok', pages: ['Sida'] }), MISSION.places, []), []);
+  assert.deepEqual(findHouseErrors(book({ cover: 'Gästbok', text: 'Text' }), MISSION.places, []), ['saken bok i huset har en tom första sida eller inga sidor']);
+});
+
+test('ett låst rum syns bland dörrarna bara för den som får gå in, och dörren bland sakerna bara för de andra (Jonas 2026-11-18)', () => {
+  const cellarHouse: House = {
+    start: 'B',
+    rooms: [
+      { place: 'B', doors: ['A', 'D'], things: [{ id: 'dorren', name: 'Källardörren', text: 'Låst.', doorTo: 'A' }] },
+      { place: 'D', doors: ['B'], things: [] },
+      { place: 'A', doors: ['B'], things: [], isLocked: true },
+    ],
+  };
+  const places = [{ id: 'A' as const, name: 'Källaren' }, { id: 'B' as const, name: 'Hallen' }, { id: 'D' as const, name: 'Biblioteket' }];
+  const mission: Mission = { ...MISSION, places: { ...MISSION.places, A: 'Källaren' }, house: cellarHouse };
+  let state = readState(startGame({ state: createInitialState(), mission, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const look = (mayEnter?: 'A') => describeHouse({ state, mission, house: cellarHouse, places, viewerId: 'p1', participantIds: ['p0', 'p1', 'p2'], mayEnter });
+  // Innan någon har letat syns varken dörren eller saken.
+  assert.deepEqual(look()?.doors.map((door) => door.name), ['Biblioteket']);
+  assert.deepEqual(look()?.things, []);
+  state = searchRoom({ state, house: cellarHouse, playerId: 'p1' });
+  assert.deepEqual(look()?.things.map((thing) => thing.name), ['Källardörren']);
+  // Den som ska ner i källaren ser dörren dit i stället för saken.
+  assert.deepEqual(look('A')?.doors.map((door) => door.name), ['Källaren', 'Biblioteket']);
+  assert.deepEqual(look('A')?.things, []);
 });

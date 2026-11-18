@@ -76,14 +76,12 @@ export function dealKeys(keys: readonly string[], playerIds: readonly string[]):
  * Spelarna som har tangenter, i lottad ordning så att det inte alltid är
  * den som gick med först som får de lägsta (Jonas 2026-11-18). Lotten räknas
  * ur spelarnas id och vem som spelar melodin, så den blir densamma vid varje
- * anrop. Den som spelar melodin har inga tangenter, utom när de bara är två.
- * Då får båda tangenter, så att de måste samarbeta (Jonas 2026-11-18).
+ * anrop. Också den som spelar melodin har tangenter, så att ingen förlorar
+ * pianot hon kunde spela på innan (Jonas 2026-11-18).
  */
 export function listKeyPlayers(melodyPlayerId: string | null, participantIds: readonly string[]): string[] {
-  const others = participantIds.filter((playerId) => playerId !== melodyPlayerId);
-  const keyPlayers = others.length > 1 ? others : [...participantIds];
   const lot = (playerId: string) => hashText(`${melodyPlayerId ?? ''}:${playerId}`);
-  return keyPlayers.sort((first, second) => lot(first) - lot(second));
+  return [...participantIds].sort((first, second) => lot(first) - lot(second));
 }
 
 /** Klart när de senaste tonerna är melodin, i rätt ordning. */

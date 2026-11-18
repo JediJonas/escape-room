@@ -320,8 +320,7 @@ Melodin står i `solution.melody` som toner med antal slag. När gruppen
 kommer till steget väljer servern vems mobil som spelar melodin, som en
 framträdande roll, så att den roterar. Bara den mobilens vy har melodin, och
 den spelas högt så att alla hör (Jonas 2026-11-18). Tangenterna delas mellan
-de andra i lottad ordning, eller mellan båda när de bara är två
-(Jonas 2026-11-18). Var och en får fyra intilliggande
+alla i lottad ordning, också den som spelar melodin (Jonas 2026-11-18). Var och en får fyra intilliggande
 tangenter, och fönstren sprids jämnt så att varje tangent finns hos någon
 (Jonas 2026-11-18). De svarta tangenterna ritas och låter i mobilen, men
 skickas inte till servern. Innan någon spelar melodin delas de mellan alla.

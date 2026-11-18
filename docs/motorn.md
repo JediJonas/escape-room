@@ -311,8 +311,10 @@ Melodin står i `solution.melody` som toner med antal slag. När gruppen
 kommer till steget väljer servern vems mobil som spelar melodin, som en
 framträdande roll, så att den roterar. Bara den mobilens vy har melodin, och
 den spelas högt så att alla hör (Jonas 2026-11-18). Tangenterna delas mellan
-de andra i den ordning de gick med, så att alla har minst en och varje
-tangent finns hos någon. Innan någon spelar melodin delas de mellan alla.
+de andra i den ordning de gick med. Var och en får fyra intilliggande
+tangenter, och fönstren sprids jämnt så att varje tangent finns hos någon
+(Jonas 2026-11-18). De svarta tangenterna ritas och låter i mobilen, men
+skickas inte till servern. Innan någon spelar melodin delas de mellan alla.
 Det räknas fram vid varje anrop, så servern sparar bara vems mobil det är
 och de senaste tonerna, högst lika många som melodin har. Handlingen
 `playKey` tar en tangent. Inget säger till om en fel ton, och tonen låter

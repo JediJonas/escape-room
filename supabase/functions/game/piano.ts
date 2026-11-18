@@ -48,21 +48,27 @@ export function startPiano(melodyPlayerId: string | null): PianoState {
   return { melodyPlayerId, recentKeys: [] };
 }
 
+/** Så många intilliggande vita tangenter har varje spelare, som en hand på ett riktigt piano (Jonas 2026-11-18). */
+const KEYS_PER_PLAYER = 4;
+
 /**
- * Delar tangenterna mellan spelarna utom den som spelar melodin. Alla får minst en
- * tangent och varje tangent finns hos någon. Är spelarna fler än tangenterna
- * delar några på samma tangent.
+ * Delar tangenterna mellan spelarna utom den som spelar melodin. Var och en
+ * får fyra intilliggande tangenter, till exempel C D E F, och fönstren sprids
+ * jämnt från pianots lägsta till högsta tangent, så att varje tangent finns
+ * hos någon. Är spelarna fler överlappar fönstren mer. Är det bara en spelare,
+ * eller högst fyra tangenter, får alla alla tangenter.
  */
 export function dealKeys(keys: readonly string[], playerIds: readonly string[]): Record<string, string[]> {
   const keysByPlayer: Record<string, string[]> = {};
-  for (const playerId of playerIds) keysByPlayer[playerId] = [];
-  if (playerIds.length === 0 || keys.length === 0) return keysByPlayer;
-  const slots = Math.max(keys.length, playerIds.length);
-  for (let slot = 0; slot < slots; slot += 1) {
-    const mine = keysByPlayer[playerIds[slot % playerIds.length]];
-    const key = keys[slot % keys.length];
-    if (!mine.includes(key)) mine.push(key);
-  }
+  const lastStart = keys.length - KEYS_PER_PLAYER;
+  playerIds.forEach((playerId, index) => {
+    if (lastStart <= 0 || playerIds.length === 1) {
+      keysByPlayer[playerId] = [...keys];
+      return;
+    }
+    const start = Math.round((index * lastStart) / (playerIds.length - 1));
+    keysByPlayer[playerId] = keys.slice(start, start + KEYS_PER_PLAYER);
+  });
   return keysByPlayer;
 }
 
@@ -149,6 +155,7 @@ export function findPianoErrors(step: Record<string, unknown>, name: string): st
   const { keys, beatMs } = step;
   const hasKeys = Array.isArray(keys) && keys.length >= 2 && keys.every(isNote) && new Set(keys).size === keys.length;
   if (!hasKeys) errors.push(`${name} ska ha minst två olika tangenter, som C4 eller F#4`);
+  if (hasKeys && keys.length > 2 * KEYS_PER_PLAYER) errors.push(`${name} har fler tangenter än två spelare kan dela på, högst ${2 * KEYS_PER_PLAYER}`);
   if (!(typeof beatMs === 'number' && beatMs >= MIN_BEAT_MS && beatMs <= MAX_BEAT_MS)) errors.push(`${name} ska ha ett slag på ${MIN_BEAT_MS} till ${MAX_BEAT_MS} millisekunder`);
   const melody = (step.solution as { melody?: unknown } | undefined)?.melody;
   const isMelody = Array.isArray(melody) && melody.length >= MIN_MELODY_NOTES && melody.every((tone) => isMelodyNote(tone, hasKeys ? keys : []));

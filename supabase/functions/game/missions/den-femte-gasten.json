@@ -52,7 +52,7 @@
           {
             "id": "gastboken",
             "name": "Gästboken",
-            "text": "De fem sista som skrev i boken, alla samma kväll i oktober 1962: Arvid Lund, Elsa Rydén, Margit Holm, Sven Dahl och Vera Sjö.",
+            "text": "De sista sidorna i gästboken. Efter den sista raden är sidorna tomma.\n6 oktober 1962. Ingrid Lindahl, Tore Lindahl.\n13 oktober 1962. Gunnar Ahl, Karin Ahl, Olof Nyman.\n20 oktober 1962. Fru Lindqvist.\n27 oktober 1962. Arvid Lund, Elsa Rydén, Margit Holm, Sven Dahl, Vera Sjö.",
             "fromStep": "tidningsurklippen"
           },
           {
@@ -223,7 +223,7 @@
       "question": "Brädet har frågat VEM ÄR JAG. Skriv hennes namn när ni vet vem hon är.",
       "wrongAnswerMinutes": 2,
       "hints": [
-        "Fem skrev i gästboken den kvällen. Jämför namnen med dem ni såg i minnet.",
+        "Fem skrev i gästboken kvällen då ljuset slocknade, och de står sist. Jämför namnen med dem ni såg i minnet.",
         "Urklippen och tavlan säger vem som bär sjalen, halsbandet, glasögonen och pipan. Den femte syntes inte i något rum.",
         "Margit, Elsa, Sven och Arvid fanns i rummen. Den femte i gästboken saknades."
       ],

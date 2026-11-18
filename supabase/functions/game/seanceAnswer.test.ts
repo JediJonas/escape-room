@@ -57,15 +57,18 @@ test('brädet kallar från huset tills meddelandet är klart, och sedan står fr
   assert.equal(view.step.usesReadyButton, false);
   assert.equal(view.step.acceptsAnswer, true);
   assert.equal(view.step.question, 'Vem är hon?');
-  assert.deepEqual(view.step.wrongAnswers, { count: 0, minutes: 2 });
+  assert.deepEqual(view.step.wrongAnswers, { count: 0, nextMinutes: 2 });
 });
 
-test('ett fel namn kostar tid för alla, och rätt namn för gruppen vidare', () => {
+test('ett fel namn kostar tid för alla, mer för varje fel, och rätt namn för gruppen vidare', () => {
   const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
   const complete = followWholeMessage(started);
   const wrong = readState(submitAnswer({ state: complete, mission: MISSION, players: PLAYERS, answer: 'Margit' }));
   assert.equal(wrong.clock?.durationMs, 58 * MINUTE_MS);
-  assert.deepEqual(viewOf(wrong).step.wrongAnswers, { count: 1, minutes: 2 });
+  assert.deepEqual(viewOf(wrong).step.wrongAnswers, { count: 1, nextMinutes: 4 });
+  const wrongAgain = readState(submitAnswer({ state: wrong, mission: MISSION, players: PLAYERS, answer: 'Arvid' }));
+  assert.equal(wrongAgain.clock?.durationMs, 54 * MINUTE_MS);
+  assert.deepEqual(viewOf(wrongAgain).step.wrongAnswers, { count: 2, nextMinutes: 6 });
   assert.deepEqual(submitAnswer({ state: wrong, mission: MISSION, players: PLAYERS, answer: '  ' }), { refusal: 'wrongAnswer' });
   const right = readState(submitAnswer({ state: wrong, mission: MISSION, players: PLAYERS, answer: ' vera  sjö ' }));
   assert.equal(right.status, 'finished');

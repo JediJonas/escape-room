@@ -118,7 +118,7 @@ export type SeanceStep = {
   callsFromHouse?: boolean;
   /** Med svar i facit skriver gruppen ett svar på meddelandet i stället för att trycka Klar. Det här står ovanför fältet. */
   question?: string;
-  /** Så många minuter kostar ett fel svar. */
+  /** Så många minuter kostar det första fel svaret. Varje nytt fel kostar lika mycket till (Jonas 2026-11-18). */
   wrongAnswerMinutes?: number;
   /**
    * Meddelandet, med versaler och mellanslag mellan orden, och svaren som

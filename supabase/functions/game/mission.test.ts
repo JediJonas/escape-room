@@ -109,14 +109,14 @@ test('rummen måste ha bitar nog för tio spelare, och golvuret en starttid och 
   const rooms = (fields: object) => ({
     ...VALID,
     places: { B: 'Hallen', C: 'Köket' },
-    steps: [{ id: 'rummen', type: 'rooms', text: 'Vrid visarna.', clockStart: '4.40', memoryMinutes: 3, memoryLabel: 'kvart över nio, 1962', rooms: [{ place: 'B', pieces: [...pieces, 'Golvet', 'Taket'] }, { place: 'C', pieces: [...pieces, 'Spisen', 'Kranen'] }], hints: ['a', 'b', 'c'], solution: { time: '21.15' }, ...fields }],
+    steps: [{ id: 'rummen', type: 'flashback', text: 'Vrid visarna.', clockStart: '4.40', flashbackMinutes: 3, flashbackLabel: 'kvart över nio, 1962', rooms: [{ place: 'B', pieces: [...pieces, 'Golvet', 'Taket'] }, { place: 'C', pieces: [...pieces, 'Spisen', 'Kranen'] }], hints: ['a', 'b', 'c'], solution: { time: '21.15' }, ...fields }],
   });
   assert.deepEqual(findMissionErrors(rooms({})), []);
   assert.match(findMissionErrors(rooms({ rooms: [{ place: 'B', pieces }, { place: 'C', pieces }] })).join(), /ska ha minst 5 bitar/);
   assert.match(findMissionErrors(rooms({ solution: { time: '21.17' } })).join(), /saknar en tid i facit/);
   assert.match(findMissionErrors(rooms({ clockStart: 'tjugo i fem' })).join(), /saknar en starttid/);
   assert.match(findMissionErrors(rooms({ clockStart: '9.15' })).join(), /på rätt tid från början/);
-  assert.match(findMissionErrors(rooms({ memoryMinutes: 0 })).join(), /hur många minuter minnet varar/);
+  assert.match(findMissionErrors(rooms({ flashbackMinutes: 0 })).join(), /hur många minuter minnet varar/);
   assert.match(findMissionErrors(rooms({ rooms: [{ place: 'F', pieces: [...pieces, 'a', 'b'] }] })).join(), /plats som uppdraget saknar: F/);
   assert.match(findMissionErrors(rooms({ goTo: 'B' })).join(), /kan inte ha plats eller roller/);
 });

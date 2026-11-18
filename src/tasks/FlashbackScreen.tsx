@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
-import type { RoomsView } from '../../supabase/functions/game/rooms.ts';
-import { formatMemoryLeft } from './memoryTime.ts';
-import './rooms.css';
+import type { FlashbackView } from '../../supabase/functions/game/flashback.ts';
+import { formatFlashbackLeft } from './flashbackTime.ts';
+import './flashback.css';
 
 const TICK_MS = 1000;
 /** Så här långt före slutet börjar minnet blekna på skärmen. */
@@ -10,9 +10,9 @@ const FADING_MS = 20_000;
 
 /**
  * Om huset minns just nu, räknat i serverns tid. När tiden har gått säger
- * mobilen till servern en gång, och servern avgör (se rooms.ts).
+ * mobilen till servern en gång, och servern avgör (se flashback.ts).
  */
-export function useMemoryTime(remembersUntilMs: number | null, clockOffsetMs: number, onFaded: () => void): { isRemembering: boolean; isFading: boolean; msLeft: number } {
+export function useFlashbackTime(remembersUntilMs: number | null, clockOffsetMs: number, onFaded: () => void): { isRemembering: boolean; isFading: boolean; msLeft: number } {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const toldFor = useRef<number | null>(null);
   const serverNowMs = nowMs + clockOffsetMs;
@@ -36,8 +36,8 @@ export function useMemoryTime(remembersUntilMs: number | null, clockOffsetMs: nu
  * välja och ser det som det var, sepiatonat och flimrande. Det som finns i
  * nuet syns inte så länge minnet varar. Se docs/koncept.md, Nu och 1962.
  */
-export function MemoryScreen({ rooms, isFading, msLeft, canChoose, isBusy, onChoose }: {
-  rooms: RoomsView;
+export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy, onChoose }: {
+  flashback: FlashbackView;
   isFading: boolean;
   /** Tiden kvar tills minnet bleknar, så att gruppen kan planera (Jonas 2026-11-18). */
   msLeft: number;
@@ -46,13 +46,13 @@ export function MemoryScreen({ rooms, isFading, msLeft, canChoose, isBusy, onCho
   isBusy: boolean;
   onChoose: (placeId: PlaceId) => void;
 }) {
-  const { myRooms, choice } = rooms;
+  const { myRooms, choice } = flashback;
   const [onlyRoom] = myRooms;
   const isTakingAnother = choice === 'takeAnother';
   return (
     <section className={isFading ? 'memory is-fading' : 'memory'} aria-label="Huset minns">
-      <p className="memory-label">{myRooms.length === 1 ? onlyRoom.place.name : 'Huset minns'} · {rooms.memoryLabel}</p>
-      <p className={isFading ? 'memory-left is-fading' : 'memory-left'} role="timer">Minnet bleknar om {formatMemoryLeft(msLeft)}</p>
+      <p className="memory-label">{myRooms.length === 1 ? onlyRoom.place.name : 'Huset minns'} · {flashback.flashbackLabel}</p>
+      <p className={isFading ? 'memory-left is-fading' : 'memory-left'} role="timer">Minnet bleknar om {formatFlashbackLeft(msLeft)}</p>
       {myRooms.map((room) => (
         <div key={room.place.id} className="memory-pieces">
           {myRooms.length > 1 && <h2 className="memory-room">{room.place.name}</h2>}
@@ -67,7 +67,7 @@ export function MemoryScreen({ rooms, isFading, msLeft, canChoose, isBusy, onCho
               ? 'Ni är färre än rummen, så du kan se ett rum till i samma minne.'
               : 'Du stannar där tills minnet bleknar. Ett rum går bara att välja om inget annat rum har färre.'}
           </p>
-          {rooms.rooms.map(({ place, isChoosable }) => (
+          {flashback.rooms.map(({ place, isChoosable }) => (
             <button key={place.id} type="button" className="secondary" onClick={() => onChoose(place.id)} disabled={isBusy || !isChoosable}>{place.name}</button>
           ))}
         </fieldset>

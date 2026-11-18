@@ -187,11 +187,11 @@
     },
     {
       "id": "rummen-minns",
-      "type": "rooms",
+      "type": "flashback",
       "text": "Golvuret har stått stilla länge. Vrid visarna med fingret. De hakar i var femte minut.",
       "clockStart": "4.40",
-      "memoryMinutes": 3,
-      "memoryLabel": "kvart över nio, 1962",
+      "flashbackMinutes": 3,
+      "flashbackLabel": "kvart över nio, 1962",
       "rooms": [
         {
           "place": "B",

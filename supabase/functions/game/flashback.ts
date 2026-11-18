@@ -13,7 +13,7 @@
  */
 
 import { MAX_PLAYERS } from './lobby.ts';
-import type { Place, RoomsStep } from './mission.ts';
+import type { Place, FlashbackStep } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 
 const MS_PER_MINUTE = 60_000;
@@ -42,65 +42,65 @@ export function snapDial(minutes: number): number {
 }
 
 /** Ett val av rum i minnet. Ordningen avgör hur bitarna delas när flera står i samma rum. */
-export type MemoryChoice = { playerId: string; place: PlaceId };
+export type FlashbackChoice = { playerId: string; place: PlaceId };
 
-export type RoomsState = {
+export type FlashbackState = {
   /** Var visarna står, i minuter på urtavlan. */
   dialMinutes: number;
   /** Huset minns till den här tiden, i serverns tid, eller null när det inte minns. */
   remembersUntilMs: number | null;
   /** Vilka som har valt rum i minnet just nu, i den ordning de valde. */
-  choices: MemoryChoice[];
+  choices: FlashbackChoice[];
   /** Rummen som någon har stått i under ett minne. */
   seenPlaces: PlaceId[];
 };
 
-function readStartMinutes(step: RoomsStep): number {
+function readStartMinutes(step: FlashbackStep): number {
   return readDialTime(step.clockStart) ?? 0;
 }
 
-export function startRooms(step: RoomsStep): RoomsState {
+export function startFlashback(step: FlashbackStep): FlashbackState {
   return { dialMinutes: readStartMinutes(step), remembersUntilMs: null, choices: [], seenPlaces: [] };
 }
 
-export function isRemembering(rooms: RoomsState, nowMs: number): boolean {
-  return rooms.remembersUntilMs !== null && nowMs < rooms.remembersUntilMs;
+export function isRemembering(flashback: FlashbackState, nowMs: number): boolean {
+  return flashback.remembersUntilMs !== null && nowMs < flashback.remembersUntilMs;
 }
 
 /**
  * För fram tillståndet till nu. Har minnet bleknat räknas rummen som sedda,
  * och visarna går tillbaka till tiden de hade från början (Jonas 2026-11-17).
  */
-export function advanceRooms(rooms: RoomsState, step: RoomsStep, nowMs: number): RoomsState {
-  if (rooms.remembersUntilMs === null || isRemembering(rooms, nowMs)) return rooms;
-  return { dialMinutes: readStartMinutes(step), remembersUntilMs: null, choices: [], seenPlaces: rooms.seenPlaces };
+export function advanceFlashback(flashback: FlashbackState, step: FlashbackStep, nowMs: number): FlashbackState {
+  if (flashback.remembersUntilMs === null || isRemembering(flashback, nowMs)) return flashback;
+  return { dialMinutes: readStartMinutes(step), remembersUntilMs: null, choices: [], seenPlaces: flashback.seenPlaces };
 }
 
 /** Uppgiften är klar när gruppen har sett alla rummen och minnet har bleknat. */
-export function isRoomsSolved(rooms: RoomsState, step: RoomsStep): boolean {
-  return rooms.remembersUntilMs === null && step.rooms.every((room) => rooms.seenPlaces.includes(room.place));
+export function isFlashbackSolved(flashback: FlashbackState, step: FlashbackStep): boolean {
+  return flashback.remembersUntilMs === null && step.rooms.every((room) => flashback.seenPlaces.includes(room.place));
 }
 
-export type RoomsRefusal = 'houseRemembers' | 'notRemembering' | 'alreadyChosen' | 'unknownPlace' | 'roomFull';
+export type FlashbackRefusal = 'houseRemembers' | 'notRemembering' | 'alreadyChosen' | 'unknownPlace' | 'roomFull';
 
 /** Spelaren vrider visarna. Står de på rätt tid börjar huset minnas. */
-export function turnClock({ rooms, step, minutes, nowMs }: {
-  rooms: RoomsState;
-  step: RoomsStep;
+export function turnClock({ flashback, step, minutes, nowMs }: {
+  flashback: FlashbackState;
+  step: FlashbackStep;
   minutes: unknown;
   nowMs: number;
-}): { rooms: RoomsState } | { refusal: RoomsRefusal } {
-  if (isRemembering(rooms, nowMs)) return { refusal: 'houseRemembers' };
-  const current = advanceRooms(rooms, step, nowMs);
-  if (typeof minutes !== 'number' || !Number.isFinite(minutes)) return { rooms: current };
+}): { flashback: FlashbackState } | { refusal: FlashbackRefusal } {
+  if (isRemembering(flashback, nowMs)) return { refusal: 'houseRemembers' };
+  const current = advanceFlashback(flashback, step, nowMs);
+  if (typeof minutes !== 'number' || !Number.isFinite(minutes)) return { flashback: current };
   const dialMinutes = snapDial(minutes);
-  if (dialMinutes !== readDialTime(step.solution.time)) return { rooms: { ...current, dialMinutes } };
-  return { rooms: { ...current, dialMinutes, remembersUntilMs: nowMs + step.memoryMinutes * MS_PER_MINUTE, choices: [] } };
+  if (dialMinutes !== readDialTime(step.solution.time)) return { flashback: { ...current, dialMinutes } };
+  return { flashback: { ...current, dialMinutes, remembersUntilMs: nowMs + step.flashbackMinutes * MS_PER_MINUTE, choices: [] } };
 }
 
-function countByPlace(rooms: RoomsState, step: RoomsStep): Map<PlaceId, number> {
+function countByPlace(flashback: FlashbackState, step: FlashbackStep): Map<PlaceId, number> {
   const counts = new Map<PlaceId, number>(step.rooms.map((room) => [room.place, 0]));
-  for (const choice of rooms.choices) counts.set(choice.place, (counts.get(choice.place) ?? 0) + 1);
+  for (const choice of flashback.choices) counts.set(choice.place, (counts.get(choice.place) ?? 0) + 1);
   return counts;
 }
 
@@ -109,14 +109,14 @@ function countByPlace(rooms: RoomsState, step: RoomsStep): Map<PlaceId, number> 
  * annat rum har färre spelare i sig, så att rummen fylls jämnt
  * (Jonas 2026-11-17).
  */
-export function listChoosablePlaces(rooms: RoomsState, step: RoomsStep): PlaceId[] {
-  const counts = countByPlace(rooms, step);
+export function listChoosablePlaces(flashback: FlashbackState, step: FlashbackStep): PlaceId[] {
+  const counts = countByPlace(flashback, step);
   const fewest = Math.min(...counts.values());
   return step.rooms.map((room) => room.place).filter((place) => counts.get(place) === fewest);
 }
 
-function countRoomsOf(rooms: RoomsState, playerId: string): number {
-  return rooms.choices.filter((choice) => choice.playerId === playerId).length;
+function countRoomsOf(flashback: FlashbackState, playerId: string): number {
+  return flashback.choices.filter((choice) => choice.playerId === playerId).length;
 }
 
 /**
@@ -125,41 +125,41 @@ function countRoomsOf(rooms: RoomsState, playerId: string): number {
  * (Jonas 2026-11-18). Det går först när alla har ett rum, och bara för den
  * som inte har fler rum än någon annan, så att rummen delas jämnt.
  */
-function canTakeAnotherRoom(rooms: RoomsState, step: RoomsStep, playerId: string, participantIds: readonly string[]): boolean {
-  const mine = countRoomsOf(rooms, playerId);
+function canTakeAnotherRoom(flashback: FlashbackState, step: FlashbackStep, playerId: string, participantIds: readonly string[]): boolean {
+  const mine = countRoomsOf(flashback, playerId);
   if (mine === 0) return false;
-  const hasEmptyRoom = [...countByPlace(rooms, step).values()].includes(0);
-  const fewest = Math.min(...participantIds.map((id) => countRoomsOf(rooms, id)));
+  const hasEmptyRoom = [...countByPlace(flashback, step).values()].includes(0);
+  const fewest = Math.min(...participantIds.map((id) => countRoomsOf(flashback, id)));
   return hasEmptyRoom && fewest > 0 && mine === fewest;
 }
 
 /** Varför spelaren inte kan välja, eller null om hon kan. */
-function findChoiceRefusal(rooms: RoomsState, step: RoomsStep, playerId: string, participantIds: readonly string[]): RoomsRefusal | null {
-  if (countRoomsOf(rooms, playerId) === 0) return null;
-  return canTakeAnotherRoom(rooms, step, playerId, participantIds) ? null : 'alreadyChosen';
+function findChoiceRefusal(flashback: FlashbackState, step: FlashbackStep, playerId: string, participantIds: readonly string[]): FlashbackRefusal | null {
+  if (countRoomsOf(flashback, playerId) === 0) return null;
+  return canTakeAnotherRoom(flashback, step, playerId, participantIds) ? null : 'alreadyChosen';
 }
 
 /**
  * Spelaren väljer sitt rum i minnet. Hon stannar där tills minnet bleknar.
  * Är spelarna färre än rummen kan hon ta ett tomt rum till när alla har valt.
  */
-export function chooseMemoryRoom({ rooms, step, playerId, participantIds, placeId, nowMs }: {
-  rooms: RoomsState;
-  step: RoomsStep;
+export function chooseFlashbackRoom({ flashback, step, playerId, participantIds, placeId, nowMs }: {
+  flashback: FlashbackState;
+  step: FlashbackStep;
   playerId: string;
   /** Alla som är med i uppgiften, för att se om alla har ett rum. */
   participantIds: readonly string[];
   placeId: unknown;
   nowMs: number;
-}): { rooms: RoomsState } | { refusal: RoomsRefusal } {
-  if (!isRemembering(rooms, nowMs)) return { refusal: 'notRemembering' };
-  const refusal = findChoiceRefusal(rooms, step, playerId, participantIds);
+}): { flashback: FlashbackState } | { refusal: FlashbackRefusal } {
+  if (!isRemembering(flashback, nowMs)) return { refusal: 'notRemembering' };
+  const refusal = findChoiceRefusal(flashback, step, playerId, participantIds);
   if (refusal) return { refusal };
   if (!isPlaceId(placeId) || !step.rooms.some((room) => room.place === placeId)) return { refusal: 'unknownPlace' };
-  if (rooms.choices.some((choice) => choice.playerId === playerId && choice.place === placeId)) return { refusal: 'alreadyChosen' };
-  if (!listChoosablePlaces(rooms, step).includes(placeId)) return { refusal: 'roomFull' };
-  const seenPlaces = rooms.seenPlaces.includes(placeId) ? rooms.seenPlaces : [...rooms.seenPlaces, placeId];
-  return { rooms: { ...rooms, choices: [...rooms.choices, { playerId, place: placeId }], seenPlaces } };
+  if (flashback.choices.some((choice) => choice.playerId === playerId && choice.place === placeId)) return { refusal: 'alreadyChosen' };
+  if (!listChoosablePlaces(flashback, step).includes(placeId)) return { refusal: 'roomFull' };
+  const seenPlaces = flashback.seenPlaces.includes(placeId) ? flashback.seenPlaces : [...flashback.seenPlaces, placeId];
+  return { flashback: { ...flashback, choices: [...flashback.choices, { playerId, place: placeId }], seenPlaces } };
 }
 
 /**
@@ -167,60 +167,60 @@ export function chooseMemoryRoom({ rooms, step, playerId, participantIds, placeI
  * flera i samma rum delas bitarna mellan dem i den ordning de valde, så att
  * ingen får samma skärm.
  */
-function findMyRooms(rooms: RoomsState, step: RoomsStep, playerId: string): { place: PlaceId; pieces: string[] }[] {
-  return rooms.choices.filter((choice) => choice.playerId === playerId).flatMap((mine) => {
+function findMyRooms(flashback: FlashbackState, step: FlashbackStep, playerId: string): { place: PlaceId; pieces: string[] }[] {
+  return flashback.choices.filter((choice) => choice.playerId === playerId).flatMap((mine) => {
     const room = step.rooms.find((candidate) => candidate.place === mine.place);
     if (!room) return [];
-    const holders = rooms.choices.filter((choice) => choice.place === mine.place);
+    const holders = flashback.choices.filter((choice) => choice.place === mine.place);
     const holderIndex = holders.indexOf(mine);
     return [{ place: mine.place, pieces: room.pieces.filter((_, pieceIndex) => pieceIndex % holders.length === holderIndex) }];
   });
 }
 
 /** Om spelaren kan välja, väntar på att få ta ett rum till, eller har sina rum. */
-export type MemoryChoiceState = 'choose' | 'waitForOthers' | 'takeAnother' | 'done';
+export type FlashbackChoiceState = 'choose' | 'waitForOthers' | 'takeAnother' | 'done';
 
 /** Det en spelare ser av uppgiften. Bitarna i ett rum syns bara för den som har valt rummet. */
-export type RoomsView = {
+export type FlashbackView = {
   /** Var visarna står, i minuter på urtavlan. */
   dialMinutes: number;
   /** Huset minns till den här tiden, i serverns tid. Mobilen säger till när den har passerat. */
   remembersUntilMs: number | null;
   /** Raden överst i minnet, efter platsens namn, till exempel "kvart över nio, 1962". */
-  memoryLabel: string;
+  flashbackLabel: string;
   /** Alla rum i minnet, och om spelaren kan välja dem just nu. */
   rooms: { place: Place; isChoosable: boolean }[];
   /** Spelarens rum i minnet och det hon ser där, i den ordning hon valde dem. */
   myRooms: { place: Place; pieces: string[] }[];
   /** Om spelaren kan välja ett rum nu, eller ett rum till när de andra har valt. */
-  choice: MemoryChoiceState;
+  choice: FlashbackChoiceState;
 };
 
-function findChoiceState(rooms: RoomsState, step: RoomsStep, viewerId: string, participantIds: readonly string[]): MemoryChoiceState {
-  const mine = countRoomsOf(rooms, viewerId);
+function findChoiceState(flashback: FlashbackState, step: FlashbackStep, viewerId: string, participantIds: readonly string[]): FlashbackChoiceState {
+  const mine = countRoomsOf(flashback, viewerId);
   if (mine === 0) return 'choose';
-  if (canTakeAnotherRoom(rooms, step, viewerId, participantIds)) return 'takeAnother';
-  const hasEmptyRoom = [...countByPlace(rooms, step).values()].includes(0);
-  const someoneHasNone = participantIds.some((id) => countRoomsOf(rooms, id) === 0);
+  if (canTakeAnotherRoom(flashback, step, viewerId, participantIds)) return 'takeAnother';
+  const hasEmptyRoom = [...countByPlace(flashback, step).values()].includes(0);
+  const someoneHasNone = participantIds.some((id) => countRoomsOf(flashback, id) === 0);
   return hasEmptyRoom && someoneHasNone ? 'waitForOthers' : 'done';
 }
 
-export function describeRooms({ rooms, step, places, viewerId, participantIds }: {
-  rooms: RoomsState;
-  step: RoomsStep;
+export function describeFlashback({ flashback, step, places, viewerId, participantIds }: {
+  flashback: FlashbackState;
+  step: FlashbackStep;
   places: readonly Place[];
   viewerId: string;
   participantIds: readonly string[];
-}): RoomsView {
+}): FlashbackView {
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
-  const mine = findMyRooms(rooms, step, viewerId);
-  const choice = findChoiceState(rooms, step, viewerId, participantIds);
-  const canChoose = rooms.remembersUntilMs !== null && (choice === 'choose' || choice === 'takeAnother');
-  const choosable = canChoose ? listChoosablePlaces(rooms, step) : [];
+  const mine = findMyRooms(flashback, step, viewerId);
+  const choice = findChoiceState(flashback, step, viewerId, participantIds);
+  const canChoose = flashback.remembersUntilMs !== null && (choice === 'choose' || choice === 'takeAnother');
+  const choosable = canChoose ? listChoosablePlaces(flashback, step) : [];
   return {
-    dialMinutes: rooms.dialMinutes,
-    remembersUntilMs: rooms.remembersUntilMs,
-    memoryLabel: step.memoryLabel,
+    dialMinutes: flashback.dialMinutes,
+    remembersUntilMs: flashback.remembersUntilMs,
+    flashbackLabel: step.flashbackLabel,
     rooms: step.rooms.map((room) => ({ place: findPlace(room.place), isChoosable: choosable.includes(room.place) })),
     myRooms: mine.map((room) => ({ place: findPlace(room.place), pieces: room.pieces })),
     choice,
@@ -228,7 +228,7 @@ export function describeRooms({ rooms, step, places, viewerId, participantIds }:
 }
 
 /** Facit som text, för spelledaren och läckkontrollen. */
-export function describeRoomsSolution(step: RoomsStep, places: readonly Place[]): string {
+export function describeFlashbackSolution(step: FlashbackStep, places: readonly Place[]): string {
   const names = step.rooms.map((room) => places.find((place) => place.id === room.place)?.name ?? room.place);
   return `Vrid golvuret till ${step.solution.time}, och se ${names.join(', ')} i minnet`;
 }
@@ -241,7 +241,7 @@ function isFilledText(value: unknown): value is string {
  * Kontrollerar rummen i en uppdragsfil. Varje rum behöver lika många bitar
  * som det kan få spelare med tio i gruppen, så att ingen får samma skärm.
  */
-export function findRoomsErrors(step: Record<string, unknown>, name: string, places: Record<string, unknown>): string[] {
+export function findFlashbackErrors(step: Record<string, unknown>, name: string, places: Record<string, unknown>): string[] {
   const errors: string[] = [];
   const time = (step.solution as { time?: unknown } | undefined)?.time;
   const target = readDialTime(time);
@@ -249,8 +249,8 @@ export function findRoomsErrors(step: Record<string, unknown>, name: string, pla
   if (target === null) errors.push(`${name} saknar en tid i facit, som 21.15, på en femte minut`);
   if (start === null) errors.push(`${name} saknar en starttid på golvuret, som 4.40, på en femte minut`);
   if (target !== null && start === target) errors.push(`${name} har golvuret på rätt tid från början`);
-  if (!(typeof step.memoryMinutes === 'number' && step.memoryMinutes > 0)) errors.push(`${name} saknar hur många minuter minnet varar`);
-  if (!isFilledText(step.memoryLabel)) errors.push(`${name} saknar raden överst i minnet`);
+  if (!(typeof step.flashbackMinutes === 'number' && step.flashbackMinutes > 0)) errors.push(`${name} saknar hur många minuter minnet varar`);
+  if (!isFilledText(step.flashbackLabel)) errors.push(`${name} saknar raden överst i minnet`);
   const rooms = step.rooms;
   if (!Array.isArray(rooms) || rooms.length === 0) return [...errors, `${name} saknar rum`];
   const piecesNeeded = Math.ceil(MAX_PLAYERS / rooms.length);
@@ -265,7 +265,7 @@ export function findRoomsErrors(step: Record<string, unknown>, name: string, pla
   return errors;
 }
 
-function readChoices(saved: unknown): MemoryChoice[] {
+function readChoices(saved: unknown): FlashbackChoice[] {
   if (!Array.isArray(saved)) return [];
   return saved.flatMap((choice) => {
     const fields = choice as Record<string, unknown> | null;
@@ -275,7 +275,7 @@ function readChoices(saved: unknown): MemoryChoice[] {
 }
 
 /** Läser sparade rum, eller null om de saknas eller är trasiga. Det gamla formatet med gäster blir null. */
-export function readRoomsState(saved: unknown): RoomsState | null {
+export function readFlashbackState(saved: unknown): FlashbackState | null {
   if (!saved || typeof saved !== 'object') return null;
   const fields = saved as Record<string, unknown>;
   if (!Number.isInteger(fields.dialMinutes) || !Array.isArray(fields.seenPlaces)) return null;

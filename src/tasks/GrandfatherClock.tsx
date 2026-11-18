@@ -1,8 +1,8 @@
 import { type PointerEvent, useEffect, useState } from 'react';
-import { DIAL_HOURS, snapDial } from '../../supabase/functions/game/rooms.ts';
+import { DIAL_HOURS, snapDial } from '../../supabase/functions/game/flashback.ts';
 import { angleFromCenter, dragMinuteHand, findHandAngles, formatDialTime } from './clockDial.ts';
 import { Pendulum } from './Pendulum.tsx';
-import './rooms.css';
+import './flashback.css';
 
 const DIAL_SIZE = 200;
 const CENTER = DIAL_SIZE / 2;

@@ -9,7 +9,7 @@
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
 import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
-import { chooseMemoryRoom, fadeMemory, moveInCellar, playKey, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
+import { chooseFlashbackRoom, fadeFlashback, moveInCellar, playKey, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
 import { readCellarMove } from './cellar.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts';
@@ -181,27 +181,27 @@ async function turnClockAction(action: Action, context: Context): Promise<Action
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
     const change = turnClock({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, minutes: action.minutes, nowMs });
-    const isUnchanged = 'state' in change && change.state.rooms?.dialMinutes === scope.game.state.rooms?.dialMinutes && change.state.rooms?.remembersUntilMs === scope.game.state.rooms?.remembersUntilMs && change.state.stepIndex === scope.game.state.stepIndex;
+    const isUnchanged = 'state' in change && change.state.flashback?.dialMinutes === scope.game.state.flashback?.dialMinutes && change.state.flashback?.remembersUntilMs === scope.game.state.flashback?.remembersUntilMs && change.state.stepIndex === scope.game.state.stepIndex;
     return applyChange(scope, change, { action: { type: 'turnClock', minutes: action.minutes }, recipients: isUnchanged ? [scope.player] : undefined });
   });
 }
 
 /** Alla får en ny vy, eftersom rummen som går att välja ändras för alla. */
-async function chooseMemoryRoomAction(action: Action, context: Context): Promise<ActionResult> {
+async function chooseFlashbackRoomAction(action: Action, context: Context): Promise<ActionResult> {
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
-    const change = chooseMemoryRoom({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, placeId: action.placeId, nowMs });
-    return applyChange(scope, change, { action: { type: 'chooseMemoryRoom', placeId: action.placeId } });
+    const change = chooseFlashbackRoom({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, placeId: action.placeId, nowMs });
+    return applyChange(scope, change, { action: { type: 'chooseFlashbackRoom', placeId: action.placeId } });
   });
 }
 
 /** Alla mobiler säger till när minnet bleknar. Bara den första ändrar något. */
-async function fadeMemoryAction(action: Action, context: Context): Promise<ActionResult> {
+async function fadeFlashbackAction(action: Action, context: Context): Promise<ActionResult> {
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
-    const change = fadeMemory({ state: scope.game.state, mission: scope.mission, players: scope.participants, nowMs });
+    const change = fadeFlashback({ state: scope.game.state, mission: scope.mission, players: scope.participants, nowMs });
     const isUnchanged = 'state' in change && change.state === scope.game.state;
-    return applyChange(scope, change, { action: { type: 'fadeMemory' }, recipients: isUnchanged ? [scope.player] : undefined });
+    return applyChange(scope, change, { action: { type: 'fadeFlashback' }, recipients: isUnchanged ? [scope.player] : undefined });
   });
 }
 
@@ -273,8 +273,8 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   submitAnswer: submitAnswerAction,
   touchBoard: touchBoardAction,
   turnClock: turnClockAction,
-  chooseMemoryRoom: chooseMemoryRoomAction,
-  fadeMemory: fadeMemoryAction,
+  chooseFlashbackRoom: chooseFlashbackRoomAction,
+  fadeFlashback: fadeFlashbackAction,
   moveInCellar: moveInCellarAction,
   playKey: playKeyAction,
   walk: walkAction,

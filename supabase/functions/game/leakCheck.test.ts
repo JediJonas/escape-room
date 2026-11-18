@@ -7,11 +7,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
-import { chooseMemoryRoom, moveInCellar, playKey, touchBoard, turnClock } from './taskActions.ts';
+import { chooseFlashbackRoom, moveInCellar, playKey, touchBoard, turnClock } from './taskActions.ts';
 import { dealKeys, listKeyPlayers } from './piano.ts';
 import { sortByJoinOrder } from './lobby.ts';
 import { MAX_PLAYERS } from './lobby.ts';
-import { readDialTime } from './rooms.ts';
+import { readDialTime } from './flashback.ts';
 import { listParticipants } from './participants.ts';
 import { type Mission, listPlaces, listSolutionTexts } from './mission.ts';
 import { MISSIONS } from './missions/index.ts';
@@ -38,7 +38,7 @@ function listSecrets(mission: Mission, stepIndex: number): string[] {
     ...(step.roles ?? []).flatMap((role) => role.pieces),
     ...(step.hints ?? []),
     ...listSolutionTexts(step, listPlaces(mission)),
-    ...(step.type === 'rooms' ? step.rooms.flatMap((room) => room.pieces) : []),
+    ...(step.type === 'flashback' ? step.rooms.flatMap((room) => room.pieces) : []),
     // Texterna efteråt har den instängdas namn i sig, så den längsta delen utan namnet räcker.
     ...(step.type === 'cellar' ? [step.foundText, step.othersFoundText, step.caughtText].map(findLongestPartWithoutName) : []),
   ];
@@ -74,7 +74,7 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     const text = JSON.stringify(view);
     const allowed = new Set([
       ...(view.step.role?.pieces ?? []),
-      ...listMemoryPieces(view),
+      ...listFlashbackPieces(view),
       // Texten efteråt i källaren är bara den som spelaren själv ska se.
       ...secrets.filter((secret) => view.step.cellar?.outcomeText?.includes(secret)),
       ...(view.step.textAtPlace ? [view.step.textAtPlace] : []),
@@ -89,7 +89,7 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     if (view.step.piano?.melody) assert.equal(state.piano?.melodyPlayerId, viewer.id, `${viewer.name} får melodin fast den spelas från en annan mobil`);
     // Ingen vy berättar något om de andra spelarna.
     for (const other of players.filter((player) => player.id !== viewer.id)) assert.ok(!text.includes(other.id), `${viewer.name} ser ${other.id}`);
-    for (const piece of [...(view.step.role?.pieces ?? []), ...listMemoryPieces(view)]) {
+    for (const piece of [...(view.step.role?.pieces ?? []), ...listFlashbackPieces(view)]) {
       assert.ok(!shown.has(piece), `${mission.id} steg ${state.stepIndex + 1}: två spelare ser samma bit: ${piece}`);
       shown.add(piece);
     }
@@ -107,8 +107,8 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
 }
 
 /** Bitarna i spelarens egna rum i minnet. */
-function listMemoryPieces(view: ReturnType<typeof buildGameView>): string[] {
-  return view.step.rooms?.myRooms.flatMap((room) => room.pieces) ?? [];
+function listFlashbackPieces(view: ReturnType<typeof buildGameView>): string[] {
+  return view.step.flashback?.myRooms.flatMap((room) => room.pieces) ?? [];
 }
 
 /**
@@ -120,7 +120,7 @@ function listMemoryPieces(view: ReturnType<typeof buildGameView>): string[] {
  */
 function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
   const step = mission.steps[state.stepIndex];
-  if (step.type !== 'rooms' || !state.rooms) return state;
+  if (step.type !== 'flashback' || !state.flashback) return state;
   const clockRoom = mission.house?.rooms.find((room) => room.things.some((thing) => thing.opensSteps?.includes(step.id)))?.place;
   const [turner] = participants;
   let visited: GameState = clockRoom ? { ...state, placeByPlayer: { ...state.placeByPlayer, [turner.id]: clockRoom } } : state;
@@ -130,7 +130,7 @@ function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord
     isChoosing = false;
     for (const player of participants) {
       for (const room of step.rooms) {
-        const chosen = chooseMemoryRoom({ state: visited, mission, players: participants, player, placeId: room.place, nowMs: 0 });
+        const chosen = chooseFlashbackRoom({ state: visited, mission, players: participants, player, placeId: room.place, nowMs: 0 });
         if ('state' in chosen) {
           visited = chosen.state;
           isChoosing = true;
@@ -143,9 +143,9 @@ function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord
   const seen = new Set<string>();
   for (const viewer of participants) {
     const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state: visited }, mission, players, viewer });
-    for (const piece of listMemoryPieces(view)) seen.add(piece);
+    for (const piece of listFlashbackPieces(view)) seen.add(piece);
   }
-  assert.ok(step.rooms.every((room) => visited.rooms?.seenPlaces.includes(room.place)), `${mission.id}: gruppen såg inte alla rum i ett minne med ${participants.length} spelare`);
+  assert.ok(step.rooms.every((room) => visited.flashback?.seenPlaces.includes(room.place)), `${mission.id}: gruppen såg inte alla rum i ett minne med ${participants.length} spelare`);
   for (const room of step.rooms) for (const piece of room.pieces) assert.ok(seen.has(piece), `${mission.id}: ingen ser ${piece} med ${participants.length} spelare`);
   return visited;
 }

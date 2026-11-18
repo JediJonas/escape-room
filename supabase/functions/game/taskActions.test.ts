@@ -7,30 +7,30 @@ test('golvuret och minnet syns hos alla, och en mobil som säger att minnet har 
   const gameId = memory.games[0].id;
   await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
   let view = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
-  while (view.step.type !== 'rooms') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  while (view.step.type !== 'flashback') view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
   assert.equal(view.step.opensFrom, 'Golvuret');
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 600 }), { status: 409, body: { error: 'notAtPlace' } });
   await send(memory.store, 'user-Bo', { type: 'walk', gameId, placeId: 'F' });
 
   memory.sentViews.length = 0;
   const turned = readGameView((await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 600 })).body);
-  assert.equal(turned.step.rooms?.dialMinutes, 600);
+  assert.equal(turned.step.flashback?.dialMinutes, 600);
   assert.equal(memory.sentViews.length, 3);
   const remembering = readGameView((await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 555 })).body);
-  assert.ok(remembering.step.rooms?.remembersUntilMs);
-  const chosen = readGameView((await send(memory.store, 'user-Cia', { type: 'chooseMemoryRoom', gameId, placeId: 'D' })).body);
-  assert.equal(chosen.step.rooms?.myRooms[0]?.place.name, 'Biblioteket');
+  assert.ok(remembering.step.flashback?.remembersUntilMs);
+  const chosen = readGameView((await send(memory.store, 'user-Cia', { type: 'chooseFlashbackRoom', gameId, placeId: 'D' })).body);
+  assert.equal(chosen.step.flashback?.myRooms[0]?.place.name, 'Biblioteket');
   assert.equal(chosen.house?.room.name, 'Biblioteket');
   assert.deepEqual(await send(memory.store, 'user-Cia', { type: 'walk', gameId, placeId: 'B' }), { status: 409, body: { error: 'houseRemembers' } });
 
   memory.clock.nowMs += 3 * 60_000;
   memory.sentViews.length = 0;
-  const faded = readGameView((await send(memory.store, 'user-Cia', { type: 'fadeMemory', gameId })).body);
-  assert.equal(faded.step.rooms?.remembersUntilMs, null);
-  assert.equal(faded.step.rooms?.dialMinutes, 280);
+  const faded = readGameView((await send(memory.store, 'user-Cia', { type: 'fadeFlashback', gameId })).body);
+  assert.equal(faded.step.flashback?.remembersUntilMs, null);
+  assert.equal(faded.step.flashback?.dialMinutes, 280);
   assert.equal(memory.sentViews.length, 3);
   memory.sentViews.length = 0;
-  await send(memory.store, 'user-Bo', { type: 'fadeMemory', gameId });
+  await send(memory.store, 'user-Bo', { type: 'fadeFlashback', gameId });
   assert.equal(memory.sentViews.length, 1);
 });
 

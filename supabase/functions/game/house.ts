@@ -12,7 +12,7 @@ import type { Mission, MissionStep, Place } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import { isSeanceComplete } from './seance.ts';
 import { type PianoKey, listKeyPlayers, listMyKeys } from './piano.ts';
-import { readDialTime } from './rooms.ts';
+import { readDialTime } from './flashback.ts';
 import type { GameState } from './state.ts';
 
 /** En sak i ett rum som spelaren kan trycka på. Den öppnar alltid en vy. */
@@ -128,8 +128,8 @@ export type Instrument = { type: 'clock'; dialMinutes: number } | { type: 'piano
 
 /** Golvuret eller pianot, när steget det öppnar inte är det gruppen är på. */
 function describeInstrument(opened: readonly MissionStep[], state: GameState, viewerId: string, participantIds: readonly string[]): Instrument | null {
-  const rooms = opened.find((step) => step.type === 'rooms');
-  if (rooms?.type === 'rooms') return { type: 'clock', dialMinutes: state.rooms?.dialMinutes ?? readDialTime(rooms.clockStart) ?? 0 };
+  const flashback = opened.find((step) => step.type === 'flashback');
+  if (flashback?.type === 'flashback') return { type: 'clock', dialMinutes: state.flashback?.dialMinutes ?? readDialTime(flashback.clockStart) ?? 0 };
   const piano = opened.find((step) => step.type === 'piano');
   if (piano?.type !== 'piano') return null;
   // Utanför steget spelar ingen melodin, så tangenterna delas mellan alla.

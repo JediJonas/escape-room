@@ -10,7 +10,7 @@ import type { RoleAssignment } from './roles.ts';
 import { type CellarState, readCellarState } from './cellar.ts';
 import { type FoundState, readFoundState } from './found.ts';
 import { type PianoState, readPianoState } from './piano.ts';
-import { type RoomsState, readRoomsState } from './rooms.ts';
+import { type FlashbackState, readFlashbackState } from './flashback.ts';
 import { type SeanceState, readSeanceState } from './seance.ts';
 
 /** En mobil som kom efter start och väntar på spelledaren. */
@@ -43,7 +43,7 @@ export type GameState = {
   /** Seansens läge medan gruppen är i en seans, annars null. */
   seance: SeanceState | null;
   /** Rummen och vilka som är lösta medan gruppen är i Rummen minns, annars null. */
-  rooms: RoomsState | null;
+  flashback: FlashbackState | null;
   /** Källarens läge medan gruppen är i källaren, annars null. */
   cellar: CellarState | null;
   /** Pianots läge medan gruppen spelar, annars null. */
@@ -78,7 +78,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [] };
+  return { status: 'lobby', stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, flashback: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [] };
 }
 
 /**
@@ -110,7 +110,7 @@ export function readGameState(saved: unknown): GameState {
     pendingPlayers: readPendingPlayers(fields.pendingPlayers),
     clock: readGameClock(fields.clock),
     seance: readSeanceState(fields.seance),
-    rooms: readRoomsState(fields.rooms),
+    flashback: readFlashbackState(fields.flashback),
     cellar: readCellarState(fields.cellar),
     piano: readPianoState(fields.piano),
     solvedSteps: readStringList(fields.solvedSteps),

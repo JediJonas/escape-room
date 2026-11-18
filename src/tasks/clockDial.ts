@@ -1,10 +1,10 @@
 /**
  * Golvurets urtavla som räknas fram ur fingret. Rena
  * funktioner, så att de går att testa. Servern hakar i visarna och avgör om
- * tiden är rätt, se supabase/functions/game/rooms.ts.
+ * tiden är rätt, se supabase/functions/game/flashback.ts.
  */
 
-import { DIAL_HOURS, DIAL_MINUTES, snapDial } from '../../supabase/functions/game/rooms.ts';
+import { DIAL_HOURS, DIAL_MINUTES, snapDial } from '../../supabase/functions/game/flashback.ts';
 
 const DEGREES_PER_TURN = 360;
 const MINUTES_PER_HOUR = 60;

@@ -147,13 +147,13 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const { house } = view;
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
   const closeThing = <button key="close" type="button" className="secondary" onClick={leaveThing}>Tillbaka</button>;
-  // Överst i en sak i fullskärm: klockan och Tillbaka, också för spelledaren. Hennes meny
-  // ligger i nedre högra hörnet (Jonas 2026-11-18).
+  // Överst i en sak i fullskärm: Tillbaka till vänster och klockan alltid till höger, också för
+  // spelledaren. Hennes meny ligger i nedre högra hörnet (Jonas 2026-11-18).
   const screenHeader = (
     <>
-      {view.clock ? <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} /> : <span />}
-      {view.clock?.isPaused && <span className="paused">Pausat</span>}
       <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>
+      {view.clock?.isPaused && <span className="paused">Pausat</span>}
+      {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
     </>
   );
   // Berättartexter i helskärm, som var och en visas en gång och bekräftas med en knapp (Jonas 2026-11-18).
@@ -172,8 +172,9 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     };
     const storyHeader = (
       <>
-        {view.clock ? <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} /> : <span />}
+        <span />
         {view.clock?.isPaused && <span className="paused">Pausat</span>}
+        {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
       </>
     );
     return withLeaderMenu(
@@ -238,9 +239,9 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     return withLeaderMenu(
       <main className="seance-screen">
         <p className="hint game-header">
-          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-          {view.clock?.isPaused && <span className="paused">Pausat</span>}
           <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>
+          {view.clock?.isPaused && <span className="paused">Pausat</span>}
+          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
         <SeanceBoard seance={step.seance} answer={boardAnswer} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard}  />
       </main>,
@@ -273,8 +274,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     return withLeaderMenu(
       <main className="cellar-screen">
         <p className="hint game-header">
-          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
           <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
+          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
         <CellarDark cellar={cellar} image={cellar.image} clockOffsetMs={clockOffsetMs} onOpenDoor={(yawDeg) => game.moveInCellar({ type: 'openDoor', yawDeg })} onTimeUp={timeUpInCellar} />
         <p className="error cellar-error" role="alert">{error}</p>
@@ -330,9 +331,9 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   return withLeaderMenu(
     <ScreenLayout actions={actions.length > 0 ? actions : waitingLine ?? <p className="hint" />}>
       <p className="hint game-header">
+        {isMenuOverView && <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(false)}>Stäng menyn</button>}
         <span>{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</span>
         {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-        {isMenuOverView && <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(false)}>Stäng menyn</button>}
       </p>
       {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
       <p className="scene-text">{step.text}</p>

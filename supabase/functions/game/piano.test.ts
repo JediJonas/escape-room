@@ -38,7 +38,7 @@ function readState(change: { state: GameState } | { refusal: string }): GameStat
 }
 
 function start(): GameState {
-  return readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  return readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
 }
 
 function viewOf(state: GameState, viewer: PlayerRecord) {
@@ -110,7 +110,7 @@ test('den som spelar melodin väljs som en framträdande roll, alla måste stå 
 });
 
 test('nästa gång spelar någon melodin som inte har haft en framträdande roll', () => {
-  const started = readState(startGame({ state: { ...createInitialState(), prominentHistory: ['p0'] }, mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const started = readState(startGame({ state: { ...createInitialState(), prominentHistory: ['p0'] }, mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
   assert.equal(started.piano?.melodyPlayerId, 'p1');
 });
 

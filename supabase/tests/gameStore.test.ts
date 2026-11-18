@@ -57,12 +57,12 @@ describe.skipIf(!DATABASE)('gameStore mot Postgres', () => {
     assert.deepEqual((reloaded.body as { view: LobbyView }).view, guestView);
 
     // Tillståndet sparas och läses tillbaka när spelet startar och spelaren väljer plats.
-    assert.equal((await send(LEADER, { type: 'startGame', gameId, usesPlaceCards: false })).status, 200);
-    assert.equal((await send(GUEST, { type: 'choosePlace', gameId, placeId: 'C', source: 'list' })).status, 200);
+    assert.equal((await send(LEADER, { type: 'startGame', gameId })).status, 200);
+    assert.equal((await send(GUEST, { type: 'choosePlace', gameId, placeId: 'C' })).status, 200);
     const [saved] = await sql`select state from engine.games where id = ${gameId}`;
     // Klockan startar med databasens tid, så den jämförs för sig.
     const { clock, ...rest } = saved.state;
-    assert.deepEqual(rest, { status: 'running', usesPlaceCards: false, stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], seance: null, rooms: null, cellar: null, piano: null, marks: [], found: {}, foundThings: [] });
+    assert.deepEqual(rest, { status: 'running', stepIndex: 0, placeByPlayer: { [guestView.me.playerId]: 'C' }, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], seance: null, rooms: null, cellar: null, piano: null, marks: [], found: {}, foundThings: [] });
     assert.equal(clock.durationMs, 60 * 60_000);
     assert.equal(clock.pausedAtMs, null);
 

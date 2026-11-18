@@ -1,9 +1,9 @@
 import type { Place } from '../../supabase/functions/game/mission.ts';
 
 /**
- * Raden som säger var spelaren är och vart hon ska. Efter en skanning av fel
- * kort måste den visa att kortet lästes, annars ser det ut som om ingenting
- * hände.
+ * Raden som säger var spelaren är och vart hon ska. Efter ett val av fel
+ * plats måste den visa att valet togs emot, annars ser det ut som om
+ * ingenting hände.
  */
 export function describePlaceStatus(goTo: Place | null, myPlace: Place | null): string {
   if (!goTo) return '';

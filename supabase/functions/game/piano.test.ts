@@ -37,8 +37,9 @@ function readState(change: { state: GameState } | { refusal: string }): GameStat
   return change.state;
 }
 
+/** Bo och Cia har haft en stor roll, så Annas mobil spelar melodin. */
 function start(): GameState {
-  return readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
+  return readState(startGame({ state: { ...createInitialState(), prominentHistory: ['p1', 'p2'] }, mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
 }
 
 function viewOf(state: GameState, viewer: PlayerRecord) {
@@ -100,7 +101,7 @@ test('bara mobilen som spelar melodin får den, och var och en ser bara sina tan
 test('den som spelar melodin väljs som en framträdande roll, alla måste stå vid pianot och hela melodin för gruppen vidare', () => {
   const started = start();
   assert.equal(started.piano?.melodyPlayerId, 'p0');
-  assert.deepEqual(started.prominentHistory, ['p0']);
+  assert.deepEqual(started.prominentHistory, ['p1', 'p2', 'p0']);
   const [listener, bo, cia] = PLAYERS;
   assert.equal(viewOf(started, listener).step.piano?.hasMelody, true);
   assert.equal(viewOf(started, bo).step.piano?.melodyPlayerName, 'Anna');
@@ -116,7 +117,7 @@ test('den som spelar melodin väljs som en framträdande roll, alla måste stå 
 });
 
 test('nästa gång spelar någon melodin som inte har haft en framträdande roll', () => {
-  const started = readState(startGame({ state: { ...createInitialState(), prominentHistory: ['p0'] }, mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const started = readState(startGame({ state: { ...createInitialState(), prominentHistory: ['p0', 'p2'] }, mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
   assert.equal(started.piano?.melodyPlayerId, 'p1');
 });
 

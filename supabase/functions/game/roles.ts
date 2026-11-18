@@ -19,20 +19,36 @@ export type RoleDeal = {
  * Väljer spelare till en roll. En framträdande roll går först till den som
  * aldrig har haft en, sedan till den som hade en för längst sedan.
  */
-function pickPlayers(role: Role, candidates: PlayerRecord[], history: readonly string[]): PlayerRecord[] {
+function pickPlayers(role: Role, candidates: PlayerRecord[], history: readonly string[], lotSeed: string): PlayerRecord[] {
   const count = role.count === 'rest' ? candidates.length : role.count;
   if (!role.isProminent) return candidates.slice(0, count);
-  return sortByLastTurn(candidates, history).slice(0, count);
+  return sortByLastTurn(candidates, history, lotSeed).slice(0, count);
+}
+
+/** FNV-1a:s startvärde och primtal för 32 bitar. */
+const FNV_OFFSET = 0x811c9dc5;
+const FNV_PRIME = 0x01000193;
+
+/** Ett tal ur en text (FNV-1a), så att lotten blir densamma varje gång servern räknar. */
+function hashText(text: string): number {
+  let hash = FNV_OFFSET;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, FNV_PRIME) >>> 0;
+  }
+  return hash;
 }
 
 /**
  * Den som aldrig har haft en framträdande roll först, sedan den som hade en
- * för längst sedan. Sorteringen är stabil, så lika fall behåller den ordning
- * de gick med i.
+ * för längst sedan. Lika fall lottas, så att det inte alltid blir den som
+ * gick med först (Jonas 2026-11-18). Lotten räknas fram ur `lotSeed` och
+ * spelarens id, så att funktionen är ren och ger samma svar varje gång.
  */
-export function sortByLastTurn<Player extends { id: string }>(candidates: readonly Player[], history: readonly string[]): Player[] {
+export function sortByLastTurn<Player extends { id: string }>(candidates: readonly Player[], history: readonly string[], lotSeed: string): Player[] {
   const lastTurn = (player: Player) => history.lastIndexOf(player.id);
-  return [...candidates].sort((first, second) => lastTurn(first) - lastTurn(second));
+  const lot = (player: Player) => hashText(`${lotSeed}:${player.id}`);
+  return [...candidates].sort((first, second) => lastTurn(first) - lastTurn(second) || lot(first) - lot(second));
 }
 
 /**
@@ -45,18 +61,20 @@ function dealPieces(role: Role, playerCount: number, playerIndex: number): numbe
   return indexes.slice(0, role.maxPiecesPerPlayer ?? indexes.length);
 }
 
-export function dealRoles({ roles, players, prominentHistory }: {
+export function dealRoles({ roles, players, prominentHistory, lotSeed }: {
   roles: readonly Role[];
   /** I den ordning de gick med, så att utdelningen blir densamma varje gång. */
   players: readonly PlayerRecord[];
   prominentHistory: readonly string[];
+  /** Det som lika fall lottas med, olika för varje spel och steg. */
+  lotSeed: string;
 }): RoleDeal {
   let remaining = [...players];
   const chosen = new Map<Role, PlayerRecord[]>();
   // Framträdande roller väljs först, sedan de med bestämt antal och sist resten.
   const order = [...roles].sort((first, second) => rolePriority(first) - rolePriority(second));
   for (const role of order) {
-    const picked = pickPlayers(role, remaining, prominentHistory);
+    const picked = pickPlayers(role, remaining, prominentHistory, lotSeed);
     chosen.set(role, picked);
     remaining = remaining.filter((player) => !picked.includes(player));
   }

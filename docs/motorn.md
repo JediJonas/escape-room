@@ -216,7 +216,9 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   behöver alla bitar sätter ingen gräns. Den som skriver uppgiften avgör
   (Jonas 2026-11-17).
 - **Framträdande roller roterar.** En roll märkt `isProminent` går i första
-  hand till den som har väntat längst sedan sin senaste framträdande roll.
+  hand till den som har väntat längst sedan sin senaste framträdande roll. Lika fall
+  lottas med ett tal ur spelets starttid, stegets id och spelarens id, så att
+  lotten blir densamma varje gång servern räknar (Jonas 2026-11-18).
   Ordningen sparas i tillståndet som `prominentHistory`.
 - **Berättelsen mellan uppgifterna** är steg av typen `scene`. En scen kan
   ha en egen text på knappen med `readyLabel`, till exempel "Jag har läst".

@@ -8,6 +8,8 @@
 
 .piano-keys {
   position: relative;
+  /* De svarta tangenterna i kanterna syns bara till hälften. */
+  overflow: hidden;
   display: flex;
   min-height: 13rem;
 }

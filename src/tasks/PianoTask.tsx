@@ -38,15 +38,39 @@ const PERCENT = 100;
 /** Vita tangenter som har en svart tangent emellan, som på ett riktigt piano. Mellan E och F och mellan B och C finns ingen. */
 const HAS_BLACK_AFTER = new Set(['C', 'D', 'F', 'G', 'A']);
 
+/** De vita tangenterna i en oktav, från C. */
+const WHITE_LETTERS = 'CDEFGAB';
+
 /** Den svarta tangenten efter en vit, till exempel C#4 efter C4, eller null. */
 function findBlackAfter(note: string): string | null {
   const match = /^([A-G])(\d)$/.exec(note);
   return match && HAS_BLACK_AFTER.has(match[1]) ? `${match[1]}#${match[2]}` : null;
 }
 
+/** Den vita tangenten närmast under, till exempel B3 under C4. */
+function findWhiteBelow(note: string): string | null {
+  const match = /^([A-G])(\d)$/.exec(note);
+  if (!match) return null;
+  const index = WHITE_LETTERS.indexOf(match[1]);
+  const octave = Number(match[2]);
+  return index === 0 ? `B${octave - 1}` : `${WHITE_LETTERS[index - 1]}${octave}`;
+}
+
+/**
+ * De svarta tangenterna och var de ligger, räknat i vita tangenter från
+ * vänster. Den före den första och den efter den sista hamnar i kanten och
+ * syns till hälften, som på ett riktigt piano (Jonas 2026-11-18).
+ */
+function placeBlackKeys(keys: readonly PianoKey[]): { note: string; position: number }[] {
+  const below = findWhiteBelow(keys[0].note);
+  const edges = [below === null ? null : findBlackAfter(below), ...keys.map((key) => findBlackAfter(key.note))];
+  return edges.flatMap((note, position) => (note === null ? [] : [{ note, position }]));
+}
+
 /**
  * Spelarens tangenter, ritade som en bit av ett riktigt piano: fyra
- * intilliggande vita tangenter och de svarta däremellan (Jonas 2026-11-18).
+ * intilliggande vita tangenter och de svarta däremellan och i kanterna
+ * (Jonas 2026-11-18).
  * En vit tangent låter i den egna mobilen och skickas till servern, som avgör
  * om de senaste tonerna är melodin. De svarta finns inte i melodin, så de
  * låter bara i mobilen. Inget säger till om en fel ton (Jonas 2026-11-18).
@@ -73,21 +97,17 @@ export function PianoKeys({ keys, onPlayKey }: { keys: readonly PianoKey[]; onPl
           {key.name}
         </button>
       ))}
-      {keys.slice(0, -1).map((key, index) => {
-        const black = findBlackAfter(key.note);
-        if (!black) return null;
-        return (
-          <button
-            key={black}
-            type="button"
-            className="piano-key piano-key-black"
-            aria-label={`Svart tangent mellan ${key.name} och ${keys[index + 1].name}`}
-            style={{ left: `${((index + 1) / keys.length) * PERCENT}%` }}
-            onPointerDown={(event) => strike(event, black, false)}
-            onKeyDown={(event) => strike(event, black, false)}
-          />
-        );
-      })}
+      {placeBlackKeys(keys).map(({ note, position }) => (
+        <button
+          key={note}
+          type="button"
+          className="piano-key piano-key-black"
+          aria-label="Svart tangent"
+          style={{ left: `${(position / keys.length) * PERCENT}%` }}
+          onPointerDown={(event) => strike(event, note, false)}
+          onKeyDown={(event) => strike(event, note, false)}
+        />
+      ))}
     </section>
   );
 }

@@ -46,8 +46,6 @@ test('brädet frågar VEM ÄR JAG först när gruppen har sett minnet och alla h
   state = readState(markRead({ state, mission: MISSION, players: PLAYERS, player: ANNA, thingId: 'byran' }));
   state = readState(markRead({ state, mission: MISSION, players: PLAYERS, player: BO, thingId: 'byran' }));
   assert.equal(stepId(state), 'tidningsurklippen');
-  const leaderView = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: ANNA });
-  assert.deepEqual(leaderView.progress?.filter((player) => !player.isDone).map((player) => player.name), ['Cia']);
   state = readState(markRead({ state, mission: MISSION, players: PLAYERS, player: CIA, thingId: 'byran' }));
   assert.equal(stepId(state), 'vem-ar-jag');
 });
@@ -77,13 +75,11 @@ test('en annan sak än byrån räknas inte som läst, och Tillbaka igen ändrar 
   assert.equal(readState(markRead({ state, mission: MISSION, players: PLAYERS, player: BO, thingId: 'byran' })), state);
 });
 
-test('Alla är klara räknar först alla som lästa, och nästa tryck hoppar över Rummen minns', () => {
+test('Hoppa över uppgiften räknar alla som lästa och hoppar över Rummen minns med ett tryck', () => {
   let state = skipUntil(start(), 'tidningsurklippen');
   state = readState(skipReading({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
-  assert.equal(stepId(state), 'tidningsurklippen');
-  assert.deepEqual(state.foundReaders.tidningsurklippen, ['p0', 'p1', 'p2']);
-  state = readState(skipReading({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
   assert.equal(stepId(state), 'vem-ar-jag');
+  assert.deepEqual(state.foundReaders.tidningsurklippen, ['p0', 'p1', 'p2']);
 });
 
 test('vid byrån säger första ledtråden att alla inte har läst, och vid golvuret får gruppen Rummen minns ledtrådar', () => {

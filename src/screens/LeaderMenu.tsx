@@ -40,12 +40,6 @@ export type LeaderMenuProps = {
   canHelpWithTask: boolean;
   /** Ge ledtråd om urklippen, vid byrån medan berättelsen väntar på att alla har läst (Jonas 2026-11-18). */
   canHelpWithReading: boolean;
-  /**
-   * Alla är klara, för när någon har gått iväg och gruppen inte ska behöva
-   * vänta, eller null när knappen inte ska synas. När alla har läst urklippen
-   * hoppar knappen i stället över uppgiften som berättelsen väntar på.
-   */
-  skipSceneLabel: string | null;
   onSetPaused: (isPaused: boolean) => void;
   onGiveHint: (isAboutReading: boolean) => void;
   onShowSolution: () => void;
@@ -55,10 +49,11 @@ export type LeaderMenuProps = {
 
 /**
  * Spelledarens meny, en hamburgare som alltid ligger i nedre högra hörnet
- * (Jonas 2026-11-18). Där finns paus, Alla är klara i en scen, Hoppa över i
- * en uppgift, och vid saken som är uppgiften ledtrådar och facit.
+ * (Jonas 2026-11-18). Där finns paus, Hoppa över i en uppgift och i urklippen,
+ * och vid saken som är uppgiften ledtrådar och facit. Alla är klara togs bort,
+ * så i en scen väntar gruppen tills alla har tryckt (Jonas 2026-11-18).
  */
-export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWithReading, skipSceneLabel, onSetPaused, onGiveHint, onShowSolution, onNextStep, onAnswerPending }: LeaderMenuProps) {
+export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWithReading, onSetPaused, onGiveHint, onShowSolution, onNextStep, onAnswerPending }: LeaderMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { step } = view;
   // Ett nytt steg börjar med menyn stängd.
@@ -76,7 +71,8 @@ export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWit
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [isOpen]);
 
-  const isTask = step.type !== 'scene';
+  // Urklippen väntar på en uppgift, så där kan spelledaren också hoppa över (Jonas 2026-11-18).
+  const canSkip = step.type !== 'scene' || step.isDoneByLeaving;
   const isPaused = view.clock?.isPaused ?? false;
   const pendingCount = view.pending?.length ?? 0;
   const runAndClose = (action: () => void) => () => {
@@ -110,8 +106,7 @@ export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWit
                 </button>
               )}
               {canHelpWithTask && !step.solution && <button type="button" className="secondary" onClick={onShowSolution} disabled={isBusy}>Visa facit för mig</button>}
-              {isTask && <button type="button" className="secondary" onClick={runAndClose(onNextStep)} disabled={isBusy}>Hoppa över uppgiften</button>}
-              {!isTask && skipSceneLabel && <button type="button" className="secondary" onClick={runAndClose(onNextStep)} disabled={isBusy}>{skipSceneLabel}</button>}
+              {canSkip && <button type="button" className="secondary" onClick={runAndClose(onNextStep)} disabled={isBusy}>Hoppa över uppgiften</button>}
               {view.clock && (
                 <button type="button" className="secondary" onClick={runAndClose(() => onSetPaused(!isPaused))} disabled={isBusy}>
                   {isPaused ? 'Fortsätt spelet' : 'Pausa spelet'}

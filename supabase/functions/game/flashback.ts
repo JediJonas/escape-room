@@ -77,7 +77,7 @@ export function advanceFlashback(flashback: FlashbackState, step: FlashbackStep,
 }
 
 /**
- * Spelledaren trycker Alla är klara medan huset minns. Då bleknar minnet
+ * Spelledaren trycker Hoppa över uppgiften medan huset minns. Då bleknar minnet
  * direkt, så att gruppen slipper vänta ut tiden, och alla rummen räknas som
  * sedda (Jonas 2026-11-18).
  */

@@ -1,0 +1,30 @@
+/*
+ * Inforutan ligger ovanpå allt, nära underkanten men ovanför huvudknapparna
+ * så att den inte tar tryck som var menade för dem.
+ */
+.info-box {
+  position: fixed;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: calc(5rem + var(--bottom-gap));
+  z-index: 20;
+  min-height: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgb(240 225 200 / 0.4);
+  border-radius: 0.6rem;
+  background: rgb(20 12 6 / 0.92);
+  color: #f0e1c8;
+  font: 1rem/1.4 Georgia, 'Times New Roman', serif;
+  text-align: left;
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.5);
+  animation: info-box-in 0.3s ease-out;
+}
+
+@keyframes info-box-in {
+  from { opacity: 0; transform: translateY(1rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info-box { animation: none; }
+}

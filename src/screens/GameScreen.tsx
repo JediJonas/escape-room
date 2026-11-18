@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useCallback, useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { BoardTouch } from '../../supabase/functions/game/seance.ts';
@@ -16,6 +16,7 @@ import { canLeaderSkip } from './leaderSkip.ts';
 import { DocumentList, FoundView } from './FoundDocuments.tsx';
 import { RoomList } from './HouseView.tsx';
 import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
+import { InfoBox } from './InfoBox.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
@@ -42,12 +43,43 @@ export type GameActions = {
 
 const ANSWER_FORM_ID = 'answer-form';
 
-export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }: {
+type GameScreenProps = {
   view: GameView;
   clockOffsetMs: number;
   isBusy: boolean;
   error: string;
   actions: GameActions;
+};
+
+/** Det som visas i inforutan, med ett nummer så att en ny text börjar om tiden. */
+type Info = { id: number; title?: string; text: string };
+
+/**
+ * Spelet, med inforutan ovanpå. Ger spelledaren en ledtråd visas den hos
+ * alla en stund, eftersom spelarna inte har någon meny (Jonas 2026-11-18).
+ */
+export function GameScreen(props: GameScreenProps) {
+  const { step } = props.view;
+  const [info, setInfo] = useState<Info | null>(null);
+  const [hintsSeen, setHintsSeen] = useState({ stepNumber: step.number, count: step.hints.length });
+  if (hintsSeen.stepNumber !== step.number || hintsSeen.count !== step.hints.length) {
+    const isNewHint = hintsSeen.stepNumber === step.number && step.hints.length > hintsSeen.count;
+    setHintsSeen({ stepNumber: step.number, count: step.hints.length });
+    if (isNewHint) setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, title: `Ledtråd ${step.hints.length}.`, text: step.hints[step.hints.length - 1] }));
+  }
+  const closeInfo = useCallback(() => setInfo(null), []);
+  const showInfo = useCallback((text: string) => setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, text })), []);
+  return (
+    <>
+      <GameContent {...props} onShowInfo={showInfo} />
+      {info && <InfoBox key={info.id} title={info.title} text={info.text} onClose={closeInfo} />}
+    </>
+  );
+}
+
+function GameContent({ view, clockOffsetMs, isBusy, error, actions: game, onShowInfo }: GameScreenProps & {
+  /** Visar en text i inforutan längst ner. */
+  onShowInfo: (text: string) => void;
 }) {
   const [answer, setAnswer] = useState('');
   const [answeredStep, setAnsweredStep] = useState(view.step.number);
@@ -97,6 +129,15 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const { house } = view;
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
   const closeThing = <button key="close" type="button" className="secondary" onClick={() => setOpenThingId(null)}>Tillbaka</button>;
+  // Spelarna har ingen meny, så stegets text visas i inforutan när de öppnar saken (Jonas 2026-11-18).
+  // Vid brädet står texten redan på brädet.
+  const openThingFromRoom = (thingId: string) => {
+    setOpenThingId(thingId);
+    const thing = house?.things.find((candidate) => candidate.id === thingId);
+    if (thing?.opensCurrentStep && step.seance === null) onShowInfo(step.text);
+  };
+  // Bara spelledaren har en meny, med paus, ledtrådar och facit. Spelarna har Tillbaka (Jonas 2026-11-18).
+  const stepButton = view.me.isLeader ? 'menu' : 'back';
   // Överst i en sak i fullskärm: klockan och en knapp tillbaka eller till menyn.
   const screenHeader = (button: 'back' | 'menu') => (
     <>
@@ -135,7 +176,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
         {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
-        <RoomList house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
+        <RoomList house={house} isBusy={isBusy} onOpen={openThingFromRoom} onWalk={game.walk} />
         {step.hints.length > 0 && (
           <section className="hint-card" aria-label="Ledtrådar">
             {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
@@ -147,7 +188,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     );
   }
 
-  // Under seansen fyller brädet skärmen. Texten, ledtrådarna och spelledarens knappar ligger i menyn.
+  // Under seansen fyller brädet skärmen. Texten står på brädet, och spelledarens knappar ligger i menyn.
   // När skenet har slocknat står brädet kvar tills spelaren själv lämnar det (Jonas 2026-11-17).
   const isBoardShown = step.seance !== null && !hasLeftBoard && !view.isFinished;
   if (step.seance && isBoardShown && !isMenuOpen) {
@@ -156,13 +197,15 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         <p className="hint game-header">
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
           {view.clock?.isPaused && <span className="paused">Pausat</span>}
-          <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
+          {stepButton === 'menu'
+            ? <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
+            : <button type="button" className="secondary seance-menu-button" onClick={() => setOpenThingId(null)}>Tillbaka</button>}
         </p>
         <SeanceBoard seance={step.seance} text={step.text} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} onLeave={() => setHasLeftBoard(true)} />
       </main>
     );
   }
-  // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet. Texten ligger i menyn (Jonas 2026-11-18).
+  // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet. Texten visas i inforutan (Jonas 2026-11-18).
   const thingPapers = listPapers(step.documents, step.role?.pieces ?? []);
   const isThingShown = openThing !== null && !view.isFinished && (step.piano !== null || step.rooms !== null || thingPapers.length > 0);
   if (isThingShown && !isMenuOpen) {
@@ -172,7 +215,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     const waiting = step.usesReadyButton && step.isMeDone ? <p className="hint">Väntar på att alla ska bli klara.</p> : null;
     const actions = (readyButton ?? melodyButton ?? waiting ?? error) ? <>{error && <p className="error" role="alert">{error}</p>}{melodyButton}{readyButton}{waiting}</> : undefined;
     return (
-      <ThingScreen className={step.piano ? 'piano-screen' : undefined} header={screenHeader('menu')} actions={actions}>
+      <ThingScreen className={step.piano ? 'piano-screen' : undefined} header={screenHeader(stepButton)} actions={actions}>
         {step.piano && view.me.isPlaying && <PianoKeys keys={step.piano.myKeys} onPlayKey={game.playKey} />}
         {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
         {thingPapers.length > 0 && <PaperStack papers={thingPapers} />}
@@ -215,15 +258,8 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   // Knapparna ligger med huvudhandlingen underst, närmast tummen.
   const actions = [];
   if (openThing) actions.push(closeThing);
-  if (isBoardShown) {
-    actions.push(<button key="board" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till brädet</button>);
-  }
-  if (isThingShown && openThing) {
-    actions.push(<button key="thing" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till {openThing.name.toLowerCase()}</button>);
-  }
-  if (isCellarShown) {
-    actions.push(<button key="cellar" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till källaren</button>);
-  }
+  // Menyn öppnas från brädet, saken eller källaren, och samma knapp överst stänger den (Jonas 2026-11-18).
+  const isMenuOverView = isMenuOpen && (isBoardShown || (isThingShown && openThing !== null) || isCellarShown);
   // De andra tänder lampan i källaren. Det är deras huvudhandling medan hon letar.
   const canFlipFuse = view.me.isPlaying && cellar !== null && !cellar.isTrapped && cellar.catchMs !== null && cellar.outcome === null && cellar.fusesLeft > 0;
   if (canFlipFuse) {
@@ -250,6 +286,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
       <p className="hint game-header">
         <span>{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</span>
         {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+        {isMenuOverView && <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(false)}>Stäng menyn</button>}
       </p>
       {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
       {view.found.length > 0 && !house && <button type="button" className="secondary small found-button" onClick={() => setIsFoundOpen(true)}>Hittat</button>}

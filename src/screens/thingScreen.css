@@ -153,3 +153,4 @@
   color: #f0e1c8;
   font: 1.3rem/1.55 Georgia, 'Times New Roman', serif;
 }
+.narration-text + .narration-text { margin-top: 1rem; }

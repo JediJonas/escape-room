@@ -46,7 +46,13 @@ test('i källaren tänder de andra lampan, den instängda hittar dörren och all
   const guideUser = users.find((user) => user !== trappedUser)!;
   assert.deepEqual(await send(memory.store, guideUser, { type: 'moveInCellar', gameId, move: { type: 'flipFuse' } }), { status: 409, body: { error: 'notAtPlace' } });
 
-  const arrived = readGameView((await send(memory.store, trappedUser, { type: 'choosePlace', gameId, placeId: 'A' })).body);
+  // Den som ska ner går genom källardörren i hallen. För de andra är den låst (Jonas 2026-11-18).
+  const trappedView = views[users.indexOf(trappedUser)];
+  const trappedName = trappedView.me.name;
+  assert.equal(trappedView.step.cellar?.goDownText, 'Du går ner i källaren.');
+  assert.equal(views[users.indexOf(guideUser)].step.cellar?.goDownText, `${trappedName} går ner i källaren.`);
+  assert.deepEqual(await send(memory.store, guideUser, { type: 'walk', gameId, placeId: 'A' }), { status: 409, body: { error: 'locked' } });
+  const arrived = readGameView((await send(memory.store, trappedUser, { type: 'walk', gameId, placeId: 'A' })).body);
   assert.equal(arrived.step.cellar?.image, 'testsida/rundbilder/kallare-stor.webp');
   assert.equal(arrived.step.cellar?.catchMs, memory.clock.nowMs + 4 * 60_000);
   const lit = readGameView((await send(memory.store, guideUser, { type: 'moveInCellar', gameId, move: { type: 'flipFuse' } })).body);
@@ -59,4 +65,17 @@ test('i källaren tänder de andra lampan, den instängda hittar dörren och all
   for (const user of users) view = readGameView((await send(memory.store, user, { type: 'markReady', gameId })).body);
   assert.equal(view.step.cellar, null);
   assert.deepEqual(memory.games[0].state.marks, []);
+});
+
+test('urklippen går att läsa från start, och i steget har var och en samma urklipp som förut', async () => {
+  const memory = await createGameWithPlayers(['Bo', 'Cia']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
+  const atStart = readGameView((await send(memory.store, 'user-Bo', { type: 'getView', gameId })).body);
+  const clippings = atStart.found.find((item) => item.title === 'Tidningsurklippen');
+  assert.ok(clippings && clippings.pieces.length > 0);
+  let view = atStart;
+  while (view.step.number < 5) view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  const inStep = readGameView((await send(memory.store, 'user-Bo', { type: 'getView', gameId })).body);
+  assert.deepEqual(inStep.step.role?.pieces, clippings.pieces);
 });

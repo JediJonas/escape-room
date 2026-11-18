@@ -222,14 +222,16 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   Också vem som får vilken roll och vilka bitar lottas, i stället för att
   gå på ordningen spelarna gick med i (Jonas 2026-11-18).
   Ordningen sparas i tillståndet som `prominentHistory`.
-- **Berättelsen mellan uppgifterna** är steg av typen `scene`. En scen kan
-  ha en egen text på knappen med `readyLabel`, till exempel "Jag har läst".
-  Utan den står det Klar (Jonas 2026-11-18). En scen med `endsWithStep`
-  har ingen knapp. Spelaren blir klar av att lämna saken med Tillbaka
-  (`isDoneByLeaving` i vyn), och scenen slutar när alla är klara och gruppen
-  har klarat uppgiften i nästa steg, i vilken ordning som helst. Urklippen
-  slutar alltså när alla har läst dem och minnet har bleknat
-  (Jonas 2026-11-18). Brädet fungerar på samma sätt när meddelandet är klart.
+- **Berättelsen mellan uppgifterna** är steg av typen `scene`. I ett uppdrag
+  med hus visas en scen som en berättartext i fullskärm med knappen Ok, och
+  efter Ok är spelaren tillbaka i rummet och väntar på de andra
+  (Jonas 2026-11-18). Det gäller scener utan sak, dokument, plats och roller.
+  Utan huset kan en scen ha en egen text på knappen med `readyLabel`, och
+  annars står det Klar (Jonas 2026-11-18). En scen med `endsWithStep`
+  har ingen knapp och slutar när gruppen har klarat uppgiften i nästa steg.
+  Urklippen går att läsa när som helst, så scenen väntar inte på att alla har
+  läst dem (Jonas 2026-11-18). Brädet blir klart på samma sätt, genom att
+  spelaren lämnar det med Tillbaka när meddelandet är klart (`isDoneByLeaving`).
 - **Följder.** Ett misslyckande kan kosta minuter eller sätta en markering som
   senare steg och slut läser.
 - **Språk.** Texterna står direkt på svenska. Fler språk blir en fil per språk
@@ -270,7 +272,12 @@ visas sakens `callingText` som en berättartext i fullskärm, en gång, med
 knappen Ok, till exempel att det hörs något från salongen (Jonas 2026-11-18).
 Knackningar togs bort,
 eftersom de var svåra att förstå (Jonas 2026-11-18). En sak i huset kan öppna flera steg med
-`opensSteps`, som ouijabrädet som öppnar båda seanserna.
+`opensSteps`, som ouijabrädet som öppnar båda seanserna. Med `echoes`
+bokstaverar en sådan sak av sig självt, om och om igen, när gruppen inte är
+på något av dess steg: det senaste ekot vars `fromStep` berättelsen har
+kommit till gäller. Skenet räknas ur serverns tid i varje mobil, så att alla
+ser samma bokstav utan att något skickas (Jonas 2026-11-18). Se
+`findEchoGlowPoint` i `seance.ts`.
 
 **Rummen minns** har typen `flashback` (Jonas 2026-11-18). Steget öppnas från golvuret i
 salongen, och bara den som står där kan vrida visarna. Steget har
@@ -314,6 +321,14 @@ och servern avgör. Hann det fram sätts `markWhenCaught` i tillståndets
 rörelsesensorn utan att fråga, eftersom tillståndet begärs i en scen
 tidigare (`asksFor`). Kommer inga värden styr fingret. Se `cellar.ts`.
 
+Steget börjar med en berättartext i fullskärm: stegets text och vem som går
+ner, `goDownText` för den instängda och `othersGoDownText` för de andra, där
+`{name}` blir hennes namn. Om det hinner fram läser den instängda
+`caughtText` och de andra `othersCaughtText`. Raden om vem som går ner står sedan kvar i statusraden tills hon är
+nere. Hon går dit genom huset som vanligt. Ett rum med `isLocked` går bara
+att gå in i för den som steget skickar dit, så källardörren i hallen är låst
+för alla andra (Jonas 2026-11-18).
+
 **Pianot** har typen `piano`. Steget öppnas från pianot i hallen, och bara
 den som står där kan slå an en tangent. Steget har `keys`, pianots
 tangenter som "C4" eller "F#4", och `beatMs`, hur långt ett slag är.
@@ -344,10 +359,14 @@ kvar i koden (Jonas 2026-11-18). Se `found.ts`.
 **Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
 rum dörrarna och sakerna. En sak har en text att visa, sidor att bläddra i
 (`pages`, som gästboken) eller ett steg som den
-öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna), och kan hittas först från ett visst steg (`fromStep`).
+öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna).
+Saker går alltid att hitta och undersöka, och `fromStep` på en sak ger fel. Det
+som inte ska nås för tidigt låses i stället (Jonas 2026-11-18). Ett steg med
+`foundTitle`, som urklippen, delas ut redan när spelet startar och går att
+läsa från saken direkt. Scenen väntar bara på uppgiften i `endsWithStep`.
 Var spelaren är sparas i `placeByPlayer`, som platskorten använder, och det
 gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr,
-och `searchRoom` hittar det som berättelsen har kommit till i rummet. Ett
+och `searchRoom` hittar allt som finns i rummet. Ett
 steg som öppnas från en sak syns i mobilen först när spelaren har öppnat
 saken. Dörrarna kontrolleras så att de går åt båda hållen. Se `house.ts`.
 

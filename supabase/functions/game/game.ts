@@ -18,7 +18,7 @@ import { type FoundItem, describeFound, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | FlashbackRefusal | PianoRefusal;
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | 'locked' | FlashbackRefusal | PianoRefusal;
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
@@ -48,6 +48,9 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
   }
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
+  // Urklippen delades ut när spelet startade, så att de går att läsa direkt (Jonas 2026-11-18).
+  const dealtAtStart = state.found[step.id];
+  if (dealtAtStart && players.every((player) => dealtAtStart[player.id] !== undefined)) return { ...cleared, roleByPlayer: dealtAtStart };
   const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory, lotSeed });
   return { ...cleared, roleByPlayer: deal.roleByPlayer, prominentHistory: deal.prominentHistory };
 }
@@ -89,7 +92,7 @@ export function findRole(step: MissionStep, state: GameState, playerId: string):
  * Platsen som spelaren ska till i steget. En roll kan ha en egen plats, så
  * att gruppen delar på sig. Annars gäller stegets plats, om det har någon.
  */
-function findGoal(step: MissionStep, state: GameState, playerId: string): PlaceId | undefined {
+export function findGoal(step: MissionStep, state: GameState, playerId: string): PlaceId | undefined {
   return findRole(step, state, playerId)?.goTo ?? step.goTo;
 }
 
@@ -152,6 +155,8 @@ function isWaitingForTask(step: MissionStep, state: GameState): boolean {
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
+  // Urklippen går att läsa när som helst, så berättelsen väntar bara på uppgiften (Jonas 2026-11-18).
+  if (step.type === 'scene' && step.endsWithStep !== undefined) return true;
   // Rummen minns och pianot är klara för alla samtidigt. Se taskActions.ts.
   if (step.type === 'flashback' || step.type === 'piano') return false;
   if (step.type === 'scene' && isDoneWhenArrived(step)) return isAtGoal(step, state, playerId);
@@ -181,7 +186,23 @@ export function startGame({ state, mission, players, starter, leaderPlays, minut
   const participants = listParticipants(started, players);
   if (participants.length < mission.minPlayers) return { refusal: 'tooFewPlayers' };
   const placed = mission.house ? placeInHouse(started, mission.house, participants.map((player) => player.id)) : started;
-  return { state: enterStep(placed, mission, participants, 0) };
+  return { state: enterStep(dealFoundAtStart(placed, mission, participants), mission, participants, 0) };
+}
+
+/**
+ * Det som går att läsa igen, som urklippen i byrån, delas ut redan när spelet
+ * startar, så att det går att läsa direkt (Jonas 2026-11-18). Saker går
+ * alltid att undersöka. Det som inte ska nås för tidigt låses i stället.
+ */
+function dealFoundAtStart(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
+  if (!mission.house) return state;
+  const found = { ...state.found };
+  for (const step of mission.steps) {
+    if (step.type !== 'scene' || step.foundTitle === undefined || !step.roles) continue;
+    const lotSeed = `${state.clock?.startedAtMs ?? 0}:${step.id}`;
+    found[step.id] = dealRoles({ roles: step.roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory, lotSeed }).roleByPlayer;
+  }
+  return { ...state, found };
 }
 
 /** Spelledaren går vidare utan att vänta på alla, till exempel när någon har gått iväg. */
@@ -227,10 +248,14 @@ export function choosePlace({ state, mission, players, player, placeId, nowMs }:
   const place = listPlaces(mission).find((candidate) => candidate.id === placeId);
   if (!place) return { refusal: 'unknownPlace' };
   const moved = { ...state, placeByPlayer: { ...state.placeByPlayer, [player.id]: place.id } };
+  return { state: moveOnIfAllDone(markTrappedArrival(moved, mission, player.id, nowMs), mission, players) };
+}
+
+/** Kommer den instängda fram till källaren, i listan eller genom dörren i huset, börjar det komma närmare. */
+export function markTrappedArrival(state: GameState, mission: Mission, playerId: string, nowMs: number): GameState {
   const step = mission.steps[state.stepIndex];
-  const isTrappedArriving = step.type === 'cellar' && moved.cellar !== null && findRole(step, moved, player.id)?.id === step.trappedRoleId && isAtGoal(step, moved, player.id);
-  const arrived = isTrappedArriving && moved.cellar ? { ...moved, cellar: markArrived(moved.cellar, nowMs) } : moved;
-  return { state: moveOnIfAllDone(arrived, mission, players) };
+  const isTrappedArriving = step.type === 'cellar' && state.cellar !== null && findRole(step, state, playerId)?.id === step.trappedRoleId && isAtGoal(step, state, playerId);
+  return isTrappedArriving && state.cellar ? { ...state, cellar: markArrived(state.cellar, nowMs) } : state;
 }
 
 /** Stora och små bokstäver och extra mellanslag spelar ingen roll i ett svar. */

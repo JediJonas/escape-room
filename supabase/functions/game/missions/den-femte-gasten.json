@@ -28,12 +28,21 @@
               "vem-ar-jag"
             ],
             "callingText": "Från salongen hörs planchetten skrapa mot ouijabrädet.",
-            "isFoundFromStart": true
+            "isFoundFromStart": true,
+            "echoes": [
+              {
+                "fromStep": "det-ar-vera",
+                "message": "VERA"
+              },
+              {
+                "fromStep": "vera-vill-byta",
+                "message": "EN AV ER"
+              }
+            ]
           },
           {
             "id": "golvuret",
             "name": "Golvuret",
-            "text": "Ett högt golvur i mörkt trä. Pendeln hänger stilla.",
             "opensSteps": [
               "rummen-minns"
             ],
@@ -47,13 +56,13 @@
           "F",
           "C",
           "D",
-          "E"
+          "E",
+          "A"
         ],
         "things": [
           {
             "id": "pianot",
             "name": "Pianot",
-            "text": "Ett svart piano med gulnade tangenter. Det ligger damm ovanpå.",
             "opensSteps": [
               "pianot"
             ],
@@ -69,8 +78,7 @@
               "15 april 1961\nAstrid Lindqvist\nRut Malm\nHarald Malm\nSigne Ström\nNils Ström",
               "27 oktober 1962\nArvid Lund\nElsa Rydén\nMargit Holm\nSven Dahl\nVera Sjö"
             ],
-            "blankPages": 5,
-            "fromStep": "tidningsurklippen"
+            "blankPages": 5
           },
           {
             "id": "kallardorren",
@@ -88,8 +96,7 @@
           {
             "id": "tavlan",
             "name": "Tavlan",
-            "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Min kära systerdotter, sommaren 1961.",
-            "fromStep": "tidningsurklippen"
+            "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Min kära systerdotter, sommaren 1961."
           }
         ]
       },
@@ -104,8 +111,7 @@
             "name": "Byrån",
             "opensSteps": [
               "tidningsurklippen"
-            ],
-            "fromStep": "tidningsurklippen"
+            ]
           }
         ]
       },
@@ -115,6 +121,14 @@
           "B"
         ],
         "things": []
+      },
+      {
+        "place": "A",
+        "doors": [
+          "B"
+        ],
+        "things": [],
+        "isLocked": true
       }
     ]
   },
@@ -122,13 +136,12 @@
     {
       "id": "inledning",
       "type": "scene",
-      "text": "Ni är några vänner som är nyfikna på det övernaturliga. I natt har ni tagit er in i ett gammalt hus där det sägs spöka, för att se om någon av de döda vill tala med er. Nu står ni i hallen. Någonstans i huset finns ett ouijabräde, ett bräde med bokstäver som andarna sägs svara med."
+      "text": "Ni är några vänner som har tagit er in i ett hus där det sägs spöka. Ingen har bott här sedan 1962. Någonstans i huset finns ett ouijabräde, ett bräde med bokstäver som de döda sägs svara med. Ni ska ta reda på om någon vill tala med er."
     },
     {
       "id": "runt-bordet",
       "type": "scene",
-      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Frågar mobilen om rörelse, tryck Tillåt.",
-      "readyLabel": "Uppfattat",
+      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Frågar mobilen om rörelse, tryck Tillåt. Den som skriker först bjuder på chips.",
       "asksFor": [
         "sound",
         "motion"
@@ -150,8 +163,7 @@
     {
       "id": "vera-svarar",
       "type": "scene",
-      "text": "Skenet slocknar. Någon har svarat er, och hon vill ha hjälp. Ni vet inte vem hon är. Gå runt i huset och leta efter vad som hände här.",
-      "readyLabel": "Jag förstår"
+      "text": "Någon har svarat. Det är kallare i rummet än nyss. Ta reda på vad som hände i det här huset."
     },
     {
       "id": "tidningsurklippen",
@@ -160,7 +172,7 @@
       "endsWithStep": "rummen-minns",
       "documents": [
         {
-          "title": "Ung kvinna försvunnen efter seans",
+          "title": "Gäst spårlöst försvunnen efter seans",
           "dateline": "Måndagen den 29 oktober 1962",
           "text": "I lördags kväll samlades fem unga gäster i villan på Ekbacken för att hålla en seans. Strax efter nio slocknade ljuset i hela huset. Golvuret i salongen stannade på kvart över nio och har inte gått sedan dess. När ljuset kom tillbaka var bara fyra av gästerna kvar. Ingen av dem kan säga var de var när det blev mörkt. Polisen söker fortfarande den femte."
         }
@@ -242,7 +254,7 @@
       "type": "seance",
       "text": "Planchetten rör sig av sig själv. Lägg fingret på den och följ skenet. Släpp inte.",
       "callsFromHouse": true,
-      "question": "Brädet har frågat VEM ÄR JAG. Skriv hennes namn när ni vet vem hon är.",
+      "question": "Brädet har frågat VEM ÄR JAG. Skriv namnet när ni vet vem det är.",
       "wrongAnswerMinutes": 2,
       "hints": [
         "Fem skrev i gästboken kvällen då ljuset slocknade, och de står sist. Jämför namnen med dem ni såg i minnet.",
@@ -260,8 +272,7 @@
     {
       "id": "det-ar-vera",
       "type": "scene",
-      "text": "Planchetten glider till JA och stannar. Hon heter Vera. Hon skrev sitt namn sist i gästboken den kvällen, och hon gick aldrig ut ur huset.",
-      "readyLabel": "Vi förstår",
+      "text": "Planchetten stannar. Sedan glider den långsamt över brädet: V, E, R, A. Om och om igen.",
       "asksFor": [
         "sound"
       ]
@@ -286,7 +297,7 @@
       "hints": [
         "Spela melodin så många gånger ni vill. Ta en ton i taget och låt alla prova sina tangenter tills ni hittar den.",
         "Melodin börjar lågt, klättrar till den högsta tonen, sjunker och slutar på en lång ton.",
-        "Melodin är E A H C H G A."
+        "Melodin är E A B C B G A."
       ],
       "solution": {
         "melody": [
@@ -324,13 +335,12 @@
     {
       "id": "vera-ar-nara",
       "type": "scene",
-      "text": "Melodin hänger kvar i hallen. Det blir kallt, och lågan i lampan böjer sig som för ett andetag. Vera är alldeles nära nu.",
-      "readyLabel": "Vi känner henne"
+      "text": "Melodin hänger kvar i hallen. Det blir kallt, och någon andas ut alldeles bakom er. Vera är alldeles nära nu."
     },
     {
       "id": "kallaren",
       "type": "cellar",
-      "text": "Vera viskar: Det finns ett rum bakom källaren. En av er måste gå ner. Den som får källaren går ner dit. De andra stannar vid bordet och lotsar.",
+      "text": "Källardörren står på glänt. Vera viskar: Det finns ett rum bakom källaren. En av er måste gå ner.",
       "roles": [
         {
           "id": "instangd",
@@ -366,9 +376,12 @@
       "fuses": 3,
       "lightMs": 3000,
       "wrongTapMs": 15000,
+      "goDownText": "Du går ner i källaren.",
+      "othersGoDownText": "{name} går ner i källaren.",
       "foundText": "Bakom hyllan finns ett litet rum. På väggen står namn inristade, vart och ett överstruket och följt av nästa. Det sista är Vera. Under det håller någon på att rista in ett nytt namn: {name}. Berätta det för de andra genom dörren.",
       "othersFoundText": "{name} har hittat något bakom hyllan. Det har blivit alldeles tyst i källaren. Fråga vad hon ser.",
-      "caughtText": "Lyktan slocknar. Något andas alldeles intill den som är i källaren. Sedan går källardörren upp av sig själv, och ingen hann se vad som fanns bakom hyllan.",
+      "caughtText": "Ficklampan slocknar. Något andas alldeles intill dig. Sedan går källardörren upp av sig själv.",
+      "othersCaughtText": "Det blir tyst i källaren. Något andas alldeles intill {name}. Sedan går källardörren upp av sig själv, och ingen hann se vad som fanns bakom hyllan.",
       "markWhenCaught": "fewerNames",
       "hints": [
         "Den i källaren beskriver vad hon ser. Ni andra säger vart hon ska vända sig.",
@@ -383,8 +396,7 @@
     {
       "id": "vera-vill-byta",
       "type": "scene",
-      "text": "Nu vet ni vad huset gör. Det behåller alltid en gäst, och Vera vill byta plats med en av er.",
-      "readyLabel": "Vi har pratat färdigt"
+      "text": "Från salongen hörs planchetten igen. Den bokstaverar tre ord: EN AV ER."
     },
     {
       "id": "slut",

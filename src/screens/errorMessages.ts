@@ -27,6 +27,7 @@ const MESSAGES: Record<ActionError, string> = {
   notTrapped: 'Det kan bara den andra sidan av källardörren göra.',
   noMoreFuses: 'Säkringarna är slut.',
   noDoor: 'Det finns ingen dörr dit härifrån.',
+  locked: 'Dörren är låst.',
   houseRemembers: 'Huset minns. Dörrarna och golvuret går inte att röra förrän minnet har bleknat.',
   notRemembering: 'Minnet har redan bleknat.',
   alreadyChosen: 'Du har redan valt rum. Du stannar där tills minnet bleknar.',

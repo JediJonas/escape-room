@@ -40,7 +40,7 @@ function listSecrets(mission: Mission, stepIndex: number): string[] {
     ...listSolutionTexts(step, listPlaces(mission)),
     ...(step.type === 'flashback' ? step.rooms.flatMap((room) => room.pieces) : []),
     // Texterna efteråt har den instängdas namn i sig, så den längsta delen utan namnet räcker.
-    ...(step.type === 'cellar' ? [step.foundText, step.othersFoundText, step.caughtText].map(findLongestPartWithoutName) : []),
+    ...(step.type === 'cellar' ? [step.foundText, step.othersFoundText, step.caughtText, step.othersCaughtText].map(findLongestPartWithoutName) : []),
   ];
 }
 

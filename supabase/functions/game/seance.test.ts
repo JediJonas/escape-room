@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import {
   BOARD_LETTERS, GLOW_PAUSE_MS, START_CELL, type BoardTouch, type SeanceState,
-  advanceSeance, applyBoardTouch, describeSeance, easeGlow, findCellCenter, findGlowPoint, findSegment, hasSeanceChanged, splitMessage, startSeance,
+  ECHO_REST_MS, advanceSeance, applyBoardTouch, describeSeance, easeGlow, findCellCenter, findEchoGlowPoint, findEchoLapMs, findGlowPoint, findSegment, hasSeanceChanged, measureDistanceInCells, splitMessage, startSeance,
 } from './seance.ts';
 import type { PlayerRecord } from './state.ts';
 
@@ -167,4 +167,21 @@ test('två lika bokstäver i rad tas utan att skenet behöver flytta sig', () =>
     seance = applyBoardTouch({ seance, message: 'ALLA', participantIds: IDS, playerId: 'p0', touch: 'arrived', nowMs });
   }
   assert.equal(seance.letterIndex, 4);
+});
+
+test('brädet bokstaverar ekot om och om igen efter serverns tid, med vila vid starten', () => {
+  const letters = splitMessage('VERA');
+  const start = findCellCenter(START_CELL);
+  // Varvet börjar vid starten och glider mot V.
+  assert.deepEqual(findEchoGlowPoint('VERA', 0), start);
+  const atV = findSegment(letters, 0).durationMs;
+  assert.deepEqual(findEchoGlowPoint('VERA', atV + 1), findCellCenter(BOARD_LETTERS.indexOf('V')));
+  // Mitt i pausen på E.
+  const atE = atV + GLOW_PAUSE_MS + findSegment(letters, 1).durationMs;
+  assert.deepEqual(findEchoGlowPoint('VERA', atE + GLOW_PAUSE_MS / 2), findCellCenter(BOARD_LETTERS.indexOf('E')));
+  // Ett helt varv senare är det samma läge.
+  const lapMs = findEchoLapMs('VERA');
+  assert.ok(measureDistanceInCells(findEchoGlowPoint('VERA', lapMs + atE + 10), findEchoGlowPoint('VERA', atE + 10)) < 1e-6);
+  // Sist vilar skenet vid starten.
+  assert.deepEqual(findEchoGlowPoint('VERA', lapMs - ECHO_REST_MS / 2), start);
 });

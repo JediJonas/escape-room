@@ -20,7 +20,7 @@ sist under Namn som är bestämda.
 | Provhuset | Ett litet provuppdrag som bara används för att prova motorn. | `missions/prov.json` |
 | Motor | Koden som är lika för alla uppdrag: spelets tillstånd, roller, tid, huset och uppgiftstyperna. | `supabase/functions/game/` |
 | Steg | En post i uppdragets ordning. Ett steg är antingen en scen eller en uppgift. Spelarna ser till exempel steg 3 av 12. | `MissionStep`, `stepIndex` |
-| Scen | Ett steg med berättelse mellan uppgifterna. Spelarna läser och trycker Klar, eller blir klara av att lämna en sak. | `SceneStep`, `type: 'scene'` |
+| Scen | Ett steg med berättelse mellan uppgifterna. Spelarna läser berättartexten och trycker Ok, eller blir klara av att lämna en sak. | `SceneStep`, `type: 'scene'` |
 | Uppgift | Ett steg där gruppen ska klara något, som Seansen eller Pianot. Har ledtrådar och facit. | `TaskStep` |
 | Uppgiftstyp | En sorts uppgift som byggs en gång i motorn och fylls med innehåll i olika uppdrag, som Samtidigt eller Orkestern. I koden har varje typ ett eget namn. | `type`: `seance`, `flashback`, `piano`, `cellar`, `answer` |
 | Akt | En av uppdragets tre delar: Kroken, Upptäckterna och Finalen. | |
@@ -69,7 +69,7 @@ sist under Namn som är bestämda.
 | Dörr | En väg från ett rum till ett annat. I Den femte gästen går alla dörrar via hallen. | `doors`, `walk` |
 | Sak | Något i ett rum som går att trycka på, som ouijabrädet, golvuret, byrån eller tavlan. Öppnar alltid en sakvy. Också det man undersöker i en rundbild, som tidigare kallades föremål. | `HouseThing`, `ThingView` |
 | Hitta | En sak syns i rummets lista först när någon har hittat den. Det räcker att en spelare gör det. | `foundThings`, `searchRoom` |
-| Leta i rummet | Knappen som hittar det berättelsen har kommit till, tills rundbilderna finns. | `searchRoom` |
+| Leta i rummet | Knappen som hittar det som finns i rummet, tills rundbilderna finns. | `searchRoom` |
 | Kallar | En sak drar till sig gruppen: den skimrar i rummets lista, och i de andra rummen visas en berättartext. | `callsFromHouse`, `isCalling`, `callingText` |
 | Instrument | Golvuret och pianot, som går att använda hela tiden och inte bara när berättelsen har kommit dit. | `Instrument`, `instrument` |
 | Instängd | En spelare som isoleras med en egen vy, som i källaren. | `trapped` |
@@ -82,7 +82,7 @@ sist under Namn som är bestämda.
 | Textvy | Rummet som en lista: var spelaren är, det som har hittats där och dörrarna. Hette tidigare textläget. | `TextView` |
 | Rumsvy | Rummet som en rundbild, där spelaren trycker på saker och dörrar i bilden. Nås med Visa rummet. Hette tidigare rundbildsläget. Inte byggd i spelet än. | |
 | Sakvy | Det som öppnas när spelaren trycker på en sak: saken i fullskärm, utan rubrik och text, med klockan och Tillbaka överst. | `ThingScreen` |
-| Berättartext | En text i fullskärm som dyker upp av sig själv, visas en gång och bekräftas med Fortsätt eller Ok. | `narration`, `melodyText`, `callingFrom` |
+| Berättartext | En text i fullskärm som dyker upp av sig själv, visas en gång och bekräftas med Ok. Också scenerna i huset visas så. | `narration`, `melodyText`, `callingFrom` |
 | Fullskärm | En vy som fyller skärmen. Inte helskärm. Bakgrunden går kant i kant, men innehållet har en största bredd och höjd. | `ThingScreen` |
 | Fyra hörn | Varje skärm har samma fyra hörn: uppdraget uppe till vänster, tiden uppe till höger, statusraden nere till vänster och spelledarens meny nere till höger. I fullskärm står Tillbaka i uppdragets hörn. Knapparna står ovanför den nedre raden. Hörnen följer innehållets kanter, inte skärmens. | |
 | Statusrad | Den korta raden text nere till vänster, som står kvar och beskriver läget, som Väntar på att alla ska bli klara, Gå runt i huset och leta eller vem skenet väntar på. Hette tidigare notis. | |

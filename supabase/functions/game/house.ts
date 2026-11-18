@@ -1,7 +1,7 @@
 /**
  * Huset i mobilen: rummen, dörrarna mellan dem och sakerna som gruppen
- * hittar. Spelaren går mellan rummen genom dörrarna, och en sak går bara att
- * hitta när berättelsen har kommit dit. Det som har hittats står i rummets
+ * hittar. Spelaren går mellan rummen genom dörrarna, och en sak går alltid
+ * att hitta och undersöka (Jonas 2026-11-18). Det som har hittats står i rummets
  * lista för hela gruppen. Se docs/koncept.md, Rundbilder, textvyn och rumsvyn.
  *
  * Rena funktioner. Platsen där spelaren är sparas i placeByPlayer, så att
@@ -10,7 +10,7 @@
 
 import type { Mission, MissionStep, Place } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
-import { isSeanceComplete } from './seance.ts';
+import { SEANCE_LETTERS, isSeanceComplete } from './seance.ts';
 import { type PianoKey, listKeyPlayers, listMyKeys } from './piano.ts';
 import { readDialTime } from './flashback.ts';
 import type { GameState } from './state.ts';
@@ -33,8 +33,6 @@ export type HouseThing = {
   blankPages?: number;
   /** Stegen som saken öppnar, till exempel båda seanserna vid ouijabrädet. */
   opensSteps?: string[];
-  /** Saken går att hitta först när gruppen har kommit till det här steget. */
-  fromStep?: string;
   /** Saken står i listan från början, som ouijabrädet. */
   isFoundFromStart?: boolean;
   /**
@@ -42,9 +40,24 @@ export type HouseThing = {
    * till exempel att det hörs något från salongen (Jonas 2026-11-18).
    */
   callingText?: string;
+  /**
+   * Det brädet bokstaverar av sig självt när någon går in på det efteråt,
+   * om och om igen, från ett visst steg. Det senaste som berättelsen har
+   * kommit till gäller (Jonas 2026-11-18).
+   */
+  echoes?: { fromStep: string; message: string }[];
 };
 
-export type HouseRoom = { place: PlaceId; doors: PlaceId[]; things: HouseThing[] };
+export type HouseRoom = {
+  place: PlaceId;
+  doors: PlaceId[];
+  things: HouseThing[];
+  /**
+   * Dörren till rummet är låst för alla utom den som steget skickar dit, som
+   * den instängda till källaren (Jonas 2026-11-18). Dörren står ändå i listan.
+   */
+  isLocked?: boolean;
+};
 
 export type House = {
   /** Rummet där alla börjar. */
@@ -52,7 +65,7 @@ export type House = {
   rooms: HouseRoom[];
 };
 
-export type HouseRefusal = 'noDoor' | 'unknownPlace';
+export type HouseRefusal = 'noDoor' | 'unknownPlace' | 'locked';
 
 function findRoom(house: House, place: PlaceId | undefined): HouseRoom | undefined {
   return house.rooms.find((room) => room.place === place);
@@ -62,11 +75,6 @@ function stepIndexOf(mission: Mission, stepId: string | undefined): number {
   if (stepId === undefined) return 0;
   const index = mission.steps.findIndex((step) => step.id === stepId);
   return index === -1 ? Number.POSITIVE_INFINITY : index;
-}
-
-/** Om berättelsen har kommit så långt att saken går att hitta. */
-function isFindable(thing: HouseThing, mission: Mission, state: GameState): boolean {
-  return state.stepIndex >= stepIndexOf(mission, thing.fromStep);
 }
 
 function isFound(thing: HouseThing, state: GameState): boolean {
@@ -80,33 +88,35 @@ export function placeInHouse(state: GameState, house: House, playerIds: readonly
   return { ...state, placeByPlayer };
 }
 
-/** Spelaren går genom en dörr. Det går bara till ett rum intill. */
-export function walk({ state, house, playerId, placeId }: {
+/** Spelaren går genom en dörr. Det går bara till ett rum intill, och in i ett låst rum bara om hon ska dit. */
+export function walk({ state, house, playerId, placeId, mayEnterLocked = false }: {
   state: GameState;
   house: House;
   playerId: string;
   placeId: unknown;
+  mayEnterLocked?: boolean;
 }): { state: GameState } | { refusal: HouseRefusal } {
-  if (!isPlaceId(placeId) || !findRoom(house, placeId)) return { refusal: 'unknownPlace' };
+  const target = isPlaceId(placeId) ? findRoom(house, placeId) : undefined;
+  if (!isPlaceId(placeId) || !target) return { refusal: 'unknownPlace' };
   const here = findRoom(house, state.placeByPlayer[playerId]);
   // Den som av någon anledning står utanför huset får gå till vilket rum som helst.
   if (here && !here.doors.includes(placeId)) return { refusal: 'noDoor' };
+  if (target.isLocked === true && !mayEnterLocked) return { refusal: 'locked' };
   return { state: { ...state, placeByPlayer: { ...state.placeByPlayer, [playerId]: placeId } } };
 }
 
 /**
- * Spelaren letar i rummet där hon står och hittar det som berättelsen har
- * kommit till. I rundbilden hittar hon i stället en sak i taget, men tills
- * rundbilderna finns är det här reserven.
+ * Spelaren letar i rummet där hon står och hittar allt som finns där. I
+ * rundbilden hittar hon i stället en sak i taget, men tills rundbilderna
+ * finns är det här reserven.
  */
-export function searchRoom({ state, mission, house, playerId }: {
+export function searchRoom({ state, house, playerId }: {
   state: GameState;
-  mission: Mission;
   house: House;
   playerId: string;
 }): GameState {
   const room = findRoom(house, state.placeByPlayer[playerId]);
-  const newlyFound = (room?.things ?? []).filter((thing) => isFindable(thing, mission, state) && !isFound(thing, state)).map((thing) => thing.id);
+  const newlyFound = (room?.things ?? []).filter((thing) => !isFound(thing, state)).map((thing) => thing.id);
   return newlyFound.length === 0 ? state : { ...state, foundThings: [...state.foundThings, ...newlyFound] };
 }
 
@@ -127,6 +137,8 @@ export type ThingView = {
    * öppnar inte är det gruppen är på (Jonas 2026-11-18). Annars null.
    */
   instrument: Instrument | null;
+  /** Det brädet bokstaverar av sig självt när steget det öppnar inte är det gruppen är på, annars null. */
+  echo: string | null;
 };
 
 export type Instrument = { type: 'clock'; dialMinutes: number } | { type: 'piano'; keys: PianoKey[] };
@@ -163,7 +175,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     return step ? [{ step, index: stepIndexOf(mission, stepId) }] : [];
   });
   const current = opened.find(({ index }) => index === state.stepIndex);
-  const found = opened.filter(({ step, index }) => step.type === 'scene' && step.foundTitle !== undefined && index < state.stepIndex).at(-1);
+  const found = opened.filter(({ step, index }) => step.type === 'scene' && step.foundTitle !== undefined && index !== state.stepIndex && state.found[step.id] !== undefined).at(-1);
   const opensFound = found?.step.type === 'scene' ? found.step.foundTitle ?? null : null;
   return {
     id: thing.id,
@@ -174,6 +186,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     opensFound,
     isCalling: current !== undefined && isStepCalling(current.step, state),
     instrument: current === undefined && viewer ? describeInstrument(opened.map(({ step }) => step), state, viewer.id, viewer.participantIds) : null,
+    echo: current === undefined ? (thing.echoes ?? []).filter((echo) => state.stepIndex >= stepIndexOf(mission, echo.fromStep)).at(-1)?.message ?? null : null,
   };
 }
 
@@ -189,7 +202,7 @@ export function describeHouse({ state, mission, house, places, viewerId, partici
   const room = findRoom(house, state.placeByPlayer[viewerId]);
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
   if (!room) return null;
-  const visible = room.things.filter((thing) => isFound(thing, state) && isFindable(thing, mission, state));
+  const visible = room.things.filter((thing) => isFound(thing, state));
   const callingRoom = house.rooms.find((other) => other !== room && other.things.some((thing) => describeThing(thing, mission, state).isCalling));
   const callingThing = callingRoom?.things.find((thing) => describeThing(thing, mission, state).isCalling);
   const callingPlace = callingRoom ? findPlace(callingRoom.place).name.toLocaleLowerCase('sv') : '';
@@ -198,7 +211,7 @@ export function describeHouse({ state, mission, house, places, viewerId, partici
     doors: room.doors.map(findPlace),
     things: visible.map((thing) => describeThing(thing, mission, state, { id: viewerId, participantIds })),
     callingFrom: callingThing ? callingThing.callingText ?? `Något rör sig vid ${callingThing.name.toLocaleLowerCase('sv')} i ${callingPlace}.` : null,
-    canSearch: room.things.some((thing) => isFindable(thing, mission, state) && !isFound(thing, state)),
+    canSearch: room.things.some((thing) => !isFound(thing, state)),
   };
 }
 
@@ -223,13 +236,20 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   if (pages !== undefined && !(Array.isArray(pages) && pages.length > 0 && pages.every(isFilledText))) errors.push(`${name} har sidor som är tomma eller inte är en lista`);
   const { blankPages } = thing;
   if (blankPages !== undefined && !(pages !== undefined && Number.isInteger(blankPages) && (blankPages as number) > 0)) errors.push(`${name} har tomma sidor men inga sidor med text, eller ett antal som inte är ett heltal över noll`);
-  if (thing.fromStep !== undefined && !stepIds.includes(thing.fromStep)) errors.push(`${name} pekar på ett steg som inte finns: ${String(thing.fromStep)}`);
+  // Saker går alltid att hitta och undersöka. Det som inte ska nås för tidigt låses i stället (Jonas 2026-11-18).
+  if (thing.fromStep !== undefined) errors.push(`${name} har fromStep, men saker går alltid att hitta. Lås det som inte ska nås för tidigt`);
   const opens = thing.opensSteps;
   if (opens !== undefined && !(Array.isArray(opens) && opens.length > 0)) errors.push(`${name} ska öppna en lista med steg`);
   for (const stepId of Array.isArray(opens) ? opens : []) {
     if (!stepIds.includes(stepId)) errors.push(`${name} pekar på ett steg som inte finns: ${String(stepId)}`);
   }
   if (thing.callingText !== undefined && !(isFilledText(thing.callingText) && opens !== undefined)) errors.push(`${name} har en tom text för när den kallar, eller öppnar inga steg`);
+  const { echoes } = thing;
+  if (echoes !== undefined && !(Array.isArray(echoes) && echoes.length > 0)) errors.push(`${name} ska ha en lista med ekon`);
+  for (const echo of Array.isArray(echoes) ? echoes as Record<string, unknown>[] : []) {
+    if (!stepIds.includes(echo?.fromStep)) errors.push(`${name} har ett eko från ett steg som inte finns: ${String(echo?.fromStep)}`);
+    if (typeof echo?.message !== 'string' || !SEANCE_LETTERS.test(echo.message)) errors.push(`${name} har ett eko med andra tecken än bokstäverna på brädet`);
+  }
   if (thing.text === undefined && pages === undefined && opens === undefined) errors.push(`${name} har varken text, sidor eller steg att öppna`);
   return errors;
 }
@@ -246,6 +266,7 @@ export function findHouseErrors(house: unknown, places: Record<string, unknown>,
   for (const room of rooms) {
     const place = room?.place;
     if (!isPlaceId(place) || !(place in places)) errors.push(`huset har ett rum på en plats som uppdraget saknar: ${String(place)}`);
+    if (room?.isLocked !== undefined && typeof room.isLocked !== 'boolean') errors.push(`rummet ${String(place)} har ett lås som inte är sant eller falskt`);
     if (!Array.isArray(room?.doors) || !Array.isArray(room?.things)) {
       errors.push(`rummet ${String(place)} saknar dörrar eller saker`);
       continue;

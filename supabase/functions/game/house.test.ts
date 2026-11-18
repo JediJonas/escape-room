@@ -8,9 +8,9 @@ import { type GameState, type PlayerRecord, createInitialState } from './state.t
 const HOUSE: House = {
   start: 'F',
   rooms: [
-    { place: 'F', doors: ['B'], things: [{ id: 'bordet', name: 'Ouijabrädet', opensStep: 'seansen', isFoundFromStart: true }] },
+    { place: 'F', doors: ['B'], things: [{ id: 'bordet', name: 'Ouijabrädet', opensSteps: ['seansen'], isFoundFromStart: true }] },
     { place: 'B', doors: ['F', 'D'], things: [{ id: 'dorren', name: 'Källardörren', text: 'Låst.' }] },
-    { place: 'D', doors: ['B'], things: [{ id: 'byran', name: 'Byrån', opensStep: 'urklippen', fromStep: 'urklippen' }] },
+    { place: 'D', doors: ['B'], things: [{ id: 'byran', name: 'Byrån', opensSteps: ['urklippen'], fromStep: 'urklippen' }] },
   ],
 };
 const MISSION: Mission = {
@@ -46,7 +46,7 @@ test('alla börjar i salongen, och seansbordet står i listan från början och 
   const view = viewFor(start());
   assert.equal(view.house?.room.name, 'Salongen');
   assert.deepEqual(view.house?.doors.map((door) => door.name), ['Hallen']);
-  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, opensCurrentStep: true, opensFound: null }]);
+  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, opensCurrentStep: true, opensFound: null, isCalling: false }]);
   assert.equal(view.step.opensFrom, 'Ouijabrädet');
 });
 
@@ -78,12 +78,12 @@ test('en sak hittas först när berättelsen har kommit dit, och syns sedan för
   assert.equal(viewFor(state, PLAYERS[2]).house?.things[0].name, 'Byrån');
 
   state = moveOn(state, MISSION, PLAYERS);
-  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen' });
+  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false });
 });
 
 test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns', () => {
   assert.deepEqual(findHouseErrors(HOUSE, MISSION.places, MISSION.steps.map((step) => step.id)), []);
-  const broken = { start: 'F', rooms: [{ place: 'F', doors: ['B'], things: [{ id: 'x', name: 'X', opensStep: 'saknas' }] }, { place: 'B', doors: [], things: [{ id: 'x', name: 'Y' }] }] };
+  const broken = { start: 'F', rooms: [{ place: 'F', doors: ['B'], things: [{ id: 'x', name: 'X', opensSteps: ['saknas'] }] }, { place: 'B', doors: [], things: [{ id: 'x', name: 'Y' }] }] };
   assert.deepEqual(findHouseErrors(broken, MISSION.places, ['seansen']), [
     'dörren från F till B går inte tillbaka',
     'saken x i huset pekar på ett steg som inte finns: saknas',

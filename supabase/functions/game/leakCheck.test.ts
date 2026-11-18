@@ -112,7 +112,7 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
 function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
   const step = mission.steps[state.stepIndex];
   if (step.type !== 'rooms' || !state.rooms) return state;
-  const clockRoom = mission.house?.rooms.find((room) => room.things.some((thing) => thing.opensStep === step.id))?.place;
+  const clockRoom = mission.house?.rooms.find((room) => room.things.some((thing) => thing.opensSteps?.includes(step.id)))?.place;
   const [turner] = participants;
   let visited: GameState = clockRoom ? { ...state, placeByPlayer: { ...state.placeByPlayer, [turner.id]: clockRoom } } : state;
   const seen = new Set<string>();

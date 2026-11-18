@@ -34,6 +34,11 @@ export function startClock(minutes: number, nowMs: number): GameClock {
   return { durationMs: minutes * MS_PER_MINUTE, startedAtMs: nowMs, pausedAtMs: null, pausedTotalMs: 0 };
 }
 
+/** Drar av tid från nedräkningen, till exempel för ett fel svar. */
+export function shortenClock(clock: GameClock, minutes: number): GameClock {
+  return { ...clock, durationMs: clock.durationMs - minutes * MS_PER_MINUTE };
+}
+
 /** Att pausa ett pausat spel ändrar ingenting. */
 export function pauseClock(clock: GameClock, nowMs: number): GameClock {
   return clock.pausedAtMs === null ? { ...clock, pausedAtMs: nowMs } : clock;

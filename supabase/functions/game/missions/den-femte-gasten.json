@@ -23,14 +23,19 @@
           {
             "id": "ouijabradet",
             "name": "Ouijabrädet",
-            "opensStep": "seansen",
+            "opensSteps": [
+              "seansen",
+              "vem-ar-jag"
+            ],
             "isFoundFromStart": true
           },
           {
             "id": "golvuret",
             "name": "Golvuret",
             "text": "Ett högt golvur i mörkt trä. Pendeln hänger stilla, och visarna står på tjugo i fem.",
-            "opensStep": "rummen-minns",
+            "opensSteps": [
+              "rummen-minns"
+            ],
             "isFoundFromStart": true
           }
         ]
@@ -80,7 +85,9 @@
           {
             "id": "byran",
             "name": "Byrån",
-            "opensStep": "tidningsurklippen",
+            "opensSteps": [
+              "tidningsurklippen"
+            ],
             "fromStep": "tidningsurklippen"
           }
         ]
@@ -209,9 +216,29 @@
       }
     },
     {
-      "id": "ingen-vera",
+      "id": "vem-ar-jag",
+      "type": "seance",
+      "text": "Planchetten rör sig av sig själv. Lägg fingret på den och följ skenet. Släpp inte.",
+      "callsFromHouse": true,
+      "question": "Brädet har frågat VEM ÄR JAG. Skriv hennes namn när ni vet vem hon är.",
+      "wrongAnswerMinutes": 2,
+      "hints": [
+        "Fem skrev i gästboken den kvällen. Jämför namnen med dem ni såg i minnet.",
+        "Urklippen och tavlan säger vem som bär sjalen, halsbandet, glasögonen och pipan. Den femte syntes inte i något rum.",
+        "Margit, Elsa, Sven och Arvid fanns i rummen. Den femte i gästboken saknades."
+      ],
+      "solution": {
+        "message": "VEM ÄR JAG",
+        "answers": [
+          "Vera",
+          "Vera Sjö"
+        ]
+      }
+    },
+    {
+      "id": "det-ar-vera",
       "type": "scene",
-      "text": "Minnet bleknar, och huset är tyst igen. Fem skrev i gästboken den kvällen, men bara fyra fanns i rummen när ljuset slocknade. Prata ihop er om vem som saknades. Tryck Klar när ni har pratat."
+      "text": "Planchetten glider till JA och stannar. Hon heter Vera. Hon skrev sitt namn sist i gästboken den kvällen, och hon gick aldrig ut ur huset. Tryck Klar."
     },
     {
       "id": "kallaren",

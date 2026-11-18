@@ -32,6 +32,8 @@ export type GameState = {
   prominentHistory: string[];
   /** De som har tryckt Klar i det aktuella steget. Töms när gruppen går vidare. */
   readyPlayerIds: string[];
+  /** Hur många fel svar gruppen har gett i uppgiften. Töms när gruppen går vidare. */
+  wrongAnswers: number;
   /** Hur många av uppgiftens ledtrådar som gruppen har fått. Töms när gruppen går vidare. */
   hintsGiven: number;
   /** Om spelledaren har bett om facit i den aktuella uppgiften. */
@@ -73,7 +75,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null, cellar: null, marks: [], found: {}, foundThings: [] };
+  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null, cellar: null, marks: [], found: {}, foundThings: [] };
 }
 
 /**
@@ -99,6 +101,7 @@ export function readGameState(saved: unknown): GameState {
     stepIndex: Number.isInteger(fields.stepIndex) ? fields.stepIndex as number : initial.stepIndex,
     placeByPlayer,
     readyPlayerIds: readStringList(fields.readyPlayerIds),
+    wrongAnswers: Number.isInteger(fields.wrongAnswers) && (fields.wrongAnswers as number) >= 0 ? fields.wrongAnswers as number : initial.wrongAnswers,
     hintsGiven: Number.isInteger(fields.hintsGiven) && (fields.hintsGiven as number) >= 0 ? fields.hintsGiven as number : initial.hintsGiven,
     isSolutionShown: fields.isSolutionShown === true,
     leaderPlays: fields.leaderPlays !== false,

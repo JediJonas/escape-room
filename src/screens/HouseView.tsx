@@ -19,7 +19,10 @@ export function RoomList({ house, isBusy, onOpen, onWalk }: {
       {house.things.length > 0 && (
         <section className="house-list" aria-label="Det som har hittats här">
           {house.things.map((thing) => (
-            <button key={thing.id} type="button" className="secondary" onClick={() => onOpen(thing.id)}>{thing.name}</button>
+            <button key={thing.id} type="button" className={thing.isCalling ? 'secondary is-calling' : 'secondary'} onClick={() => onOpen(thing.id)}>
+              {thing.name}
+              {thing.isCalling && <span className="calling-note"> · något rör sig</span>}
+            </button>
           ))}
         </section>
       )}

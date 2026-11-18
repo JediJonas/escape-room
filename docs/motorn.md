@@ -249,6 +249,15 @@ planchetten tappar, så att fördröjningen till servern inte syns som ett hopp.
 Ligger skenet efter servern när det rör sig igen glider det ikapp. Se
 `seance.ts`.
 
+En seans kan ställa en fråga. Har den `solution.answers` trycker gruppen inte
+Klar när meddelandet är klart, utan skriver ett svar under `question`, och
+frågan står kvar tills gruppen vet. Med `wrongAnswerMinutes` dras tid från
+nedräkningen för varje fel svar, och alla ser hur många fel det har blivit.
+Med `callsFromHouse` kallar brädet på gruppen tills meddelandet är klart:
+saken som öppnar seansen flimrar i rummets lista, och det knackar svagt i
+mobilerna som är ute i huset. En sak i huset kan öppna flera steg med
+`opensSteps`, som ouijabrädet som öppnar båda seanserna.
+
 **Rummen minns** har typen `rooms`. Steget öppnas från golvuret i
 salongen, och bara den som står där kan vrida visarna. Steget har
 `clockStart`, tiden som golvuret står på från början, `memoryMinutes`, hur
@@ -288,7 +297,7 @@ och bara sina egna bitar. Se `found.ts`.
 
 **Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
 rum dörrarna och sakerna. En sak har en text att visa eller ett steg som den
-öppnar (`opensStep`), och kan hittas först från ett visst steg (`fromStep`).
+öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna), och kan hittas först från ett visst steg (`fromStep`).
 Var spelaren är sparas i `placeByPlayer`, som platskorten använder, och det
 gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr,
 och `searchRoom` hittar det som berättelsen har kommit till i rummet. Ett

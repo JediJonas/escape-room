@@ -119,8 +119,9 @@ async function setPausedAction(action: Action, context: Context): Promise<Action
 }
 
 async function nextStep(action: Action, context: Context): Promise<ActionResult> {
+  const nowMs = await context.store.readServerTimeMs();
   return withOwnPlayer(action, context, async (scope) => {
-    const change = advanceStep({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player });
+    const change = advanceStep({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, nowMs });
     return applyChange(scope, change, { action: { type: 'nextStep', fromStepIndex: scope.game.state.stepIndex } });
   });
 }

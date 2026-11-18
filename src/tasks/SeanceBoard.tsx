@@ -124,7 +124,8 @@ export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, answer }
   }
 
   function press(event: PointerEvent<HTMLDivElement>) {
-    if (!canTouch || pointerId.current !== null) return;
+    // När skenet har slocknat står brädet still, så att fingret kan zooma och svara (Jonas 2026-11-18).
+    if (!canTouch || seance.isComplete || pointerId.current !== null) return;
     pointerId.current = event.pointerId;
     event.currentTarget.setPointerCapture(event.pointerId);
     if (liftTimer.current) clearTimeout(liftTimer.current);

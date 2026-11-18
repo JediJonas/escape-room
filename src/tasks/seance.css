@@ -184,4 +184,15 @@
 }
 
 .board-answer .hint { grid-column: 1 / -1; margin: 0; color: inherit; }
-.board-answer input { min-width: 0; }
+/*
+ * Minst 16 px, annars zoomar iPhone in när fältet får fokus. Brädet står
+ * still medan gruppen svarar, så att det går att zooma ut (Jonas 2026-11-18).
+ */
+.board-answer input { min-width: 0; font-size: max(1rem, 16px); }
+
+/*
+ * Brädet står still när skenet har slocknat eller när det bokstaverar av sig
+ * självt. Då tar det inte emot fingret, och sidan går att zooma som vanligt.
+ */
+.seance-screen.is-still,
+.seance-screen.is-still .seance-board { touch-action: manipulation; }

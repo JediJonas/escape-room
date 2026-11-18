@@ -25,11 +25,15 @@ export function ThingScreen({ className, header, actions, children }: {
 }
 
 /** Ett papper i högen: en artikel som alla ser, ett urklipp som bara spelaren har eller en sida i en bok. */
-export type Paper = { key: string; document?: MissionDocument; text?: string; page?: string };
+export type Paper = { key: string; document?: MissionDocument; text?: string; page?: string; cover?: string };
 
-/** Sidorna i en bok, som gästboken, med första sidan överst (Jonas 2026-11-18). */
-export function listPages(pages: readonly string[]): Paper[] {
-  return pages.map((page, index) => ({ key: `s:${index}`, page }));
+/**
+ * Sidorna i en bok, som gästboken, med första sidan överst (Jonas 2026-11-18).
+ * Har boken en första sida med titeln, som Gästbok Ekbacken, kommer den först (Jonas 2026-11-18).
+ */
+export function listPages(pages: readonly string[], cover: string | null = null): Paper[] {
+  const written = pages.map((page, index) => ({ key: `s:${index}`, page }));
+  return cover === null ? written : [{ key: 'omslag', cover }, ...written];
 }
 
 /** Artiklarna först, sedan spelarens egna urklipp. */
@@ -42,6 +46,7 @@ export function listFoundPapers(found: readonly FoundItem[]): Paper[] {
 }
 
 function PaperContent({ paper }: { paper: Paper }) {
+  if (paper.cover !== undefined) return <p className="book-cover">{paper.cover}</p>;
   // En tom sida i en bok, som de sista i gästboken (Jonas 2026-11-18).
   if (paper.page === '') return <p className="page-blank">Tom sida</p>;
   if (paper.page !== undefined) {
@@ -68,6 +73,11 @@ function PaperContent({ paper }: { paper: Paper }) {
       <p className="paper-only-mine">Bara du har det här urklippet.</p>
     </>
   );
+}
+
+function describePaperClass(paper: Paper): string {
+  if (paper.cover !== undefined) return 'paper document-card book-page is-cover';
+  return paper.page !== undefined ? 'paper document-card book-page' : 'paper document-card';
 }
 
 /** Så många pixlar i sidled lutar papperet en grad när det dras. */
@@ -109,7 +119,7 @@ export function PaperStack({ papers }: { papers: readonly Paper[] }) {
         )).reverse()}
         <article
           key={papers[current].key}
-          className={papers[current].page !== undefined ? 'paper document-card book-page' : 'paper document-card'}
+          className={describePaperClass(papers[current])}
           style={drag ? { transform: `translateX(${drag.dx}px) rotate(${drag.dx / PX_PER_DEGREE}deg)`, transition: 'none' } : undefined}
           onPointerDown={start}
           onPointerMove={move}

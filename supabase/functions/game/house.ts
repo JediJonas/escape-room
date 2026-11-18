@@ -31,9 +31,22 @@ export type HouseThing = {
    * liten bok och inte tar slut vid sista namnet (Jonas 2026-11-18).
    */
   blankPages?: number;
+  /**
+   * Bokens första sida, som Gästbok Ekbacken. Den kommer före de skrivna
+   * sidorna (Jonas 2026-11-18).
+   */
+  cover?: string;
+  /**
+   * Saken är dörren till ett låst rum, som källardörren. Den som får gå in
+   * ser dörren bland dörrarna i stället för bland sakerna (Jonas 2026-11-18).
+   */
+  doorTo?: PlaceId;
   /** Stegen som saken öppnar, till exempel båda seanserna vid ouijabrädet. */
   opensSteps?: string[];
-  /** Saken står i listan från början, som ouijabrädet. */
+  /**
+   * Saken står i listan från början. I Den femte gästen hittas allt med Leta
+   * i rummet, också ouijabrädet, golvuret och pianot (Jonas 2026-11-18).
+   */
   isFoundFromStart?: boolean;
   /**
    * Det som spelarna i de andra rummen får veta när saken kallar på gruppen,
@@ -126,6 +139,8 @@ export type ThingView = {
   name: string;
   text: string | null;
   pages: string[] | null;
+  /** Bokens första sida, eller null. */
+  cover: string | null;
   /** Steget som saken öppnar, om det är det steg gruppen är på nu. */
   opensCurrentStep: boolean;
   /** Steget som saken öppnade tidigare och som går att läsa igen, med stegets `foundTitle`. */
@@ -182,6 +197,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     name: thing.name,
     text: thing.text ?? null,
     pages: thing.pages ? [...thing.pages, ...Array.from({ length: thing.blankPages ?? 0 }, () => '')] : null,
+    cover: thing.cover ?? null,
     opensCurrentStep: current !== undefined,
     opensFound,
     isCalling: current !== undefined && isStepCalling(current.step, state),
@@ -190,7 +206,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
   };
 }
 
-export function describeHouse({ state, mission, house, places, viewerId, participantIds }: {
+export function describeHouse({ state, mission, house, places, viewerId, participantIds, mayEnter }: {
   state: GameState;
   mission: Mission;
   house: House;
@@ -198,17 +214,22 @@ export function describeHouse({ state, mission, house, places, viewerId, partici
   viewerId: string;
   /** I den ordning de gick med, så att pianots tangenter delas lika varje gång. */
   participantIds: readonly string[];
+  /** Det låsta rum som spelaren får gå in i, som källaren för den som ska ner dit. */
+  mayEnter?: PlaceId;
 }): HouseView | null {
   const room = findRoom(house, state.placeByPlayer[viewerId]);
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
   if (!room) return null;
-  const visible = room.things.filter((thing) => isFound(thing, state));
+  // Ett låst rum syns bland dörrarna bara för den som får gå in. De andra ser dörren bland sakerna
+  // när den är hittad, och den som får gå in ser den inte där (Jonas 2026-11-18).
+  const isOpenTo = (place: PlaceId) => findRoom(house, place)?.isLocked !== true || place === mayEnter;
+  const visible = room.things.filter((thing) => isFound(thing, state) && (thing.doorTo === undefined || thing.doorTo !== mayEnter));
   const callingRoom = house.rooms.find((other) => other !== room && other.things.some((thing) => describeThing(thing, mission, state).isCalling));
   const callingThing = callingRoom?.things.find((thing) => describeThing(thing, mission, state).isCalling);
   const callingPlace = callingRoom ? findPlace(callingRoom.place).name.toLocaleLowerCase('sv') : '';
   return {
     room: findPlace(room.place),
-    doors: room.doors.map(findPlace),
+    doors: room.doors.filter(isOpenTo).map(findPlace),
     things: visible.map((thing) => describeThing(thing, mission, state, { id: viewerId, participantIds })),
     callingFrom: callingThing ? callingThing.callingText ?? `Något rör sig vid ${callingThing.name.toLocaleLowerCase('sv')} i ${callingPlace}.` : null,
     canSearch: room.things.some((thing) => !isFound(thing, state)),
@@ -250,6 +271,8 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
     if (!stepIds.includes(echo?.fromStep)) errors.push(`${name} har ett eko från ett steg som inte finns: ${String(echo?.fromStep)}`);
     if (typeof echo?.message !== 'string' || !SEANCE_LETTERS.test(echo.message)) errors.push(`${name} har ett eko med andra tecken än bokstäverna på brädet`);
   }
+  if (thing.cover !== undefined && !(isFilledText(thing.cover) && pages !== undefined)) errors.push(`${name} har en tom första sida eller inga sidor`);
+  if (thing.doorTo !== undefined && !isPlaceId(thing.doorTo)) errors.push(`${name} är en dörr till en plats som inte finns`);
   if (thing.text === undefined && pages === undefined && opens === undefined) errors.push(`${name} har varken text, sidor eller steg att öppna`);
   return errors;
 }

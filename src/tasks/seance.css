@@ -148,3 +148,16 @@
 .seance-status p:empty { display: none; }
 .seance-status button { pointer-events: auto; }
 
+
+/* Svarsrutan längst ner på brädet, när brädet har frågat VEM ÄR JAG (Jonas 2026-11-18). */
+.board-answer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  width: min(84vw, 22rem);
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.board-answer .hint { grid-column: 1 / -1; margin: 0; color: inherit; }
+.board-answer input { min-width: 0; }

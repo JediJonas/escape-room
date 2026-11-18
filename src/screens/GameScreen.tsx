@@ -124,7 +124,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // I huset öppnar en sak alltid en vy, och Tillbaka går till rummet (Jonas 2026-11-17).
   const { house } = view;
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
-  const closeThing = <button key="close" type="button" className="secondary" onClick={() => setOpenThingId(null)}>Tillbaka</button>;
+  const closeThing = <button key="close" type="button" className="secondary" onClick={leaveThing}>Tillbaka</button>;
   // Bara spelledaren har en meny, med paus, ledtrådar och facit. Spelarna har Tillbaka (Jonas 2026-11-18).
   const stepButton = view.me.isLeader ? 'menu' : 'back';
   // Överst i en sak i fullskärm: klockan och en knapp tillbaka eller till menyn.
@@ -133,7 +133,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       {view.clock ? <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} /> : <span />}
       {view.clock?.isPaused && <span className="paused">Pausat</span>}
       {button === 'back'
-        ? <button type="button" className="secondary seance-menu-button" onClick={() => setOpenThingId(null)}>Tillbaka</button>
+        ? <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>
         : <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>}
     </>
   );
@@ -180,6 +180,16 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Under seansen fyller brädet skärmen, utan text. Hur man gör är första ledtråden (Jonas 2026-11-18).
   // När skenet har slocknat står brädet kvar tills spelaren själv lämnar det (Jonas 2026-11-17).
   const isBoardShown = step.seance !== null && !hasLeftBoard && !view.isFinished;
+  // Spelledaren som står utanför svarar inte och trycker inte Klar.
+  const canAnswer = step.acceptsAnswer && !view.isFinished && view.me.isPlaying;
+  // Svaret skrivs på brädet, längst ner, när skenet har bokstaverat frågan (Jonas 2026-11-18).
+  const boardAnswer = canAnswer ? (
+    <form className="board-answer" onSubmit={submitAnswer}>
+      {step.wrongAnswers && <p className="hint" role="status">Ett fel svar kostar {step.wrongAnswers.nextMinutes} minuter.</p>}
+      <input aria-label="Ert svar" value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder="Ert svar" autoComplete="off" enterKeyHint="send" />
+      <button type="submit" disabled={isBusy || !answer.trim()}>Svara</button>
+    </form>
+  ) : undefined;
   if (step.seance && isBoardShown && !isMenuOpen) {
     return (
       <main className="seance-screen">
@@ -188,9 +198,9 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
           {view.clock?.isPaused && <span className="paused">Pausat</span>}
           {stepButton === 'menu'
             ? <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
-            : <button type="button" className="secondary seance-menu-button" onClick={() => setOpenThingId(null)}>Tillbaka</button>}
+            : <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>}
         </p>
-        <SeanceBoard seance={step.seance} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} onLeave={() => setHasLeftBoard(true)} />
+        <SeanceBoard seance={step.seance} answer={boardAnswer} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard}  />
       </main>
     );
   }
@@ -228,11 +238,20 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     );
   }
   const isTask = step.type !== 'scene' && !view.isFinished;
-  // Spelledaren som står utanför svarar inte och trycker inte Klar.
-  const canAnswer = step.acceptsAnswer && !view.isFinished && view.me.isPlaying;
 
   // Tillstånden måste begäras direkt i trycket, annars nekar iPhone. Svaret behövs inte här:
   // en uppgift som använder rörelse lyssnar bara, och fingret tar över om inga värden kommer.
+  // Tillbaka går till rummet. Att lämna brädet efter meddelandet räknas som klar, så ingen
+  // Klar-knapp behövs (Jonas 2026-11-18).
+  function leaveThing() {
+    const isBoardDone = step.seance?.isComplete === true && openThing?.opensCurrentStep === true;
+    if (isBoardDone && view.me.isPlaying && step.usesReadyButton && !step.isMeDone) markReady();
+    // Utan huset finns inget rum att gå till, så spelaren kommer till stegets sida.
+    if (!house && step.seance?.isComplete) setHasLeftBoard(true);
+    setIsMenuOpen(false);
+    setOpenThingId(null);
+  }
+
   function markReady() {
     if (step.asksFor.includes('sound')) gameAudio.unlock();
     if (step.asksFor.includes('motion')) void requestMotionPermission();

@@ -12,8 +12,6 @@ export function StartScreen({ error, onJoin, onCreate }: { error: string; onJoin
       }
     >
       <h1>Escape room</h1>
-      <p>Ett partyspel för tre till tio personer, var och en med sin mobil.</p>
-      <p>Spelet är under bygge. Än så länge går det att skapa ett spel och se vilka som går med.</p>
       <p className="error" role="alert">{error}</p>
       <p className="hint"><a href="testsida/">Den tekniska testsidan</a> · Version {VERSION}</p>
     </ScreenLayout>

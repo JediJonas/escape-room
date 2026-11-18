@@ -33,8 +33,11 @@
 }
 
 .thing-screen .game-header {
-  margin: 0;
-  padding: calc(0.5rem + env(safe-area-inset-top)) 1rem 0.5rem;
+  /* Tillbaka och klockan står i innehållets kanter, inte i skärmens (Jonas 2026-11-18). */
+  width: 100%;
+  max-width: var(--stage-max-width);
+  margin: 0 auto;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0.5rem;
   align-items: center;
   color: rgb(240 225 200 / 0.85);
 }
@@ -53,6 +56,12 @@
   gap: 1rem;
   padding: 0.5rem 0.75rem;
 }
+
+/*
+ * En sak utan knapp underst, som golvuret, slutar ovanför spelledarens meny i
+ * hörnet i stället för under den. Spelarna får samma luft (Jonas 2026-11-18).
+ */
+.thing-stage:last-child { padding-bottom: calc(4.5rem + var(--bottom-gap)); }
 
 .thing-actions {
   width: 100%;

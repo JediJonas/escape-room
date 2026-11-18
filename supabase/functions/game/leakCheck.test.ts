@@ -7,7 +7,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
-import { chooseMemoryRoom, fadeMemory, moveInCellar, touchBoard, turnClock } from './taskActions.ts';
+import { chooseMemoryRoom, moveInCellar, touchBoard, turnClock } from './taskActions.ts';
 import { MAX_PLAYERS } from './lobby.ts';
 import { readDialTime } from './rooms.ts';
 import { listParticipants } from './participants.ts';
@@ -72,7 +72,7 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     const text = JSON.stringify(view);
     const allowed = new Set([
       ...(view.step.role?.pieces ?? []),
-      ...(view.step.rooms?.myRoom?.pieces ?? []),
+      ...listMemoryPieces(view),
       // Texten efteråt i källaren är bara den som spelaren själv ska se.
       ...secrets.filter((secret) => view.step.cellar?.outcomeText?.includes(secret)),
       ...(view.step.textAtPlace ? [view.step.textAtPlace] : []),
@@ -85,7 +85,7 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     }
     // Ingen vy berättar något om de andra spelarna.
     for (const other of players.filter((player) => player.id !== viewer.id)) assert.ok(!text.includes(other.id), `${viewer.name} ser ${other.id}`);
-    for (const piece of [...(view.step.role?.pieces ?? []), ...(view.step.rooms?.myRoom?.pieces ?? [])]) {
+    for (const piece of [...(view.step.role?.pieces ?? []), ...listMemoryPieces(view)]) {
       assert.ok(!shown.has(piece), `${mission.id} steg ${state.stepIndex + 1}: två spelare ser samma bit: ${piece}`);
       shown.add(piece);
     }
@@ -102,12 +102,17 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
   }
 }
 
+/** Bitarna i spelarens egna rum i minnet. */
+function listMemoryPieces(view: ReturnType<typeof buildGameView>): string[] {
+  return view.step.rooms?.myRooms.flatMap((room) => room.pieces) ?? [];
+}
+
 /**
- * Någon vrider golvuret till rätt tid, och alla väljer ett rum i den ordning
- * de står. Vyerna kontrolleras i minnet, och huset minns tills varje rum är
- * sett. Det sista minnet får stå kvar, så att ledtrådarna och facit
- * kontrolleras i samma steg. Sist kontrolleras att varje bit i varje rum har
- * setts av någon.
+ * Någon vrider golvuret till rätt tid, och alla väljer rum tills inget rum
+ * står tomt. Är spelarna färre än rummen tar någon ett rum till, så att
+ * gruppen ser alla rum i samma minne (Jonas 2026-11-18). Minnet får stå kvar,
+ * så att ledtrådarna och facit kontrolleras i samma steg. Sist kontrolleras
+ * att varje bit i varje rum har setts av någon.
  */
 function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
   const step = mission.steps[state.stepIndex];
@@ -115,28 +120,28 @@ function visitAllRooms(mission: Mission, state: GameState, players: PlayerRecord
   const clockRoom = mission.house?.rooms.find((room) => room.things.some((thing) => thing.opensSteps?.includes(step.id)))?.place;
   const [turner] = participants;
   let visited: GameState = clockRoom ? { ...state, placeByPlayer: { ...state.placeByPlayer, [turner.id]: clockRoom } } : state;
-  const seen = new Set<string>();
-  let nowMs = 0;
-  for (let round = 0; round < step.rooms.length; round += 1) {
-    if (clockRoom) visited = { ...visited, placeByPlayer: { ...visited.placeByPlayer, [turner.id]: clockRoom } };
-    visited = readState(turnClock({ state: visited, mission, players: participants, player: turner, minutes: readDialTime(step.solution.time), nowMs }));
-    participants.forEach((player, index) => {
-      if (!visited.rooms) return;
-      const free = step.rooms.map((room) => room.place).filter((place) => !visited.rooms?.seenPlaces.includes(place));
-      const placeId = free[index % Math.max(free.length, 1)] ?? step.rooms[index % step.rooms.length].place;
-      const chosen = chooseMemoryRoom({ state: visited, mission, player, placeId, nowMs });
-      if ('state' in chosen) visited = chosen.state;
-    });
-    checkStep(mission, visited, players);
-    for (const viewer of participants) {
-      const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state: visited }, mission, players, viewer });
-      for (const piece of view.step.rooms?.myRoom?.pieces ?? []) seen.add(piece);
+  visited = readState(turnClock({ state: visited, mission, players: participants, player: turner, minutes: readDialTime(step.solution.time), nowMs: 0 }));
+  let isChoosing = true;
+  while (isChoosing) {
+    isChoosing = false;
+    for (const player of participants) {
+      for (const room of step.rooms) {
+        const chosen = chooseMemoryRoom({ state: visited, mission, players: participants, player, placeId: room.place, nowMs: 0 });
+        if ('state' in chosen) {
+          visited = chosen.state;
+          isChoosing = true;
+          break;
+        }
+      }
     }
-    if (step.rooms.every((room) => visited.rooms?.seenPlaces.includes(room.place))) break;
-    nowMs += step.memoryMinutes * 60_000;
-    visited = readState(fadeMemory({ state: visited, mission, players: participants, nowMs }));
   }
-  assert.ok(step.rooms.every((room) => visited.rooms?.seenPlaces.includes(room.place)), `${mission.id}: gruppen såg inte alla rum med ${participants.length} spelare`);
+  checkStep(mission, visited, players);
+  const seen = new Set<string>();
+  for (const viewer of participants) {
+    const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state: visited }, mission, players, viewer });
+    for (const piece of listMemoryPieces(view)) seen.add(piece);
+  }
+  assert.ok(step.rooms.every((room) => visited.rooms?.seenPlaces.includes(room.place)), `${mission.id}: gruppen såg inte alla rum i ett minne med ${participants.length} spelare`);
   for (const room of step.rooms) for (const piece of room.pieces) assert.ok(seen.has(piece), `${mission.id}: ingen ser ${piece} med ${participants.length} spelare`);
   return visited;
 }

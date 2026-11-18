@@ -46,26 +46,34 @@ export function MemoryScreen({ rooms, isFading, msLeft, canChoose, isBusy, onCho
   isBusy: boolean;
   onChoose: (placeId: PlaceId) => void;
 }) {
-  const { myRoom } = rooms;
+  const { myRooms, choice } = rooms;
+  const [onlyRoom] = myRooms;
+  const isTakingAnother = choice === 'takeAnother';
   return (
     <section className={isFading ? 'memory is-fading' : 'memory'} aria-label="Huset minns">
-      <p className="memory-label">{myRoom ? myRoom.place.name : 'Huset minns'} · {rooms.memoryLabel}</p>
+      <p className="memory-label">{myRooms.length === 1 ? onlyRoom.place.name : 'Huset minns'} · {rooms.memoryLabel}</p>
       <p className={isFading ? 'memory-left is-fading' : 'memory-left'} role="timer">Minnet bleknar om {formatMemoryLeft(msLeft)}</p>
-      {myRoom && (
-        <div className="memory-pieces">
-          {myRoom.pieces.map((piece) => <p key={piece}>{piece}</p>)}
+      {myRooms.map((room) => (
+        <div key={room.place.id} className="memory-pieces">
+          {myRooms.length > 1 && <h2 className="memory-room">{room.place.name}</h2>}
+          {room.pieces.map((piece) => <p key={piece}>{piece}</p>)}
         </div>
-      )}
-      {!myRoom && canChoose && (
+      ))}
+      {canChoose && (choice === 'choose' || isTakingAnother) && (
         <fieldset className="place-list memory-choices">
-          <legend>Vilket rum är du i?</legend>
-          <p className="memory-note">Du stannar där tills minnet bleknar. Ett rum går bara att välja om inget annat rum har färre.</p>
+          <legend>{isTakingAnother ? 'Ett rum står tomt. Gå dit också?' : 'Vilket rum är du i?'}</legend>
+          <p className="memory-note">
+            {isTakingAnother
+              ? 'Ni är färre än rummen, så du kan se ett rum till i samma minne.'
+              : 'Du stannar där tills minnet bleknar. Ett rum går bara att välja om inget annat rum har färre.'}
+          </p>
           {rooms.rooms.map(({ place, isChoosable }) => (
             <button key={place.id} type="button" className="secondary" onClick={() => onChoose(place.id)} disabled={isBusy || !isChoosable}>{place.name}</button>
           ))}
         </fieldset>
       )}
-      {!myRoom && !canChoose && <p className="memory-note">Spelarna väljer var sitt rum och ser det som det var.</p>}
+      {canChoose && choice === 'waitForOthers' && <p className="memory-note">När alla har valt rum kan du gå till ett rum som står tomt.</p>}
+      {!canChoose && <p className="memory-note">Spelarna väljer var sitt rum och ser det som det var.</p>}
     </section>
   );
 }

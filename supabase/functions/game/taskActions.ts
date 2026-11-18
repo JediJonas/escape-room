@@ -76,19 +76,24 @@ export function turnClock({ state, mission, players, player, minutes, nowMs }: {
   return { state: { ...state, rooms: turned.rooms } };
 }
 
-/** Spelaren väljer sitt rum i minnet och står sedan där, också när minnet har bleknat. */
-export function chooseMemoryRoom({ state, mission, player, placeId, nowMs }: {
+/**
+ * Spelaren väljer sitt rum i minnet och står sedan där, också när minnet har
+ * bleknat. Tar hon ett rum till står hon kvar i det första.
+ */
+export function chooseMemoryRoom({ state, mission, players, player, placeId, nowMs }: {
   state: GameState;
   mission: Mission;
+  players: readonly PlayerRecord[];
   player: PlayerRecord;
   placeId: unknown;
   nowMs: number;
 }): StateChange {
   const task = findRoomsTask(state, mission, nowMs);
   if ('refusal' in task) return task;
-  const chosen = chooseRoom({ rooms: task.rooms, step: task.step, playerId: player.id, placeId, nowMs });
+  const chosen = chooseRoom({ rooms: task.rooms, step: task.step, playerId: player.id, participantIds: players.map((participant) => participant.id), placeId, nowMs });
   if ('refusal' in chosen) return chosen;
-  const placeByPlayer = isPlaceId(placeId) ? { ...state.placeByPlayer, [player.id]: placeId } : state.placeByPlayer;
+  const isFirstRoom = !task.rooms.choices.some((choice) => choice.playerId === player.id);
+  const placeByPlayer = isFirstRoom && isPlaceId(placeId) ? { ...state.placeByPlayer, [player.id]: placeId } : state.placeByPlayer;
   return { state: { ...state, rooms: chosen.rooms, placeByPlayer } };
 }
 

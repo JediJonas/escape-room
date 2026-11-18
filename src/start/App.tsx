@@ -191,7 +191,7 @@ export function App() {
     nextStep: () => sendInGame({ type: 'nextStep' }),
     markReady: () => sendInGame({ type: 'markReady' }),
     setPaused: (isPaused) => sendInGame({ type: 'setPaused', isPaused }),
-    choosePlace: (placeId, source) => sendInGame({ type: 'choosePlace', placeId, source }),
+    choosePlace: (placeId) => sendInGame({ type: 'choosePlace', placeId }),
     submitAnswer: (answer) => sendInGame({ type: 'submitAnswer', answer }),
     // Planchetten skickas utan att knapparna blir upptagna, och svaret används inte:
     // vyn kommer i kanalen, i rätt ordning, även när flera anrop är på väg samtidigt.

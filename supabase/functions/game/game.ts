@@ -144,12 +144,11 @@ function moveOnIfAllDone(state: GameState, mission: Mission, players: readonly P
   return isAllDone ? moveOn(state, mission, players) : state;
 }
 
-export function startGame({ state, mission, players, starter, usesPlaceCards, leaderPlays, minutes, nowMs }: {
+export function startGame({ state, mission, players, starter, leaderPlays, minutes, nowMs }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   starter: PlayerRecord;
-  usesPlaceCards: boolean;
   /** Spelledaren spelar med som standard och kan välja att stå utanför. */
   leaderPlays: boolean;
   minutes: number;
@@ -157,7 +156,7 @@ export function startGame({ state, mission, players, starter, usesPlaceCards, le
 }): StateChange {
   if (!starter.isLeader) return { refusal: 'notLeader' };
   if (state.status !== 'lobby') return { refusal: 'gameStarted' };
-  const started: GameState = { ...state, status: 'running', usesPlaceCards, leaderPlays, clock: startClock(minutes, nowMs) };
+  const started: GameState = { ...state, status: 'running', leaderPlays, clock: startClock(minutes, nowMs) };
   const participants = listParticipants(started, players);
   if (participants.length < mission.minPlayers) return { refusal: 'tooFewPlayers' };
   const placed = mission.house ? placeInHouse(started, mission.house, participants.map((player) => player.id)) : started;
@@ -192,8 +191,8 @@ export function markReady({ state, mission, players, player }: {
 }
 
 /**
- * Spelaren är på en plats, oavsett om hon skannade kortet eller valde i
- * listan. Kommer den instängda fram till källaren börjar det komma närmare.
+ * Spelaren är på en plats när hon har valt den i listan eller gått dit i
+ * huset. Kommer den instängda fram till källaren börjar det komma närmare.
  */
 export function choosePlace({ state, mission, players, player, placeId, nowMs }: {
   state: GameState;
@@ -299,7 +298,6 @@ export type GameView = {
   /** isPlaying är falskt för spelledaren som står utanför. Hon får ingen roll. */
   me: { playerId: string; name: string; isLeader: boolean; isPlaying: boolean };
   isFinished: boolean;
-  usesPlaceCards: boolean;
   step: {
     number: number;
     count: number;
@@ -428,7 +426,6 @@ export function buildGameView({ game, mission, players, viewer }: {
     missionTitle: mission.title,
     me: { ...describeViewer(viewer), isPlaying: participants.some((player) => player.id === viewer.id) },
     isFinished: state.status === 'finished',
-    usesPlaceCards: state.usesPlaceCards,
     step: {
       number: stepIndex + 1,
       count: mission.steps.length,

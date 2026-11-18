@@ -135,7 +135,7 @@ Spelledaren väljer uppdrag och speltid, skriver ut ett ark med QR-koder, sätte
 
 **Reserven.** Om utskrift saknas eller kameran inte fungerar väljer spelaren plats i en lista på skärmen.
 
-**Spel utan platskort.** Platskorten används som standard, eftersom de får spelarna att gå till olika rum. Spelledaren kan välja bort dem när hon startar. Då väljer alla spelare plats i listan, och inget ark behöver skrivas ut. För motorn är det samma sak att en spelare är på en plats, oavsett om det kom från en skanning eller från listan. Därför fungerar alla uppgifter i båda lägena.
+**Spel utan platskort.** Spelet skannar inga platskort just nu. Rutan Vi har satt upp platskorten i väntrummet och skanningen i spelet är borttagna, eftersom rummen finns i mobilen (Jonas 2026-11-18). Spelarna väljer plats i listan eller går dit i huset, och inget ark behöver skrivas ut.
 
 ## Teknik
 
@@ -369,7 +369,7 @@ Elva frågor är avgjorda den 16 november 2026.
 | Spelledare som står utanför | Mobilen blir en ren administrationsvy med samma funktioner, utan roll i uppgifterna |
 | Gemensam skärm | Nej. Nedräkning, berättelse och ljud finns i spelarnas mobiler |
 | Rundbilder | Illustrerade, framtagna med Gemini-API:et (Nano Banana). Prövat och håller, utom rakt upp och rakt ner |
-| Platskort | Används som standard. Spelledaren kan välja bort dem, och då väljer spelarna plats i en lista. Den femte gästen används utan platskort (Jonas 2026-11-17) |
+| Platskort | Används inte i spelet. Spelarna väljer plats i en lista eller i huset i mobilen, och valet att använda korten när spelet startar är borttaget (Jonas 2026-11-18). Den femte gästen används utan platskort (Jonas 2026-11-17) |
 | Föremål i rundbilden | Ja. Spelaren kan undersöka föremål, med korta texter som en annan spelare behöver |
 | Röster och viskningar | Genereras i förväg och sparas som ljudfiler. Oprövat på svenska |
 | Ton och ålder | Läskigt med skrämselmoment, från 16 år, och samtidigt roligt. Inget blod och inget våld |

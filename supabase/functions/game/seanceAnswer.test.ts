@@ -46,7 +46,7 @@ function followWholeMessage(started: GameState): GameState {
 }
 
 test('brädet kallar från huset tills meddelandet är klart, och sedan står frågan kvar i stället för Klar', () => {
-  const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
   assert.equal(viewOf(started).house?.things[0].isCalling, true);
   assert.equal(viewOf(started).step.acceptsAnswer, false);
   assert.equal(viewOf(started).step.question, null);
@@ -61,7 +61,7 @@ test('brädet kallar från huset tills meddelandet är klart, och sedan står fr
 });
 
 test('ett fel namn kostar tid för alla, mer för varje fel, och rätt namn för gruppen vidare', () => {
-  const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
   const complete = followWholeMessage(started);
   const wrong = readState(submitAnswer({ state: complete, mission: MISSION, players: PLAYERS, answer: 'Margit' }));
   assert.equal(wrong.clock?.durationMs, 58 * MINUTE_MS);
@@ -93,7 +93,7 @@ test('den som står i ett annat rum får veta att brädet kallar, och den som st
   };
   const mission: Mission = { ...MISSION, house };
   assert.deepEqual(findMissionErrors(mission), []);
-  const started = readState(startGame({ state: createInitialState(), mission, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const started = readState(startGame({ state: createInitialState(), mission, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
   const view = (state: GameState) => buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state }, mission, players: PLAYERS, viewer: PLAYERS[1] });
   assert.equal(view(started).house?.callingFrom, 'Från salongen hörs planchetten.');
   const atBoard = { ...started, placeByPlayer: { ...started.placeByPlayer, [PLAYERS[1].id]: 'F' as const } };

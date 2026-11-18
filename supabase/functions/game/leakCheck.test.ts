@@ -212,7 +212,7 @@ for (const mission of MISSIONS) {
       // Spelledaren som står utanför räknas inte, så det behövs en spelare till.
       const players = createPlayers(leaderPlays ? playerCount : Math.min(playerCount + 1, MAX_PLAYERS));
       const [leader] = players;
-      let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, usesPlaceCards: true, leaderPlays, minutes: 60, nowMs: 0 }));
+      let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, leaderPlays, minutes: 60, nowMs: 0 }));
       const participants = listParticipants(state, players);
       while (state.status === 'running') {
         // Var annan spelare går till rätt plats, så att både de som är där och de som inte är det kontrolleras.

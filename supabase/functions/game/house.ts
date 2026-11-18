@@ -4,8 +4,8 @@
  * hitta när berättelsen har kommit dit. Det som har hittats står i rummets
  * lista för hela gruppen. Se docs/koncept.md, Rundbilder och två lägen.
  *
- * Rena funktioner. Platsen där spelaren är sparas i placeByPlayer, som
- * platskorten använder, så att uppgifter med en plats fungerar som förut.
+ * Rena funktioner. Platsen där spelaren är sparas i placeByPlayer, så att
+ * uppgifter med en plats fungerar som förut.
  */
 
 import type { Mission, MissionStep, Place } from './mission.ts';

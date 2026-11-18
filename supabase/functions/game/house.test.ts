@@ -39,7 +39,7 @@ function viewFor(state: GameState, viewer = PLAYERS[1]) {
 }
 
 function start(): GameState {
-  return readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  return readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
 }
 
 test('alla börjar i salongen, och seansbordet står i listan från början och öppnar seansen', () => {

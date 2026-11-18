@@ -323,7 +323,7 @@
     {
       "id": "kallaren",
       "type": "cellar",
-      "text": "Vera viskar: Det finns ett rum bakom källaren. En av er måste gå ner. Den som får källaren går till källarkortet. De andra stannar vid bordet och lotsar.",
+      "text": "Vera viskar: Det finns ett rum bakom källaren. En av er måste gå ner. Den som får källaren går ner dit. De andra stannar vid bordet och lotsar.",
       "roles": [
         {
           "id": "instangd",
@@ -332,7 +332,7 @@
           "isProminent": true,
           "goTo": "A",
           "pieces": [
-            "Dörren slår igen bakom dig. Stanna vid kortet. Vrid dig med mobilen och leta efter en dörr som inte finns på någon karta. Tryck på skärmen när den är mitt i ficklampan."
+            "Dörren slår igen bakom dig. Stanna i källaren. Vrid dig med mobilen och leta efter en dörr som inte finns på någon karta. Tryck på skärmen när den är mitt i ficklampan."
           ]
         },
         {

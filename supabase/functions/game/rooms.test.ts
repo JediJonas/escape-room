@@ -132,7 +132,7 @@ function readState(change: { state: GameState } | { refusal: string }): GameStat
 
 test('med tre spelare ser gruppen alla rum i ett minne, dörrarna är stängda under minnet, och sedan går gruppen vidare', () => {
   const [anna, bo, cia] = PLAYERS;
-  let state = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: anna, usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  let state = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));
   // Golvuret står i salongen, och alla börjar i hallen.
   assert.deepEqual(turnClock({ state, mission: MISSION, players: PLAYERS, player: anna, minutes: NINE_FIFTEEN, nowMs: 0 }), { refusal: 'notAtPlace' });
   state = readState(walkThroughDoor({ state, mission: MISSION, player: anna, placeId: 'F', nowMs: 0 }));
@@ -164,7 +164,7 @@ test('med tre spelare ser gruppen alla rum i ett minne, dörrarna är stängda u
 test('golvuret går att vrida innan berättelsen har kommit dit, och då hoppar gruppen bara över rummen som redan är sedda', () => {
   const later: Mission = { ...FULL, steps: [{ id: 'forst', type: 'scene', text: 'Först.' }, STEP, { id: 'slut', type: 'scene', text: 'Slut.' }] };
   const [anna, bo, cia] = PLAYERS;
-  let state = readState(startGame({ state: createInitialState(), mission: later, players: PLAYERS, starter: anna, usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  let state = readState(startGame({ state: createInitialState(), mission: later, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));
   state = readState(walkThroughDoor({ state, mission: later, player: anna, placeId: 'F', nowMs: 0 }));
   const viewOf = (viewer: PlayerRecord) => buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: later.id, state }, mission: later, players: PLAYERS, viewer });
   assert.deepEqual(viewOf(anna).house?.things.find((thing) => thing.id === 'golvuret')?.instrument, { type: 'clock', dialMinutes: readDialTime('4.40') });

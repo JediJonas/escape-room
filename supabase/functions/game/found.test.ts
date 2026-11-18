@@ -35,7 +35,7 @@ function viewFor(state: GameState, viewer: PlayerRecord) {
 }
 
 test('dokumenten syns för alla, och urklippen ligger kvar i Hittat med bara spelarens egna', () => {
-  let state = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  let state = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
   assert.deepEqual(viewFor(state, PLAYERS[1]).step.documents, [{ title: 'Artikeln', text: 'Fem gick in.' }]);
   assert.deepEqual(viewFor(state, PLAYERS[1]).found, []);
   for (const player of PLAYERS) state = readState(markReady({ state, mission: MISSION, players: PLAYERS, player }));

@@ -93,13 +93,12 @@ async function startGameAction(action: Action, context: Context): Promise<Action
   return withOwnPlayer(action, context, async (scope) => {
     const mission = typeof action.missionId === 'string' ? getMission(action.missionId) : scope.mission;
     if (!mission) return fail('unknownMission');
-    const usesPlaceCards = action.usesPlaceCards !== false;
     const minutes = readGameMinutes(action.minutes);
     const leaderPlays = action.leaderPlays !== false;
-    const change = startGame({ state: scope.game.state, mission, players: scope.players, starter: scope.player, usesPlaceCards, leaderPlays, minutes, nowMs });
+    const change = startGame({ state: scope.game.state, mission, players: scope.players, starter: scope.player, leaderPlays, minutes, nowMs });
     if ('state' in change && mission.id !== scope.game.missionId) await scope.transaction.updateGameMission(scope.game.id, mission.id);
     const chosen = { ...scope, mission, game: { ...scope.game, missionId: mission.id } };
-    return applyChange(chosen, change, { action: { type: 'startGame', missionId: mission.id, usesPlaceCards, leaderPlays, minutes } });
+    return applyChange(chosen, change, { action: { type: 'startGame', missionId: mission.id, leaderPlays, minutes } });
   });
 }
 
@@ -141,9 +140,7 @@ async function choosePlaceAction(action: Action, context: Context): Promise<Acti
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
     const change = choosePlace({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, placeId: action.placeId, nowMs });
-    // Varifrån platsen kom sparas bara i loggen. För motorn är det samma sak.
-    const source = action.source === 'scan' ? 'scan' : 'list';
-    return applyChange(scope, change, { action: { type: 'choosePlace', placeId: action.placeId, source }, recipients: findRecipients(scope, change) });
+    return applyChange(scope, change, { action: { type: 'choosePlace', placeId: action.placeId }, recipients: findRecipients(scope, change) });
   });
 }
 

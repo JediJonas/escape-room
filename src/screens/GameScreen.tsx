@@ -68,19 +68,15 @@ export function GameScreen(props: GameScreenProps) {
     if (isNewHint) setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, title: `Ledtråd ${step.hints.length}.`, text: step.hints[step.hints.length - 1] }));
   }
   const closeInfo = useCallback(() => setInfo(null), []);
-  const showInfo = useCallback((text: string) => setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, text })), []);
   return (
     <>
-      <GameContent {...props} onShowInfo={showInfo} />
+      <GameContent {...props} />
       {info && <InfoBox key={info.id} title={info.title} text={info.text} onClose={closeInfo} />}
     </>
   );
 }
 
-function GameContent({ view, clockOffsetMs, isBusy, error, actions: game, onShowInfo }: GameScreenProps & {
-  /** Visar en text i inforutan längst ner. */
-  onShowInfo: (text: string) => void;
-}) {
+function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: GameScreenProps) {
   const [answer, setAnswer] = useState('');
   const [answeredStep, setAnsweredStep] = useState(view.step.number);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -129,13 +125,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game, onShow
   const { house } = view;
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
   const closeThing = <button key="close" type="button" className="secondary" onClick={() => setOpenThingId(null)}>Tillbaka</button>;
-  // Spelarna har ingen meny, så stegets text visas i inforutan när de öppnar saken (Jonas 2026-11-18).
-  // Vid brädet står texten redan på brädet.
-  const openThingFromRoom = (thingId: string) => {
-    setOpenThingId(thingId);
-    const thing = house?.things.find((candidate) => candidate.id === thingId);
-    if (thing?.opensCurrentStep && step.seance === null) onShowInfo(step.text);
-  };
   // Bara spelledaren har en meny, med paus, ledtrådar och facit. Spelarna har Tillbaka (Jonas 2026-11-18).
   const stepButton = view.me.isLeader ? 'menu' : 'back';
   // Överst i en sak i fullskärm: klockan och en knapp tillbaka eller till menyn.
@@ -176,7 +165,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game, onShow
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
         {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
-        <RoomList house={house} isBusy={isBusy} onOpen={openThingFromRoom} onWalk={game.walk} />
+        <RoomList house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
         {step.hints.length > 0 && (
           <section className="hint-card" aria-label="Ledtrådar">
             {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
@@ -205,7 +194,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game, onShow
       </main>
     );
   }
-  // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet. Texten visas i inforutan (Jonas 2026-11-18).
+  // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet, utan text. Texten finns i spelledarens meny (Jonas 2026-11-18).
   const thingPapers = listPapers(step.documents, step.role?.pieces ?? []);
   const isThingShown = openThing !== null && !view.isFinished && (step.piano !== null || step.rooms !== null || thingPapers.length > 0);
   if (isThingShown && !isMenuOpen) {

@@ -1,6 +1,6 @@
 /**
- * Platskorten på arket, A till F. De återanvänds i alla uppdrag, och
- * uppdraget bestämmer vad varje plats är för kvällen. Se docs/koncept.md.
+ * Platserna A till F. De återanvänds i alla uppdrag, och uppdraget
+ * bestämmer vad varje plats är för kvällen. Se docs/koncept.md.
  */
 
 export const PLACE_IDS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;

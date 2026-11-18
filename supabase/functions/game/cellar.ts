@@ -1,6 +1,6 @@
 /**
  * Uppgiftstypen Instängd med Lotsen, så som Källaren använder den. En
- * spelare stängs in vid ett platskort och ser sig omkring i en mörk rundbild
+ * spelare stängs in i källaren och ser sig omkring i en mörk rundbild
  * med en ficklampa. De andra har var sin bit av en beskrivning av rummet och
  * lotsar henne. De har också några säkringar som tänder lampan en kort
  * stund. Hon trycker när den dolda dörren är mitt i ficklampan. Något
@@ -25,7 +25,7 @@ export function wrapDegrees(degrees: number): number {
 }
 
 export type CellarState = {
-  /** När den instängda kom fram till kortet. Då börjar det komma närmare. */
+  /** När den instängda kom fram till källaren. Då börjar det komma närmare. */
   arrivedAtMs: number | null;
   /** Hur mycket närmare det har kommit av fel tryck. */
   penaltyMs: number;
@@ -79,7 +79,7 @@ export function applyCellarMove({ cellar, step, move, isTrapped, isTrappedHere, 
   step: CellarStep;
   move: CellarMove;
   isTrapped: boolean;
-  /** Om den instängda står vid sitt kort. Före det händer ingenting i källaren. */
+  /** Om den instängda är i källaren. Före det händer ingenting i källaren. */
   isTrappedHere: boolean;
   nowMs: number;
 }): { cellar: CellarState } | { refusal: CellarRefusal } {
@@ -103,7 +103,7 @@ export function applyCellarMove({ cellar, step, move, isTrapped, isTrappedHere, 
 export type CellarView = {
   isTrapped: boolean;
   trappedName: string;
-  /** Bilden visas bara för den instängda när hon står vid kortet. */
+  /** Bilden visas bara för den instängda när hon är i källaren. */
   image: string | null;
   catchMs: number | null;
   /** Hur lång tid det tar från att hon kommer fram tills det når henne, för att rita hur nära det är. */

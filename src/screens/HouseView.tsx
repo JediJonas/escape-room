@@ -36,13 +36,13 @@ export function RoomList({ house, isBusy, onOpen, onWalk }: {
   );
 }
 
-/** En sak att titta på, eller något gruppen har hittat tidigare och kan läsa igen. */
+/** En sak att titta på, eller något gruppen har hittat tidigare och kan läsa igen. Varje rad i texten blir ett stycke. */
 export function ThingContent({ thing, found }: { thing: ThingView; found: readonly FoundItem[] }) {
   if (thing.opensFound) return <FoundView found={found.filter((item) => item.title === thing.opensFound)} />;
   return (
     <>
       <h1>{thing.name}</h1>
-      {thing.text && <article className="document-card"><p>{thing.text}</p></article>}
+      {thing.text && <article className="document-card">{thing.text.split('\n').map((line) => <p key={line}>{line}</p>)}</article>}
     </>
   );
 }

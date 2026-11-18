@@ -140,6 +140,7 @@ button.secondary {
   font-family: Georgia, 'Times New Roman', serif;
 }
 .document-card h2 { color: inherit; font-size: 1.1rem; }
+.document-card .dateline { margin: 0 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid currentColor; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .document-card p:last-child { margin-bottom: 0; }
 .clipping { font-family: Georgia, 'Times New Roman', serif; }
 .role-card .clipping + .clipping { padding-top: 0.75rem; border-top: 1px solid var(--border); }

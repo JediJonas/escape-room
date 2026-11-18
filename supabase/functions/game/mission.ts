@@ -42,7 +42,12 @@ export type Role = {
 };
 
 /** Ett dokument som alla ser, till exempel en tidningsartikel eller en gästbok. */
-export type MissionDocument = { title: string; text: string };
+export type MissionDocument = {
+  title: string;
+  text: string;
+  /** Datumet längst upp på sidan, som i en tidning (Jonas 2026-11-18). */
+  dateline?: string;
+};
 
 /** Berättelsen mellan uppgifterna. Kan skicka spelarna till en plats. */
 export type SceneStep = {
@@ -118,7 +123,7 @@ export type SeanceStep = {
   callsFromHouse?: boolean;
   /** Med svar i facit skriver gruppen ett svar på meddelandet i stället för att trycka Klar. Det här står ovanför fältet. */
   question?: string;
-  /** Så många minuter kostar ett fel svar. */
+  /** Så många minuter kostar det första fel svaret. Varje nytt fel kostar lika mycket till (Jonas 2026-11-18). */
   wrongAnswerMinutes?: number;
   /**
    * Meddelandet, med versaler och mellanslag mellan orden, och svaren som
@@ -260,7 +265,10 @@ function findDocumentErrors(step: Record<string, unknown>, name: string): string
   const errors: string[] = [];
   const { documents, foundTitle } = step;
   if ((documents !== undefined || foundTitle !== undefined) && step.type !== 'scene') errors.push(`${name} har dokument eller Hittat men är ingen scen`);
-  const isDocument = (item: unknown) => !!item && typeof item === 'object' && isFilledText((item as MissionDocument).title) && isFilledText((item as MissionDocument).text);
+  const isDocument = (item: unknown) => {
+    const document = item as Partial<MissionDocument> | null;
+    return !!document && typeof document === 'object' && isFilledText(document.title) && isFilledText(document.text) && (document.dateline === undefined || isFilledText(document.dateline));
+  };
   if (documents !== undefined && !(Array.isArray(documents) && documents.length > 0 && documents.every(isDocument))) errors.push(`${name} har dokument utan rubrik eller text`);
   if (foundTitle !== undefined && !isFilledText(foundTitle)) errors.push(`${name} har ett tomt namn i Hittat`);
   return errors;

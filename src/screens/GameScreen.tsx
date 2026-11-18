@@ -100,7 +100,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
           <span>{view.missionTitle} · steg {step.number} av {step.count}</span>
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
-        <MemoryScreen rooms={step.rooms} isFading={memory.isFading} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseMemoryRoom} />
+        <MemoryScreen rooms={step.rooms} isFading={memory.isFading} msLeft={memory.msLeft} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseMemoryRoom} />
         <LeaderPanel view={view} isBusy={isBusy} onSetPaused={game.setPaused} onGiveHint={game.giveHint} onShowSolution={game.showSolution} onAnswerPending={game.answerPending} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>
@@ -254,12 +254,15 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
       )}
       {!view.me.isPlaying && !view.isFinished && <p className="hint">Du står utanför och leder spelet. Du ser det alla ser, men ingen roll.</p>}
       {step.question && <p className="status" role="status">{step.question}</p>}
-      {step.wrongAnswers && step.wrongAnswers.count > 0 && (
-        <p className="status" role="status">Fel svar {step.wrongAnswers.count} {step.wrongAnswers.count === 1 ? 'gång' : 'gånger'}. Varje fel kostar {step.wrongAnswers.minutes} minuter.</p>
-      )}
       {canAnswer && (
         <form id={ANSWER_FORM_ID} className="field" onSubmit={submitAnswer}>
           <label htmlFor="answer">Ert svar</label>
+          {step.wrongAnswers && (
+            <p className="hint" role="status">
+              {step.wrongAnswers.count > 0 && `Ni har svarat fel ${step.wrongAnswers.count} ${step.wrongAnswers.count === 1 ? 'gång' : 'gånger'}. `}
+              Ett fel svar kostar nu {step.wrongAnswers.nextMinutes} minuter.
+            </p>
+          )}
           <input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" enterKeyHint="send" />
         </form>
       )}

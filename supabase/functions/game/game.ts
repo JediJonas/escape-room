@@ -227,8 +227,16 @@ export function submitAnswer({ state, mission, players, answer }: {
   if (answers.some((correct) => normalizeAnswer(correct) === given)) return { state: moveOn(state, mission, players) };
   const minutes = step.type === 'seance' ? step.wrongAnswerMinutes : undefined;
   if (minutes === undefined) return { refusal: 'wrongAnswer' };
-  const clock = state.clock ? shortenClock(state.clock, minutes) : null;
+  const clock = state.clock ? shortenClock(state.clock, nextWrongAnswerCost(minutes, state.wrongAnswers)) : null;
   return { state: { ...state, clock, wrongAnswers: state.wrongAnswers + 1 } };
+}
+
+/**
+ * Vad nästa fel svar kostar. Varje fel kostar lika mycket mer än det förra,
+ * 2, 4, 6 och 8 minuter, så att det inte lönar sig att gissa (Jonas 2026-11-18).
+ */
+export function nextWrongAnswerCost(minutes: number, wrongAnswers: number): number {
+  return minutes * (wrongAnswers + 1);
 }
 
 /** Spelledaren ger gruppen nästa ledtråd. Alla får den samtidigt. */
@@ -294,7 +302,7 @@ export type GameView = {
     acceptsAnswer: boolean;
     question: string | null;
     /** Fel svar hittills i uppgiften, och vad varje fel kostar, när fel svar kostar tid. */
-    wrongAnswers: { count: number; minutes: number } | null;
+    wrongAnswers: { count: number; nextMinutes: number } | null;
     isMeDone: boolean;
     /** Ledtrådarna som gruppen har fått, och hur många uppgiften har. */
     hints: string[];
@@ -388,7 +396,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       usesReadyButton: usesReadyButton(step, state),
       acceptsAnswer: isRunning && acceptsAnswer(step, state),
       question: step.type === 'seance' && isSeanceDone(step, state) ? step.question ?? null : null,
-      wrongAnswers: step.type === 'seance' && step.wrongAnswerMinutes !== undefined ? { count: state.wrongAnswers, minutes: step.wrongAnswerMinutes } : null,
+      wrongAnswers: step.type === 'seance' && step.wrongAnswerMinutes !== undefined ? { count: state.wrongAnswers, nextMinutes: nextWrongAnswerCost(step.wrongAnswerMinutes, state.wrongAnswers) } : null,
       isMeDone: isPlayerDone(step, state, viewer.id),
       hints: step.hints?.slice(0, state.hintsGiven) ?? [],
       hintCount: step.hints?.length ?? 0,

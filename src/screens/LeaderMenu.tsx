@@ -34,8 +34,6 @@ function MenuIcon({ isOpen }: { isOpen: boolean }) {
 export type LeaderMenuProps = {
   view: GameView;
   isBusy: boolean;
-  /** Stegets text, när spelledaren är i en vy som inte visar den, som brädet eller golvuret. */
-  stepText: string | null;
   /** Ge ledtråd och Visa facit för mig, bara vid saken som är uppgiften och inte är klarad. */
   canHelpWithTask: boolean;
   /** Ge ledtråd om urklippen, vid byrån medan berättelsen väntar på att alla har läst (Jonas 2026-11-18). */
@@ -56,7 +54,7 @@ export type LeaderMenuProps = {
  * Avsluta spelet ligger sist och frågar först, eftersom det inte går att
  * ångra (Jonas 2026-11-18).
  */
-export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWithReading, onSetPaused, onGiveHint, onShowSolution, onNextStep, onEndGame, onAnswerPending }: LeaderMenuProps) {
+export function LeaderMenu({ view, isBusy, canHelpWithTask, canHelpWithReading, onSetPaused, onGiveHint, onShowSolution, onNextStep, onEndGame, onAnswerPending }: LeaderMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmingEnd, setIsConfirmingEnd] = useState(false);
   // Frågan om att avsluta börjar om varje gång menyn öppnas.
@@ -106,7 +104,6 @@ export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWit
           ) : (
           <section className="leader-menu" aria-label="Spelledarens meny">
             <PendingList view={view} isBusy={isBusy} onAnswer={onAnswerPending} />
-            {stepText && <p className="leader-menu-text">{stepText}</p>}
             {canHelpWithReading && <p className="hint">Gruppen har fått {step.readingHints.length} av {step.readingHintCount} ledtrådar om {(step.foundTitle ?? '').toLocaleLowerCase('sv')}.</p>}
             {canHelpWithTask && (
               <>

@@ -106,7 +106,7 @@ sist under Namn som är bestämda.
 | Ledtråd | En av uppgiftens tre hjälptexter i stigande tydlighet. Spelledaren ger dem en i taget, och alla ser dem. | `hints`, `giveHint` |
 | Facit | Uppgiftens rätta svar. Ligger på servern och visas bara för spelledaren när hon ber om det. | `solution`, `showSolution` |
 | Hoppa över | Spelledaren går förbi en uppgift som har låst sig. I urklippen räknas alla som lästa och Rummen minns hoppas över med ett tryck. | `nextStep`, `skipReading` |
-| Stegets text | Texten som beskriver steget. Syns överst i spelledarens meny vid saken, utom vid ouijabrädet, men inte hos spelarna. | `step.text`, `stepText` |
+| Stegets text | Texten som beskriver steget. Syns i textvyn, men inte i en sak i fullskärm och inte i spelledarens meny. | `step.text` |
 
 ## Den femte gästen
 

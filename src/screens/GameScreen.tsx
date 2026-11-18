@@ -141,7 +141,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
 
   // Bara spelledaren har en meny, en hamburgare i nedre högra hörnet. Spelarna har Tillbaka (Jonas 2026-11-18).
   const isLeaderMenuShown = view.me.isLeader && !view.isFinished;
-  function withLeaderMenu(screen: ReactNode, { stepText = null, isAtTask = false }: { stepText?: string | null; isAtTask?: boolean } = {}) {
+  function withLeaderMenu(screen: ReactNode, { isAtTask = false }: { isAtTask?: boolean } = {}) {
     if (!isLeaderMenuShown) return screen;
     // Golvuret får ledtrådar också medan berättelsen väntar på urklippen (Jonas 2026-11-18).
     const isAtAwaitedTask = openThing?.opensAwaitedTask === true;
@@ -153,7 +153,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         <LeaderMenu
           view={view}
           isBusy={isBusy}
-          stepText={stepText}
           canHelpWithTask={canHelpWithTask({ isTask: step.type !== 'scene' || isAtAwaitedTask, isAtTask: isAtTask || isAtAwaitedTask, isSolved: step.type !== 'scene' && step.usesReadyButton })}
           canHelpWithReading={isAtReading}
           onSetPaused={game.setPaused}
@@ -302,11 +301,10 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         </p>
         <SeanceBoard seance={step.seance} answer={boardAnswer} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard}  />
       </main>,
-      // Vid brädet står ingen text i menyn. Hur man gör är seansens första ledtråd (Jonas 2026-11-18).
-      { stepText: null, isAtTask: true },
+      { isAtTask: true },
     );
   }
-  // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet, utan text. Texten finns i spelledarens meny (Jonas 2026-11-18).
+  // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet, utan text. Stegets text visas inte heller i menyn (Jonas 2026-11-18).
   const thingPapers = listPapers(step.documents, step.role?.pieces ?? []);
   const isThingShown = openThing !== null && !view.isFinished && (step.piano !== null || step.flashback !== null || thingPapers.length > 0);
   if (isThingShown) {
@@ -320,7 +318,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         {step.flashback && <GrandfatherClock dialMinutes={step.flashback.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
         {thingPapers.length > 0 && <PaperStack papers={thingPapers} />}
       </ThingScreen>,
-      { stepText: step.text, isAtTask: true },
+      { isAtTask: true },
     );
   }
   // I källaren ser den instängda bara mörkret och ficklampan. Resten ligger i menyn, som i seansen.
@@ -336,7 +334,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         <CellarDark cellar={cellar} image={cellar.image} clockOffsetMs={clockOffsetMs} onOpenDoor={(yawDeg) => game.moveInCellar({ type: 'openDoor', yawDeg })} onTimeUp={timeUpInCellar} />
         <p className="error cellar-error" role="alert">{error}</p>
       </main>,
-      { stepText: step.text, isAtTask: true },
+      { isAtTask: true },
     );
   }
   const isTask = step.type !== 'scene' && !view.isFinished;
@@ -435,6 +433,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       )}
       <p className="error" role="alert">{error}</p>
     </ScreenLayout>,
-    { stepText: null, isAtTask: isTask && (step.opensFrom === null || openThing !== null) },
+    { isAtTask: isTask && (step.opensFrom === null || openThing !== null) },
   );
 }

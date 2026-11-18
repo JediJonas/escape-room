@@ -403,6 +403,8 @@ En fråga om berättelsen är öppen. Att pianots melodi får Vera att komma nä
 
 - Hur når berättartexterna spelarna, nu när sakerna öppnas utan text? Uppgifternas text ser bara spelledaren, och en del av den är berättelse, som pianots tomma notblad. Ett förslag är att texterna dyker upp av sig själva när gruppen har nått vissa mål (Jonas 2026-11-18).
 
+En fråga om spelledaren är öppen. En berättarscen går vidare först när alla har tryckt Ok, och Alla är klara är borttagen. På sikt kanske spelledaren ska kunna kasta ut en spelare som har slutat spela (Jonas 2026-11-18).
+
 ## Föreslagen byggordning
 
 1. **Teknisk testsida.** Rörelse, QR-skanning, ljud och synkade tryck provas på iPhone och Android. En rundbild tas fram med Gemini och provas i en visare. En viskning på svenska genereras och provas i en mobil. Resultatet avgör vilka uppgiftstyper som är realistiska.

@@ -1,41 +1,13 @@
-import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from 'react';
-import type { PianoView } from '../../supabase/functions/game/piano.ts';
+import { type KeyboardEvent, type PointerEvent, useState } from 'react';
+import type { PianoKey, PianoView } from '../../supabase/functions/game/piano.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
-import { playFalseNote, playMelody, playNote } from '../sound/piano.ts';
+import { playMelody, playNote } from '../sound/piano.ts';
 import './piano.css';
 
 /** Hur länge en tangent klingar när den slås an. */
 const KEY_LENGTH_S = 0.5;
-/** Hur länge det står att gruppen spelade fel. */
-const WRONG_SHOWN_MS = 3000;
 /** Lite tid efter melodin innan den kan spelas igen, så att den hinner klinga ut. */
 const AFTER_MELODY_MS = 600;
-
-/** Säger till när gruppen har spelat fel, med en falsk ton i alla mobiler. */
-function useWrongNote(wrongNotes: number): boolean {
-  const seen = useRef(wrongNotes);
-  const [isShown, setIsShown] = useState(false);
-  useEffect(() => {
-    if (wrongNotes <= seen.current) return undefined;
-    seen.current = wrongNotes;
-    void playFalseNote(gameAudio);
-    setIsShown(true);
-    const timer = setTimeout(() => setIsShown(false), WRONG_SHOWN_MS);
-    return () => clearTimeout(timer);
-  }, [wrongNotes]);
-  return isShown;
-}
-
-function Progress({ piano }: { piano: PianoView }) {
-  return (
-    <div className="piano-progress">
-      <p className="hint">{piano.playedCount} av {piano.noteCount} toner rätt i följd</p>
-      <div className="piano-dots" aria-hidden="true">
-        {Array.from({ length: piano.noteCount }, (_, index) => <span key={index} className={index < piano.playedCount ? 'is-played' : undefined} />)}
-      </div>
-    </div>
-  );
-}
 
 /** Melodin spelas högt från en mobil, så att alla hör den, så många gånger gruppen vill (Jonas 2026-11-18). */
 function MelodyPanel({ piano }: { piano: PianoView }) {
@@ -61,18 +33,11 @@ function MelodyPanel({ piano }: { piano: PianoView }) {
 }
 
 /**
- * Pianot. En mobil spelar melodin högt, och alla har några tangenter var. En
- * tangent låter i den egna mobilen när den slås an, och servern avgör om
- * det var nästa ton. Se docs/koncept.md, Pianot.
+ * Spelarens tangenter. En tangent låter i den egna mobilen när den slås an
+ * och skickas till servern, som avgör om de senaste tonerna är melodin.
+ * Inget säger till om en fel ton (Jonas 2026-11-18).
  */
-export function PianoTask({ piano, canPlay, onPlayKey }: {
-  piano: PianoView;
-  /** Spelledaren som står utanför har inga tangenter. */
-  canPlay: boolean;
-  onPlayKey: (note: string) => void;
-}) {
-  const isWrongShown = useWrongNote(piano.wrongNotes);
-
+export function PianoKeys({ keys, onPlayKey }: { keys: readonly PianoKey[]; onPlayKey: (note: string) => void }) {
   function strike(note: string) {
     gameAudio.unlock();
     void playNote(gameAudio, note, KEY_LENGTH_S);
@@ -91,21 +56,30 @@ export function PianoTask({ piano, canPlay, onPlayKey }: {
     strike(note);
   }
 
+  if (keys.length === 0) return null;
+  return (
+    <section className="piano-keys" aria-label="Dina tangenter">
+      {keys.map((key) => (
+        <button key={key.note} type="button" className="piano-key" onPointerDown={(event) => strikeWithFinger(event, key.note)} onKeyDown={(event) => strikeWithKeyboard(event, key.note)}>
+          {key.name}
+        </button>
+      ))}
+    </section>
+  );
+}
+
+/** Pianot när berättelsen har kommit dit: en mobil spelar melodin högt, och de andra har några tangenter var. Se docs/koncept.md, Pianot. */
+export function PianoTask({ piano, canPlay, onPlayKey }: {
+  piano: PianoView;
+  /** Spelledaren som står utanför har inga tangenter. */
+  canPlay: boolean;
+  onPlayKey: (note: string) => void;
+}) {
   return (
     <div className="piano">
       {piano.hasMelody && <MelodyPanel piano={piano} />}
-      {!piano.hasMelody && <p className="hint">Melodin spelas från mobilen hos {piano.melodyPlayerName}. Lyssna och spela den ton för ton.</p>}
-      <Progress piano={piano} />
-      <p className={isWrongShown ? 'status piano-wrong is-shown' : 'status piano-wrong'} role="status">{isWrongShown ? 'En falsk ton. Börja om från första tonen.' : ''}</p>
-      {canPlay && piano.myKeys.length > 0 && (
-        <section className="piano-keys" aria-label="Dina tangenter">
-          {piano.myKeys.map((key) => (
-            <button key={key.note} type="button" className="piano-key" onPointerDown={(event) => strikeWithFinger(event, key.note)} onKeyDown={(event) => strikeWithKeyboard(event, key.note)}>
-              {key.name}
-            </button>
-          ))}
-        </section>
-      )}
+      {!piano.hasMelody && <p className="hint">Melodin spelas från mobilen hos {piano.melodyPlayerName}. Lyssna och spela den på era tangenter.</p>}
+      {canPlay && <PianoKeys keys={piano.myKeys} onPlayKey={onPlayKey} />}
     </div>
   );
 }

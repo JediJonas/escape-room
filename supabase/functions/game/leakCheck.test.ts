@@ -163,8 +163,8 @@ function findCellarDoor(mission: Mission, state: GameState, players: PlayerRecor
 }
 
 /**
- * Alla går till pianot och spelar melodin. Först slår någon an en fel ton,
- * så att gruppen får börja om, och vyerna kontrolleras efter varje ton.
+ * Alla går till pianot och spelar melodin. Först slår någon an en annan ton,
+ * som inte ska räknas, och vyerna kontrolleras efter varje ton.
  */
 function playWholeMelody(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
   const step = mission.steps[state.stepIndex];
@@ -179,7 +179,7 @@ function playWholeMelody(mission: Mission, state: GameState, players: PlayerReco
   const wrongKey = step.keys.find((key) => key !== step.solution.melody[0].note);
   assert.ok(wrongKey && ownerOf(wrongKey), `${mission.id}: ingen har en fel tangent med ${participants.length} spelare`);
   played = readState(playKey({ state: played, mission, players: participants, player: ownerOf(wrongKey)!, key: wrongKey }));
-  assert.equal(played.piano?.wrongNotes, 1);
+  assert.equal(played.stepIndex, state.stepIndex);
   for (const tone of step.solution.melody) {
     checkStep(mission, played, players);
     const owner = ownerOf(tone.note);

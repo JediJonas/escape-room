@@ -220,11 +220,13 @@ async function moveInCellarAction(action: Action, context: Context): Promise<Act
   });
 }
 
-/** Alla ser hur långt gruppen har kommit i melodin, så alla får en ny vy. */
+/** En ton på pianot. Den låter bara i mobilen som spelade den. */
 async function playKeyAction(action: Action, context: Context): Promise<ActionResult> {
   return withParticipant(action, context, async (scope) => {
     const change = playKey({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, key: action.key });
-    return applyChange(scope, change, { action: { type: 'playKey', key: action.key } });
+    // Tonerna syns inte hos någon, så bara när gruppen går vidare får alla en ny vy.
+    const isUnchanged = 'state' in change && change.state.stepIndex === scope.game.state.stepIndex && change.state.solvedSteps.length === scope.game.state.solvedSteps.length;
+    return applyChange(scope, change, { action: { type: 'playKey', key: action.key }, recipients: isUnchanged ? [] : undefined });
   });
 }
 

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { buildGameView, startGame } from './game.ts';
+import { advanceStep, buildGameView, startGame } from './game.ts';
 import { type Mission, type PianoStep, findMissionErrors } from './mission.ts';
 import { getMission } from './missions/index.ts';
-import { dealKeys, describePiano, nameNote, pressKey, readPianoState, startPiano } from './piano.ts';
+import { dealKeys, describePiano, isPianoSolved, nameNote, pressKey, readPianoState, startPiano } from './piano.ts';
 import { playKey } from './taskActions.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
@@ -62,7 +62,7 @@ test('tonerna heter som på svenska, där B är H', () => {
   assert.equal(nameNote('F#4'), 'Fiss');
 });
 
-test('rätt ton för gruppen framåt och en fel ton gör att den börjar om', () => {
+test('gruppen spelar som den vill, och de senaste tonerna avgör', () => {
   // Annas mobil spelar melodin. Bo har C4 och E4, Cia har D4 och F4.
   const piano = startPiano('p0');
   const press = (state: typeof piano, playerId: string, key: string) => {
@@ -70,12 +70,12 @@ test('rätt ton för gruppen framåt och en fel ton gör att den börjar om', ()
     assert.ok('piano' in result, JSON.stringify(result));
     return result.piano;
   };
-  const first = press(piano, 'p1', 'E4');
-  assert.equal(first.playedCount, 1);
-  const second = press(first, 'p1', 'C4');
-  assert.equal(second.playedCount, 2);
-  const wrong = press(second, 'p2', 'D4');
-  assert.deepEqual(wrong, { melodyPlayerId: 'p0', playedCount: 0, wrongNotes: 1 });
+  let played = piano;
+  for (const [playerId, key] of [['p2', 'D4'], ['p1', 'E4'], ['p1', 'C4'], ['p2', 'F4']] as const) played = press(played, playerId, key);
+  assert.equal(isPianoSolved(played, STEP), false);
+  played = press(played, 'p1', 'C4');
+  assert.deepEqual(played.recentKeys, ['E4', 'C4', 'F4', 'C4']);
+  assert.equal(isPianoSolved(played, STEP), true);
   assert.deepEqual(pressKey({ piano, step: STEP, playerId: 'p2', participantIds: IDS, key: 'E4' }), { refusal: 'notYourKey' });
   assert.deepEqual(pressKey({ piano, step: STEP, playerId: 'p0', participantIds: IDS, key: 'E4' }), { refusal: 'notYourKey' });
   assert.deepEqual(pressKey({ piano, step: STEP, playerId: 'p1', participantIds: IDS, key: 'A4' }), { refusal: 'unknownKey' });
@@ -89,7 +89,6 @@ test('bara mobilen som spelar melodin får den, och var och en ser bara sina tan
   const player = describePiano({ piano, step: STEP, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna' });
   assert.equal(player.melody, null);
   assert.deepEqual(player.myKeys, [{ note: 'C4', name: 'C' }, { note: 'E4', name: 'E' }]);
-  assert.equal(player.noteCount, 4);
 });
 
 test('den som spelar melodin väljs som en framträdande roll, alla måste stå vid pianot och hela melodin för gruppen vidare', () => {
@@ -106,7 +105,8 @@ test('den som spelar melodin väljs som en framträdande roll, alla måste stå 
   let state = started;
   for (const [player, key] of [[bo, 'E4'], [bo, 'C4'], [cia, 'F4'], [bo, 'C4']] as const) state = readState(playKey({ state, mission: MISSION, players: PLAYERS, player, key }));
   assert.equal(state.stepIndex, 1);
-  assert.equal(state.piano, null);
+  // Pianot står kvar, men efteråt låter tangenterna bara.
+  assert.deepEqual(playKey({ state, mission: MISSION, players: PLAYERS, player: bo, key: 'E4' }), { state });
 });
 
 test('nästa gång spelar någon melodin som inte har haft en framträdande roll', () => {
@@ -124,6 +124,33 @@ test('uppdragsfilen säger till när pianot är fel', () => {
 });
 
 test('ett sparat piano läses, och ett trasigt blir null', () => {
-  assert.deepEqual(readPianoState({ melodyPlayerId: 'p0', playedCount: 2, wrongNotes: 1 }), { melodyPlayerId: 'p0', playedCount: 2, wrongNotes: 1 });
-  assert.equal(readPianoState({ playedCount: -1, wrongNotes: 0 }), null);
+  assert.deepEqual(readPianoState({ melodyPlayerId: 'p0', recentKeys: ['C4', 'X'] }), { melodyPlayerId: 'p0', recentKeys: ['C4'] });
+  assert.equal(readPianoState({ recentKeys: 'C4' }), null);
+});
+
+/** Ett uppdrag där pianot kommer efter en scen, så att det går att spela innan berättelsen har kommit dit. */
+const LATER: Mission = { ...MISSION, steps: [{ id: 'forst', type: 'scene', text: 'Först.' }, ...MISSION.steps] };
+
+function startLater(): GameState {
+  return readState(startGame({ state: createInitialState(), mission: LATER, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+}
+
+test('pianot går att spela innan berättelsen har kommit dit, med tangenterna delade mellan alla', () => {
+  const started = startLater();
+  const [anna, bo, cia] = PLAYERS;
+  const thing = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: LATER.id, state: started }, mission: LATER, players: PLAYERS, viewer: anna }).house?.things[0];
+  assert.equal(thing?.opensCurrentStep, false);
+  // Ingen spelar melodin än, så alla har tangenter: Anna C4 och F4, Bo D4 och Cia E4.
+  assert.deepEqual(thing?.instrument, { type: 'piano', keys: [{ note: 'C4', name: 'C' }, { note: 'F4', name: 'F' }] });
+  // Utanför steget får ingen en ny vy av en ton, så tillståndet ändras bara i det tysta.
+  let state = readState(playKey({ state: started, mission: LATER, players: PLAYERS, player: bo, key: 'D4' }));
+  assert.equal(state.stepIndex, 0);
+  for (const [player, key] of [[cia, 'E4'], [anna, 'C4'], [anna, 'F4'], [anna, 'C4']] as const) state = readState(playKey({ state, mission: LATER, players: PLAYERS, player, key }));
+  assert.deepEqual(state.solvedSteps, ['pianot']);
+  assert.equal(state.stepIndex, 0);
+  // När scenen är klar går gruppen förbi pianot.
+  const after = readState(advanceStep({ state, mission: LATER, players: PLAYERS, player: anna }));
+  assert.equal(LATER.steps[after.stepIndex].id, 'efter');
+  // Efteråt låter tangenterna bara.
+  assert.deepEqual(playKey({ state: after, mission: LATER, players: PLAYERS, player: bo, key: 'D4' }), { state: after });
 });

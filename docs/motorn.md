@@ -282,6 +282,16 @@ mobilerna till, och servern för fram tillståndet. Visarna går då tillbaka ti
 starttiden, och har alla rum setts går gruppen vidare. Golvuret och minnet
 syns hos alla, så alla får en ny vy när de ändras. Se `rooms.ts`.
 
+**Golvuret och pianot går att använda hela tiden** (Jonas 2026-11-18). En
+sak i huset vars steg inte är det aktuella har `instrument` i vyn: urtavlan
+eller spelarens tangenter. `turnClock` och `playKey` tar emot handlingen
+oavsett steg, men bara från den som står vid saken. Klaras uppgiften innan
+berättelsen har kommit dit sparas stegets id i tillståndets `solvedSteps`,
+och när gruppen sedan kommer dit går den förbi steget. Allt annat i
+berättelsen visas som vanligt, och andra steg kan inte klaras i förväg.
+Rummen och pianot sparas därför över stegen i `rooms` och `piano`. Minnet
+visas hos alla så länge huset minns, vilket steg gruppen än är på.
+
 **Källaren** har typen `cellar`. Steget har roller som andra steg, där
 `trappedRoleId` pekar ut den instängda rollen, som har en egen plats.
 Rundbilden står i `image`, tiden i `minutes`, säkringarna i `fuses` och
@@ -302,12 +312,12 @@ kommer till steget väljer servern vems mobil som spelar melodin, som en
 framträdande roll, så att den roterar. Bara den mobilens vy har melodin, och
 den spelas högt så att alla hör (Jonas 2026-11-18). Tangenterna delas mellan
 de andra i den ordning de gick med, så att alla har minst en och varje
-tangent finns hos någon. Det räknas fram vid varje anrop, så servern sparar
-bara vems mobil det är, hur många toner i följd som är rätt och hur många
-fel det har blivit. Handlingen `playKey` tar en tangent. Rätt ton för gruppen framåt,
-och en fel ton gör att den börjar om. Alla får en ny vy, så att alla ser hur
-långt gruppen har kommit och hör den falska tonen. När melodin är spelad går
-gruppen vidare. Med `callsFromHouse` kallar pianot på gruppen som brädet.
+tangent finns hos någon. Innan någon spelar melodin delas de mellan alla.
+Det räknas fram vid varje anrop, så servern sparar bara vems mobil det är
+och de senaste tonerna, högst lika många som melodin har. Handlingen
+`playKey` tar en tangent. Inget säger till om en fel ton, och tonen låter
+bara i mobilen som spelade den, så ingen annan får en ny vy av den. När de
+senaste tonerna är melodin är uppgiften klar (Jonas 2026-11-18). Med `callsFromHouse` kallar pianot på gruppen som brädet.
 Tonerna görs i ljudmotorn, så att inget klipp behöver hämtas. Se `piano.ts`.
 
 **Tidningsurklippen** är en scen med roller. Urklippen är bitarna i en roll

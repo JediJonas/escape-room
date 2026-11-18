@@ -1,19 +1,10 @@
 /*
  * Pianot. Tangenterna är stora och elfenbensvita, så att de går att träffa
- * utan att titta, och de andra ser hur långt gruppen har kommit.
+ * utan att titta.
  */
 
 .piano { display: grid; gap: 0.75rem; margin: 1rem 0; }
 .piano-melody button { width: 100%; }
-
-.piano-progress { display: grid; gap: 0.35rem; }
-.piano-progress .hint { margin: 0; }
-.piano-dots { display: flex; gap: 0.4rem; }
-.piano-dots span { width: 0.9rem; height: 0.9rem; border-radius: 50%; border: 2px solid currentColor; opacity: 0.5; }
-.piano-dots .is-played { background: currentColor; opacity: 1; }
-
-.piano-wrong { min-height: 1.5em; margin: 0; }
-.piano-wrong.is-shown { font-weight: 600; }
 
 .piano-keys {
   display: flex;

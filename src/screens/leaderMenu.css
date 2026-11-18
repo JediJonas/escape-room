@@ -91,7 +91,14 @@
 .has-leader-menu { display: contents; }
 .has-leader-menu > .screen { padding-bottom: var(--leader-menu-row); }
 .has-leader-menu .thing-actions { padding-bottom: var(--leader-menu-row); }
-/* En rad text, som vem skenet väntar på, får stå i samma rad som hamburgaren. */
+/*
+ * En rad text utan knapp, som Väntar på att alla ska bli klara eller vem
+ * skenet väntar på, får stå bredvid hamburgaren (Jonas 2026-11-18).
+ */
+.has-leader-menu > .screen:not(:has(.screen-actions button)) { padding-bottom: calc(1rem + var(--bottom-gap)); }
+.has-leader-menu .thing-actions:not(:has(button)) { padding-bottom: calc(1rem + var(--bottom-gap)); }
+.has-leader-menu .screen-actions:not(:has(button)),
+.has-leader-menu .thing-actions:not(:has(button)) { min-height: var(--leader-menu-size); align-content: center; padding-right: calc(var(--leader-menu-size) + 1.25rem); }
 .has-leader-menu .seance-status { max-width: calc(100% - 2 * (var(--leader-menu-size) + 1rem)); }
 /* Svarsrutan på brädet har en knapp och står därför ovanför hamburgaren. */
 .has-leader-menu .seance-status:has(.board-answer) { bottom: var(--leader-menu-row); max-width: calc(100% - 2rem); }

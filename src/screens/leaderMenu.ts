@@ -13,16 +13,6 @@ export function describeDone(progress: readonly DoneEntry[]): string {
 }
 
 /**
- * Raden i urklippen, där berättelsen väntar på att alla har läst. Spelledaren
- * ser vilka som saknas, i stället för vilka som är klara (Jonas 2026-11-18).
- */
-export function describeUnread(progress: readonly DoneEntry[], foundTitle: string): string {
-  const title = foundTitle.toLocaleLowerCase('sv');
-  const missing = progress.filter((player) => !player.isDone).map((player) => player.name);
-  return missing.length > 0 ? `Har inte läst ${title}: ${missing.join(', ')}` : `Alla har läst ${title}.`;
-}
-
-/**
  * Knappen som hoppar över det berättelsen väntar på i urklippen. Först
  * räknas alla som lästa, och sedan hoppar knappen över uppgiften
  * (Jonas 2026-11-18).

@@ -12,7 +12,7 @@ import { FlashbackScreen, useFlashbackTime } from '../tasks/FlashbackScreen.tsx'
 import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
-import { canHelpWithTask, describeDone, describeSceneSkip, describeUnread } from './leaderMenu.ts';
+import { canHelpWithTask, describeDone, describeSceneSkip } from './leaderMenu.ts';
 import { canLeaderSkip } from './leaderSkip.ts';
 import { DocumentList } from './FoundDocuments.tsx';
 import { TextView } from './TextView.tsx';
@@ -157,11 +157,11 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
   // Väntar på att alla ska bli klara, och bara hos spelledaren hur många som är klara och vilka
   // (Jonas 2026-11-18). Står hon utanför spelet ser hon raden så länge någon kan bli klar.
-  // I urklippen ser spelledaren i stället vilka som inte har läst, hela tiden (Jonas 2026-11-18).
-  const countsReady = step.type === 'scene' || step.usesReadyButton;
-  const showsDone = view.me.isLeader && view.progress !== null && countsReady && (step.isMeDone || !view.me.isPlaying || step.foundTitle !== null) && !view.isFinished;
-  const doneText = view.progress && step.foundTitle !== null ? describeUnread(view.progress, step.foundTitle) : describeDone(view.progress ?? []);
-  const doneLine = showsDone ? <span className="leader-done">{doneText}</span> : null;
+  // I urklippen syns ingen rad. Spelledaren vet kanske inte heller lösningen, och raden skulle avslöja
+  // vad brädet väntar på (Jonas 2026-11-18).
+  const countsReady = (step.type === 'scene' || step.usesReadyButton) && !(step.type === 'scene' && step.isDoneByLeaving);
+  const showsDone = view.me.isLeader && view.progress !== null && countsReady && (step.isMeDone || !view.me.isPlaying) && !view.isFinished;
+  const doneLine = showsDone && view.progress ? <span className="leader-done">{describeDone(view.progress)}</span> : null;
   const waitingLine = step.isMeDone || doneLine ? <p className="hint">{step.isMeDone && 'Väntar på att alla ska bli klara.'}{doneLine}</p> : null;
 
   // Medan huset minns ser alla minnet, var de än är, och inget av det som finns i nuet (Jonas 2026-11-17).

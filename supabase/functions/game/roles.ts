@@ -26,11 +26,15 @@ function pickPlayers(role: Role, candidates: PlayerRecord[], history: readonly s
 }
 
 /** Ett tal ur en text (FNV-1a), så att lotten blir densamma varje gång servern räknar. */
+/** FNV-1a:s startvärde och primtal för 32 bitar. */
+const FNV_OFFSET = 0x811c9dc5;
+const FNV_PRIME = 0x01000193;
+
 function hashText(text: string): number {
-  let hash = 0x811c9dc5;
+  let hash = FNV_OFFSET;
   for (let index = 0; index < text.length; index += 1) {
     hash ^= text.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
+    hash = Math.imul(hash, FNV_PRIME) >>> 0;
   }
   return hash;
 }

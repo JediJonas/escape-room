@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { buildGameView, giveHint, startGame } from './game.ts';
-import { giveReadingHint, markRead, skipReading } from './reading.ts';
+import { buildGameView, startGame } from './game.ts';
+import { giveHint } from './hints.ts';
+import { markRead, skipReading } from './reading.ts';
 import { chooseFlashbackRoom, fadeFlashback, turnClock, walkThroughDoor } from './taskActions.ts';
 import { getMission } from './missions/index.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
@@ -82,31 +83,37 @@ test('Hoppa över uppgiften räknar alla som lästa och hoppar över Rummen minn
   assert.deepEqual(state.foundReaders.tidningsurklippen, ['p0', 'p1', 'p2']);
 });
 
-test('vid byrån säger första ledtråden att alla inte har läst, och vid golvuret får gruppen Rummen minns ledtrådar', () => {
+test('i urklippen väljer servern ledtråden: först sakerna, sedan att alla inte har läst, golvuret och sist urklippen', () => {
   let state = skipUntil(start(), 'tidningsurklippen');
-  state = readState(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
-  state = readState(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
-  state = readState(giveHint({ state, mission: MISSION, player: ANNA }));
-  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: BO });
+  const hint = () => readState(giveHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
+  const things = MISSION.house?.rooms.flatMap((room) => room.things) ?? [];
+  const findHint = (id: string) => things.find((thing) => thing.id === id)?.findHint;
   const reading = MISSION.steps[state.stepIndex];
   const written = reading.type === 'scene' ? reading.readingHints ?? [] : [];
-  const clock = MISSION.steps.find((step) => step.id === 'rummen-minns');
-  assert.deepEqual(view.step.readingHints, ['Alla har inte läst tidningsurklippen.', written[0]]);
-  assert.equal(view.step.readingHintCount, 4);
-  assert.deepEqual(view.step.hints, clock?.hints?.slice(0, 1));
-  assert.equal(view.step.hintCount, 3);
-  for (let given = 1; given < 3; given += 1) state = readState(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
-  assert.deepEqual(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }), { refusal: 'noMoreHints' });
-  assert.deepEqual(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: BO }), { refusal: 'notLeader' });
+  const clock = MISSION.steps.find((step) => step.id === 'rummen-minns')?.hints ?? [];
+  for (let given = 0; given < 2 + 1 + clock.length + written.length; given += 1) state = hint();
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: ANNA });
+  assert.deepEqual(view.step.hints, [findHint('golvuret'), findHint('byran'), 'Alla har inte läst tidningsurklippen.', ...clock, ...written]);
+  assert.equal(view.step.canGiveHint, false);
+  assert.deepEqual(giveHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }), { refusal: 'noMoreHints' });
+  assert.deepEqual(giveHint({ state, mission: MISSION, players: PLAYERS, player: BO }), { refusal: 'notLeader' });
 });
 
-test('har alla läst ger byrån bara de skrivna ledtrådarna', () => {
+test('en sak som redan är hittad får ingen ledtråd om att den finns', () => {
+  let state = skipUntil(start(), 'tidningsurklippen');
+  state = { ...state, foundThings: ['golvuret', 'byran'] };
+  state = readState(giveHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: BO });
+  assert.deepEqual(view.step.hints, ['Alla har inte läst tidningsurklippen.']);
+});
+
+test('har alla läst och golvuret är klart ger byrån bara de skrivna ledtrådarna', () => {
   let state = start();
   for (const player of PLAYERS) state = readState(markRead({ state, mission: MISSION, players: PLAYERS, player, thingId: 'byran' }));
   state = skipUntil(state, 'tidningsurklippen');
-  state = readState(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
+  state = { ...state, foundThings: ['golvuret', 'byran'], solvedSteps: [...state.solvedSteps, 'rummen-minns'] };
+  state = readState(giveHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
   const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: BO });
   const reading = MISSION.steps[state.stepIndex];
-  assert.deepEqual(view.step.readingHints, reading.type === 'scene' ? reading.readingHints?.slice(0, 1) : []);
-  assert.equal(view.step.readingHintCount, 3);
+  assert.deepEqual(view.step.hints, reading.type === 'scene' ? reading.readingHints?.slice(0, 1) : []);
 });

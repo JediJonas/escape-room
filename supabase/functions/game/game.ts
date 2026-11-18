@@ -14,7 +14,8 @@ import { type PianoRefusal, type PianoView, describePiano, startPiano } from './
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
 import { type FlashbackRefusal, type FlashbackView, describeFlashback, endFlashbackNow, isRemembering, startFlashback } from './flashback.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
-import { type FoundItem, describeFound, describeReadingHints, hasRead, keepFound } from './found.ts';
+import { type FoundItem, describeFound, hasRead, keepFound } from './found.ts';
+import { type HintsView, describeHints, findOpenTask } from './hints.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
@@ -32,6 +33,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     wrongAnswers: 0,
     hintsGiven: 0,
     readingHintsGiven: 0,
+    findHintsGiven: [],
     isUnreadHintGiven: false,
     isSolutionShown: false,
     seance: step.type === 'seance' ? startSeance() : null,
@@ -136,7 +138,7 @@ function acceptsAnswer(step: MissionStep, state: GameState): boolean {
  * En seans också, när meddelandet är klart, så att gruppen hinner prata om
  * det innan skärmen byts. En uppgift med svar klaras genom att lösas.
  */
-function usesReadyButton(step: MissionStep, state: GameState): boolean {
+export function usesReadyButton(step: MissionStep, state: GameState): boolean {
   if (step.type === 'seance') return step.solution.answers === undefined && isSeanceDone(step, state);
   if (step.type === 'cellar') return state.cellar !== null && state.cellar.outcome !== null;
   return step.type === 'scene' && !isDoneWhenArrived(step);
@@ -343,19 +345,10 @@ export function findHelpTask(state: GameState, mission: Mission): { step: TaskSt
 }
 
 /** Uppgiften som scenen väntar på, om gruppen inte har klarat den än. */
-function findAwaitedTask(step: MissionStep, state: GameState, mission: Mission): TaskStep | null {
+export function findAwaitedTask(step: MissionStep, state: GameState, mission: Mission): TaskStep | null {
   if (!isWaitingForTask(step, state) || step.type !== 'scene') return null;
   const awaited = mission.steps.find((candidate) => candidate.id === step.endsWithStep);
   return awaited && awaited.type !== 'scene' ? awaited : null;
-}
-
-/** Spelledaren ger gruppen nästa ledtråd. Alla får den samtidigt. */
-export function giveHint({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
-  if (!player.isLeader) return { refusal: 'notLeader' };
-  const task = findHelpTask(state, mission);
-  if ('refusal' in task) return { refusal: task.refusal };
-  if (state.hintsGiven >= task.step.hints.length) return { refusal: 'noMoreHints' };
-  return { state: { ...state, hintsGiven: state.hintsGiven + 1 } };
 }
 
 /** Facit visas bara hos spelledaren, och bara när hon ber om det. */
@@ -379,7 +372,7 @@ export type GameView = {
   isFinished: boolean;
   /** Spelledaren avslutade spelet innan uppdraget var slut. */
   isEndedByLeader: boolean;
-  step: {
+  step: HintsView & {
     number: number;
     count: number;
     text: string;
@@ -408,12 +401,8 @@ export type GameView = {
     /** Fel svar hittills i uppgiften, och vad varje fel kostar, när fel svar kostar tid. */
     wrongAnswers: { count: number; nextMinutes: number } | null;
     isMeDone: boolean;
-    /** Ledtrådarna som gruppen har fått, och hur många uppgiften har. */
-    hints: string[];
-    hintCount: number;
-    /** Ledtrådarna om urklippen som gruppen har fått vid byrån, och hur många det finns. */
-    readingHints: string[];
-    readingHintCount: number;
+    /** Bara hos spelledaren: om Visa facit för mig hör till en olöst uppgift. */
+    canShowSolution: boolean;
     /** Bara hos spelledaren och bara när hon har bett om det. */
     solution: string | null;
     /** Brädet i en seans, med bokstaven bara hos den som ska läsa den. */
@@ -529,9 +518,8 @@ export function buildGameView({ game, mission, players, viewer }: {
       question: step.type === 'seance' && isSeanceDone(step, state) ? step.question ?? null : null,
       wrongAnswers: step.type === 'seance' && step.wrongAnswerMinutes !== undefined ? { count: state.wrongAnswers, nextMinutes: nextWrongAnswerCost(step.wrongAnswerMinutes, state.wrongAnswers) } : null,
       isMeDone: isPlayerDone(step, state, viewer.id),
-      hints: helpStep.hints?.slice(0, state.hintsGiven) ?? [],
-      hintCount: helpStep.hints?.length ?? 0,
-      ...describeReadingHints(step, state, participants.map((player) => player.id)),
+      ...describeHints({ step, state, mission, participantIds: participants.map((player) => player.id), isLeader: viewer.isLeader }),
+      canShowSolution: viewer.isLeader && isRunning && findOpenTask(step, state, mission) !== null,
       solution: viewer.isLeader && state.isSolutionShown && helpStep.type !== 'scene' ? describeSolution(helpStep, places) : null,
       seance: step.type === 'seance' && state.seance && isRunning
         ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })

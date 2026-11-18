@@ -6,7 +6,7 @@
  */
 
 import { type StateChange, advanceStep, moveOn, moveOnIfAllDone } from './game.ts';
-import { findReadSteps, givesUnreadHint, hasRead } from './found.ts';
+import { findReadSteps, hasRead } from './found.ts';
 import type { Mission } from './mission.ts';
 import type { GameState, PlayerRecord } from './state.ts';
 
@@ -28,23 +28,6 @@ export function markRead({ state, mission, players, player, thingId }: {
   const foundReaders = { ...state.foundReaders };
   for (const stepId of stepIds) foundReaders[stepId] = [...(foundReaders[stepId] ?? []), player.id];
   return { state: moveOnIfAllDone({ ...state, foundReaders }, mission, players) };
-}
-
-/**
- * Spelledaren ger en ledtråd om urklippen vid byrån, medan berättelsen
- * väntar på att alla har läst. Har någon inte läst säger den första att
- * alla inte har läst tidningsurklippen (Jonas 2026-11-18). Vid golvuret ges
- * uppgiftens ledtrådar som vanligt.
- */
-export function giveReadingHint({ state, mission, players, player }: { state: GameState; mission: Mission; players: readonly PlayerRecord[]; player: PlayerRecord }): StateChange {
-  if (!player.isLeader) return { refusal: 'notLeader' };
-  if (state.status !== 'running') return { refusal: 'notRunning' };
-  const step = mission.steps[state.stepIndex];
-  const hints = step.type === 'scene' ? step.readingHints ?? [] : [];
-  if (hints.length === 0) return { refusal: 'notATask' };
-  if (givesUnreadHint(step, state, players.map((candidate) => candidate.id))) return { state: { ...state, isUnreadHintGiven: true } };
-  if (state.readingHintsGiven >= hints.length) return { refusal: 'noMoreHints' };
-  return { state: { ...state, readingHintsGiven: state.readingHintsGiven + 1 } };
 }
 
 /**

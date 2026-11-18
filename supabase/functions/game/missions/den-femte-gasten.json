@@ -23,6 +23,7 @@
           {
             "id": "ouijabradet",
             "name": "Ouijabrädet",
+            "findHint": "Det finns ett ouijabräde någonstans i huset.",
             "opensSteps": [
               "seansen",
               "vem-ar-jag"
@@ -38,6 +39,7 @@
           {
             "id": "golvuret",
             "name": "Golvuret",
+            "findHint": "Det finns ett golvur någonstans i huset.",
             "opensSteps": [
               "rummen-minns"
             ]
@@ -57,6 +59,7 @@
           {
             "id": "pianot",
             "name": "Pianot",
+            "findHint": "Det finns ett piano någonstans i huset.",
             "opensSteps": [
               "pianot"
             ],
@@ -104,6 +107,7 @@
           {
             "id": "byran",
             "name": "Byrån",
+            "findHint": "Det finns en byrå någonstans i huset.",
             "opensSteps": [
               "tidningsurklippen"
             ]

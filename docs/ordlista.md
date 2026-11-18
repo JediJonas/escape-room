@@ -103,7 +103,7 @@ sist under Namn som är bestämda.
 
 | Begrepp | Betydelse | I koden |
 | --- | --- | --- |
-| Ledtråd | En av uppgiftens tre hjälptexter i stigande tydlighet. Spelledaren ger dem en i taget, och alla ser dem. | `hints`, `giveHint` |
+| Ledtråd | En av uppgiftens tre hjälptexter i stigande tydlighet. Spelledaren ger dem en i taget med Ge ledtråd, servern väljer vilken, och alla ser dem. Före dem kan det komma att en sak finns i huset, om ingen har hittat den. | `hints`, `findHint`, `giveHint` |
 | Facit | Uppgiftens rätta svar. Ligger på servern och visas bara för spelledaren när hon ber om det. | `solution`, `showSolution` |
 | Hoppa över | Spelledaren går förbi en uppgift som har låst sig. I urklippen räknas alla som lästa och Rummen minns hoppas över med ett tryck. | `nextStep`, `skipReading` |
 | Stegets text | Texten som beskriver steget. Syns i textvyn, men inte i en sak i fullskärm och inte i spelledarens meny. | `step.text` |

@@ -50,6 +50,11 @@ export type HouseThing = {
    */
   isFoundFromStart?: boolean;
   /**
+   * Första ledtråden när ingen har hittat saken och gruppen behöver den, som
+   * "Det finns ett ouijabräde någonstans i huset." (Jonas 2026-11-18).
+   */
+  findHint?: string;
+  /**
    * Det som spelarna i de andra rummen får veta när saken kallar på gruppen,
    * till exempel att det hörs något från salongen (Jonas 2026-11-18).
    */
@@ -91,7 +96,7 @@ function stepIndexOf(mission: Mission, stepId: string | undefined): number {
   return index === -1 ? Number.POSITIVE_INFINITY : index;
 }
 
-function isFound(thing: HouseThing, state: GameState): boolean {
+export function isFound(thing: HouseThing, state: GameState): boolean {
   return thing.isFoundFromStart === true || state.foundThings.includes(thing.id);
 }
 
@@ -280,6 +285,7 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   for (const stepId of Array.isArray(opens) ? opens : []) {
     if (!stepIds.includes(stepId)) errors.push(`${name} pekar på ett steg som inte finns: ${String(stepId)}`);
   }
+  if (thing.findHint !== undefined && !(isFilledText(thing.findHint) && opens !== undefined)) errors.push(`${name} har en tom ledtråd för att hitta den, eller öppnar inga steg`);
   if (thing.callingText !== undefined && !(isFilledText(thing.callingText) && opens !== undefined)) errors.push(`${name} har en tom text för när den kallar, eller öppnar inga steg`);
   const { echoes } = thing;
   if (echoes !== undefined && !(Array.isArray(echoes) && echoes.length > 0)) errors.push(`${name} ska ha en lista med ekon`);

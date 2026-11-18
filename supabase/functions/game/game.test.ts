@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { advanceStep, buildGameView, choosePlace, giveHint, markReady, showSolution, startGame, submitAnswer } from './game.ts';
+import { advanceStep, buildGameView, choosePlace, markReady, showSolution, startGame, submitAnswer } from './game.ts';
 import { endGame, setPaused } from './leaderControls.ts';
+import { giveHint } from './hints.ts';
 import type { Mission } from './mission.ts';
 import { getMission } from './missions/index.ts';
 import { type GameRecord, type GameState, type PlayerRecord, createInitialState } from './state.ts';
@@ -158,13 +159,19 @@ test('ett rätt svar för gruppen vidare, oavsett stora bokstäver och mellansla
 
 test('spelledaren ger ledtrådarna en i taget, och alla ser dem', () => {
   let state = runningAt(TASK_STEP_INDEX);
-  assert.deepEqual(giveHint({ state, mission: MISSION, player: GUEST }), { refusal: 'notLeader' });
+  assert.deepEqual(giveHint({ state, mission: MISSION, players: PLAYERS, player: GUEST }), { refusal: 'notLeader' });
   for (let given = 1; given <= 3; given += 1) {
-    state = readState(giveHint({ state, mission: MISSION, player: LEADER }));
-    const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: 'prov', state }, mission: MISSION, players: PLAYERS, viewer: GUEST });
-    assert.deepEqual({ shown: view.step.hints.length, count: view.step.hintCount }, { shown: given, count: 3 });
+    state = readState(giveHint({ state, mission: MISSION, players: PLAYERS, player: LEADER }));
+    const game = { id: 'g', joinCode: 'BCDF', missionId: 'prov', state };
+    const guestView = buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: GUEST });
+    const leaderView = buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: LEADER });
+    assert.equal(guestView.step.hints.length, given);
+    // Bara spelledaren får veta om det finns fler.
+    assert.deepEqual({ hasHelp: guestView.step.hasHelp, canGiveHint: guestView.step.canGiveHint }, { hasHelp: false, canGiveHint: false });
+    assert.deepEqual({ hasHelp: leaderView.step.hasHelp, canGiveHint: leaderView.step.canGiveHint }, { hasHelp: true, canGiveHint: given < 3 });
   }
-  assert.deepEqual(giveHint({ state, mission: MISSION, player: LEADER }), { refusal: 'noMoreHints' });
+  assert.deepEqual(giveHint({ state, mission: MISSION, players: PLAYERS, player: LEADER }), { refusal: 'noMoreHints' });
+  assert.deepEqual(giveHint({ state: runningAt(0), mission: MISSION, players: PLAYERS, player: LEADER }), { refusal: 'notATask' });
   // Nästa uppgift börjar utan ledtrådar.
   assert.equal(readState(advanceStep({ state, mission: MISSION, players: PLAYERS, player: LEADER })).hintsGiven, 0);
 });

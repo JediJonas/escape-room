@@ -113,8 +113,7 @@
 .seance-planchette[hidden] { display: none; }
 
 /* Raderna ovanpå brädet. Fingret går igenom dem till brädet. */
-.seance-status,
-.seance-instruction {
+.seance-status {
   position: absolute;
   left: 0;
   right: 0;
@@ -149,10 +148,3 @@
 .seance-status p:empty { display: none; }
 .seance-status button { pointer-events: auto; }
 
-/* Instruktionen står mitt på brädet tills spelaren lägger fingret på det. Den finns också i menyn. */
-.seance-instruction {
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.15rem;
-  line-height: 1.4;
-}

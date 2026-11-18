@@ -26,10 +26,8 @@ function describeLetterTurn(seance: SeanceView): string {
  * till servern, och när skenet når en bokstav. Se docs/motorn.md, Rörelser
  * går förbi React.
  */
-export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, onLeave }: {
+export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, onLeave }: {
   seance: SeanceView;
-  /** Uppgiftens text, ovanför brädet. */
-  text: string;
   clockOffsetMs: number;
   /** Spelledaren som står utanför ser brädet men har ingen planchett. */
   canTouch: boolean;
@@ -45,8 +43,6 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
   const reportedOn = useRef(false);
   const latest = useRef({ seance, clockOffsetMs, onTouch });
   const [nowMs, setNowMs] = useState(() => Date.now());
-  // Instruktionen står på brädet tills spelaren har lagt fingret på det första gången.
-  const [hasTouched, setHasTouched] = useState(false);
 
   useEffect(() => {
     latest.current = { seance, clockOffsetMs, onTouch };
@@ -126,7 +122,6 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
   function press(event: PointerEvent<HTMLDivElement>) {
     if (!canTouch || pointerId.current !== null) return;
     pointerId.current = event.pointerId;
-    setHasTouched(true);
     event.currentTarget.setPointerCapture(event.pointerId);
     if (liftTimer.current) clearTimeout(liftTimer.current);
     liftTimer.current = null;
@@ -171,7 +166,6 @@ export function SeanceBoard({ seance, text, clockOffsetMs, canTouch, onTouch, on
         <div ref={glowRef} className={`seance-glow${isWaiting ? ' is-waiting' : ''}`} hidden={seance.isComplete} />
         <div ref={planchetteRef} className="seance-planchette" hidden />
       </div>
-      {canTouch && !hasTouched && !seance.isComplete && <p className="seance-instruction">{text}</p>}
       <div className="seance-status">
         <p role="status">{describeSeanceStatus(seance, nowMs + clockOffsetMs, canTouch)}</p>
         {seance.isComplete && <button type="button" onClick={onLeave}>Lämna brädet</button>}

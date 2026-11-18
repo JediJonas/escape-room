@@ -177,7 +177,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     );
   }
 
-  // Under seansen fyller brädet skärmen. Texten står på brädet, och spelledarens knappar ligger i menyn.
+  // Under seansen fyller brädet skärmen, utan text. Hur man gör är första ledtråden (Jonas 2026-11-18).
   // När skenet har slocknat står brädet kvar tills spelaren själv lämnar det (Jonas 2026-11-17).
   const isBoardShown = step.seance !== null && !hasLeftBoard && !view.isFinished;
   if (step.seance && isBoardShown && !isMenuOpen) {
@@ -190,7 +190,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
             ? <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
             : <button type="button" className="secondary seance-menu-button" onClick={() => setOpenThingId(null)}>Tillbaka</button>}
         </p>
-        <SeanceBoard seance={step.seance} text={step.text} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} onLeave={() => setHasLeftBoard(true)} />
+        <SeanceBoard seance={step.seance} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard} onLeave={() => setHasLeftBoard(true)} />
       </main>
     );
   }

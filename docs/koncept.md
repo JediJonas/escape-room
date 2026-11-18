@@ -129,7 +129,7 @@ Spelledaren väljer uppdrag och speltid, skriver ut ett ark med QR-koder, sätte
 
 - **Spelarna har Tillbaka.** Knappen uppe till höger heter Tillbaka och tar spelaren ut ur vyn till det hon kom från. Spelarna har ingen meny (Jonas 2026-11-18).
 - **Spelledaren har Meny.** När saken hör till steget gruppen är på heter spelledarens knapp Meny. Där finns stegets text, paus, ledtrådar, facit, Hoppa över och Tillbaka. När menyn är öppen heter samma knapp Stäng menyn och tar henne tillbaka till saken. Står spelledaren utanför spelet ser hon samma sak (Jonas 2026-11-18).
-- **Ingen text i vyn, ledtrådar i en inforuta.** Vyn visar bara saken, utan stegets text, som pianot och golvuret. Texten finns i spelledarens meny (Jonas 2026-11-18). Ger spelledaren en ledtråd visas den i en ruta längst ner hos alla en stund. Rutan går att trycka bort, och ledtrådarna står kvar i rummets lista för den som missade dem (Jonas 2026-11-18).
+- **Ingen text i vyn, ledtrådar i en inforuta.** Vyn visar bara saken, utan stegets text, som pianot, golvuret och ouijabrädet. Texten finns i spelledarens meny. Hur man gör vid brädet är seansens första ledtråd (Jonas 2026-11-18). Ger spelledaren en ledtråd visas den i en ruta längst ner hos alla en stund. Rutan går att trycka bort, och ledtrådarna står kvar i rummets lista för den som missade dem (Jonas 2026-11-18).
 - **Papper ligger i en hög.** Flera papper, som urklipp eller sidorna i en bok, ligger ovanpå varandra med kanterna synliga, och spelaren bläddrar genom att svajpa i sidled eller med pilar (Jonas 2026-11-18).
 - **Undantag.** Den som är instängd i källaren behåller menyn tills vidare, eftersom hon inte kan gå tillbaka därifrån.
 

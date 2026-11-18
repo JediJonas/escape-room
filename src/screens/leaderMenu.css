@@ -6,11 +6,10 @@
 :root {
   --leader-menu-size: 3rem;
   /*
-   * Avståndet till skärmens högerkant. Hamburgaren står i innehållets
-   * högerkant, inte i skärmens hörn, så att den står i rad med knapparna
-   * också i iPad och dator (Jonas 2026-11-18). Innehållet är 32rem brett där.
+   * Hamburgaren står i innehållets högerkant, inte i skärmens hörn, så att
+   * den står i rad med knapparna också i iPad och dator (Jonas 2026-11-18).
    */
-  --leader-menu-right: max(0.75rem, calc(50% - 16rem + 0.75rem));
+  --leader-menu-right: var(--content-edge);
 }
 
 .leader-menu-button {
@@ -75,7 +74,6 @@
 
 .leader-menu h2 { font-size: 1rem; }
 .leader-menu .hint { color: rgb(240 225 200 / 0.7); }
-.leader-menu-text { margin: 0 0 1rem; font: 1rem/1.4 Georgia, 'Times New Roman', serif; }
 .leader-menu-actions { display: grid; gap: 0.5rem; }
 .leader-menu-actions button { width: 100%; }
 .leader-menu button.secondary { border-color: rgb(240 225 200 / 0.6); color: #f0e1c8; }

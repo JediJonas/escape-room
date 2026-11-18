@@ -298,6 +298,8 @@ export type GameView = {
     opensFrom: string | null;
     /** Om spelaren trycker Klar i steget, eller blir klar av att komma fram. */
     usesReadyButton: boolean;
+    /** Texten på knappen, om scenen har en egen. Annars står det Klar. */
+    readyLabel: string | null;
     /** Om gruppen kan skriva ett svar nu, och frågan ovanför fältet när steget har en. */
     acceptsAnswer: boolean;
     question: string | null;
@@ -394,6 +396,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       type: step.type,
       opensFrom: findOpener(mission.house, step.id),
       usesReadyButton: usesReadyButton(step, state),
+      readyLabel: step.type === 'scene' ? step.readyLabel ?? null : null,
       acceptsAnswer: isRunning && acceptsAnswer(step, state),
       question: step.type === 'seance' && isSeanceDone(step, state) ? step.question ?? null : null,
       wrongAnswers: step.type === 'seance' && step.wrongAnswerMinutes !== undefined ? { count: state.wrongAnswers, nextMinutes: nextWrongAnswerCost(step.wrongAnswerMinutes, state.wrongAnswers) } : null,

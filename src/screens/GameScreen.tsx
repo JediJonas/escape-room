@@ -221,7 +221,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     actions.push(<button key="scan" type="button" className={shownInput === 'list' ? 'secondary' : undefined} onClick={() => setPlaceInput('scan')}>Skanna platskortet</button>);
   }
   if (view.me.isPlaying && !needsPlace && step.usesReadyButton && !step.isMeDone && !view.isFinished) {
-    actions.push(<button key="ready" type="button" onClick={markReady} disabled={isBusy}>Klar</button>);
+    actions.push(<button key="ready" type="button" onClick={markReady} disabled={isBusy}>{step.readyLabel ?? 'Klar'}</button>);
   }
   if (canAnswer) {
     actions.push(<button key="answer" type="submit" form={ANSWER_FORM_ID} disabled={isBusy || !answer.trim()}>Svara</button>);

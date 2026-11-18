@@ -121,6 +121,13 @@ test('rummen måste ha bitar nog för tio spelare, och golvuret en starttid och 
   assert.match(findMissionErrors(rooms({ goTo: 'B' })).join(), /kan inte ha plats eller roller/);
 });
 
+test('bara en scen kan ha en egen knapptext, och den får inte vara tom', () => {
+  const scene = (fields: object) => ({ ...VALID, steps: [{ ...VALID.steps[0], ...fields }] });
+  assert.deepEqual(findMissionErrors(scene({ readyLabel: 'Jag har läst' })), []);
+  assert.match(findMissionErrors(scene({ readyLabel: ' ' })).join(), /tom knapptext/);
+  assert.match(findMissionErrors({ ...VALID, steps: [{ id: 's', type: 'answer', text: 'T', readyLabel: 'Ja', hints: ['a', 'b', 'c'], solution: { answers: ['x'] } }] }).join(), /tom knapptext, eller är ingen scen/);
+});
+
 test('bara en scen kan be om tillstånd, och bara om ljud och rörelse', () => {
   const scene = (fields: object) => ({ ...VALID, steps: [{ ...VALID.steps[0], ...fields }] });
   assert.deepEqual(findMissionErrors(scene({ asksFor: ['sound', 'motion'] })), []);

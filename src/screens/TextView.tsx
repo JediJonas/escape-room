@@ -15,7 +15,8 @@ export function TextView({ house, isBusy, onOpen, onWalk }: {
     <>
       <h1>{house.room.name}</h1>
       {house.things.length > 0 && (
-        <section className="house-list" aria-label="Det som har hittats här">
+        <section className="house-list" aria-label="Saker">
+          <h2>Saker</h2>
           {house.things.map((thing) => (
             <button key={thing.id} type="button" className={thing.isCalling ? 'secondary is-calling' : 'secondary'} onClick={() => onOpen(thing.id)}>
               {thing.name}

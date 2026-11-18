@@ -67,8 +67,8 @@ export function CellarStatus({ cellar, clockOffsetMs, onTimeUp }: {
   const serverNowMs = useServerNow(clockOffsetMs, TICK_MS);
   useTimeUpNotice(cellar, serverNowMs, onTimeUp);
   if (cellar.outcomeText) return <p className="place-text">{cellar.outcomeText}</p>;
-  if (cellar.isTrapped) return null;
-  if (cellar.catchMs === null) return <p className="status" role="status">Väntar på att {cellar.trappedName} ska komma ner i källaren.</p>;
+  // Innan hon är nere står det i statusraden vem som går ner (Jonas 2026-11-18).
+  if (cellar.isTrapped || cellar.catchMs === null) return null;
   const threat = measureThreat(cellar, serverNowMs);
   return (
     <section className="hint-card" aria-label="Källaren">

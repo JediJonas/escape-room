@@ -5,7 +5,7 @@
  */
 
 import { type CellarMove, applyCellarMove } from './cellar.ts';
-import { type GameRefusal, type StateChange, findCurrentTask, findRole, isAtGoal, moveOn, moveOnIfAllDone } from './game.ts';
+import { type GameRefusal, type StateChange, findCurrentTask, findGoal, findRole, isAtGoal, markTrappedArrival, moveOn, moveOnIfAllDone } from './game.ts';
 import { searchRoom, walk } from './house.ts';
 import type { Mission, MissionStep, FlashbackStep } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
@@ -221,12 +221,15 @@ export function walkThroughDoor({ state, mission, player, placeId, nowMs }: {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   if (!mission.house) return { refusal: 'unknownPlace' };
   if (isHouseRemembering(state, mission, nowMs)) return { refusal: 'houseRemembers' };
-  return walk({ state, house: mission.house, playerId: player.id, placeId });
+  // Den låsta källardörren öppnas bara för den som ska ner (Jonas 2026-11-18).
+  const mayEnterLocked = findGoal(mission.steps[state.stepIndex], state, player.id) === placeId;
+  const walked = walk({ state, house: mission.house, playerId: player.id, placeId, mayEnterLocked });
+  return 'state' in walked ? { state: markTrappedArrival(walked.state, mission, player.id, nowMs) } : walked;
 }
 
 /** Spelaren letar i rummet där hon står. Det hon hittar står sedan i rummets lista för alla. */
 export function searchHere({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   if (!mission.house) return { refusal: 'unknownPlace' };
-  return { state: searchRoom({ state, mission, house: mission.house, playerId: player.id }) };
+  return { state: searchRoom({ state, house: mission.house, playerId: player.id }) };
 }

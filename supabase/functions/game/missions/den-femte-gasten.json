@@ -78,8 +78,7 @@
               "15 april 1961\nAstrid Lindqvist\nRut Malm\nHarald Malm\nSigne Ström\nNils Ström",
               "27 oktober 1962\nArvid Lund\nElsa Rydén\nMargit Holm\nSven Dahl\nVera Sjö"
             ],
-            "blankPages": 5,
-            "fromStep": "tidningsurklippen"
+            "blankPages": 5
           },
           {
             "id": "kallardorren",
@@ -97,8 +96,7 @@
           {
             "id": "tavlan",
             "name": "Tavlan",
-            "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Min kära systerdotter, sommaren 1961.",
-            "fromStep": "tidningsurklippen"
+            "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Min kära systerdotter, sommaren 1961."
           }
         ]
       },

@@ -101,12 +101,7 @@ export function LeaderMenu({ view, isBusy, onSetPaused, onGiveHint, onShowSoluti
           ) : (
           <section className="leader-menu" aria-label="Spelledarens meny">
             <PendingList view={view} isBusy={isBusy} onAnswer={onAnswerPending} />
-            {step.hasHelp && (
-              <>
-                <p className="hint">Gruppen har fått {step.hints.length} {step.hints.length === 1 ? 'ledtråd' : 'ledtrådar'}.</p>
-                {step.solution && <p className="solution">Facit: {step.solution}</p>}
-              </>
-            )}
+            {step.hasHelp && step.solution && <p className="solution">Facit: {step.solution}</p>}
             <div className="leader-menu-actions">
               {step.hasHelp && (
                 <button type="button" className="secondary" onClick={runAndClose(onGiveHint)} disabled={isBusy || !step.canGiveHint}>

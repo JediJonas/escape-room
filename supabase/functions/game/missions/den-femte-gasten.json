@@ -266,14 +266,14 @@
       "text": "Locket är uppfällt och noterna står uppslagna, men bladen är tomma. Melodin som spelades när ljuset slocknade 1962 finns i en av era mobiler. Spela den för varandra, och spela den sedan på era tangenter.",
       "callsFromHouse": true,
       "keys": [
-        "C4",
-        "D4",
         "E4",
         "F4",
         "G4",
         "A4",
         "B4",
-        "C5"
+        "C5",
+        "D5",
+        "E5"
       ],
       "beatMs": 550,
       "hints": [

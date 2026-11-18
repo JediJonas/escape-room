@@ -155,22 +155,24 @@ export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, answer }
   const boardAnswer = seance.isComplete ? answer : undefined;
   return (
     <section className="seance" aria-label="Seansen">
-      <div
-        className="seance-board"
-        aria-label={canTouch ? 'Brädet. Håll fingret på planchetten och följ skenet.' : 'Brädet'}
-        onPointerDown={press}
-        onPointerMove={move}
-        onPointerUp={release}
-        onPointerCancel={release}
-        onContextMenu={(event) => event.preventDefault()}
-      >
-        <div className="seance-letters" aria-hidden="true">
-          {BOARD_CELLS.map((symbol, cell) => (
-            <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
-          ))}
+      <div className="seance-frame">
+        <div
+          className="seance-board"
+          aria-label={canTouch ? 'Brädet. Håll fingret på planchetten och följ skenet.' : 'Brädet'}
+          onPointerDown={press}
+          onPointerMove={move}
+          onPointerUp={release}
+          onPointerCancel={release}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          <div className="seance-letters" aria-hidden="true">
+            {BOARD_CELLS.map((symbol, cell) => (
+              <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
+            ))}
+          </div>
+          <div ref={glowRef} className={`seance-glow${isWaiting ? ' is-waiting' : ''}`} hidden={seance.isComplete} />
+          <div ref={planchetteRef} className="seance-planchette" hidden />
         </div>
-        <div ref={glowRef} className={`seance-glow${isWaiting ? ' is-waiting' : ''}`} hidden={seance.isComplete} />
-        <div ref={planchetteRef} className="seance-planchette" hidden />
       </div>
       {/* Rutan i underkant syns bara när den har något att säga. */}
       {(status || boardAnswer) && (
@@ -209,13 +211,15 @@ export function EchoBoard({ message, clockOffsetMs }: { message: string; clockOf
 
   return (
     <section className="seance" aria-label="Brädet">
-      <div className="seance-board" aria-label="Brädet. Skenet rör sig av sig självt.">
-        <div className="seance-letters" aria-hidden="true">
-          {BOARD_CELLS.map((symbol, cell) => (
-            <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
-          ))}
+      <div className="seance-frame">
+        <div className="seance-board" aria-label="Brädet. Skenet rör sig av sig självt.">
+          <div className="seance-letters" aria-hidden="true">
+            {BOARD_CELLS.map((symbol, cell) => (
+              <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
+            ))}
+          </div>
+          <div ref={glowRef} className="seance-glow" />
         </div>
-        <div ref={glowRef} className="seance-glow" />
       </div>
     </section>
   );

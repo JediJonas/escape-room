@@ -7,14 +7,15 @@ import { requestMotionPermission } from '../device/motion.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
-import { PianoScreen, PianoTask } from '../tasks/PianoTask.tsx';
+import { MelodyButton, PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
 import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
 import { canLeaderSkip } from './leaderSkip.ts';
 import { DocumentList, FoundView } from './FoundDocuments.tsx';
-import { RoomList, ThingContent } from './HouseView.tsx';
+import { RoomList } from './HouseView.tsx';
+import { PaperStack, ThingScreen, listFoundPapers, listPapers } from './ThingScreen.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
@@ -96,19 +97,29 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const { house } = view;
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
   const closeThing = <button key="close" type="button" className="secondary" onClick={() => setOpenThingId(null)}>Tillbaka</button>;
+  // Överst i en sak i fullskärm: klockan och en knapp tillbaka eller till menyn.
+  const screenHeader = (button: 'back' | 'menu') => (
+    <>
+      {view.clock ? <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} /> : <span />}
+      {view.clock?.isPaused && <span className="paused">Pausat</span>}
+      {button === 'back'
+        ? <button type="button" className="secondary seance-menu-button" onClick={() => setOpenThingId(null)}>Tillbaka</button>
+        : <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>}
+    </>
+  );
+  // En sak vars steg gruppen inte är på visas i fullskärm, och Tillbaka går till rummet (Jonas 2026-11-18).
   if (openThing && !openThing.opensCurrentStep) {
     // Golvuret och pianot går att använda hela tiden, också innan berättelsen har kommit dit (Jonas 2026-11-18).
     const { instrument } = openThing;
-    if (instrument?.type === 'piano' && view.me.isPlaying) {
-      const header = <>{view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}<button type="button" className="secondary seance-menu-button" onClick={() => setOpenThingId(null)}>Tillbaka</button></>;
-      return <PianoScreen keys={instrument.keys} piano={null} header={header} onPlayKey={game.playKey} />;
-    }
+    const papers = openThing.opensFound ? listFoundPapers(view.found.filter((item) => item.title === openThing.opensFound)) : [];
     return (
-      <ScreenLayout actions={closeThing}>
-        <ThingContent thing={openThing} found={view.found} />
+      <ThingScreen className={instrument?.type === 'piano' ? 'piano-screen' : undefined} header={screenHeader('back')} actions={error ? <p className="error" role="alert">{error}</p> : undefined}>
+        {instrument?.type === 'piano' && view.me.isPlaying && <PianoKeys keys={instrument.keys} onPlayKey={game.playKey} />}
         {instrument?.type === 'clock' && <GrandfatherClock dialMinutes={instrument.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
-        <p className="error" role="alert">{error}</p>
-      </ScreenLayout>
+        {papers.length > 0 && <PaperStack papers={papers} />}
+        {!instrument && papers.length === 0 && openThing.text && <article className="document-card thing-paper">{openThing.text.split('\n').map((line) => <p key={line}>{line}</p>)}</article>}
+        {!instrument && papers.length === 0 && !openThing.text && <p className="thing-empty">{openThing.name}</p>}
+      </ThingScreen>
     );
   }
   // Ett steg som öppnas från en sak, som seansen från ouijabrädet, syns först när spelaren har öppnat saken.
@@ -151,17 +162,22 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
       </main>
     );
   }
-  // Vid pianot fyller tangenterna skärmen, som brädet. Texten ligger i menyn (Jonas 2026-11-18).
-  const isPianoShown = step.piano !== null && openThing !== null && view.me.isPlaying && !view.isFinished;
-  if (step.piano && isPianoShown && !isMenuOpen) {
-    const header = (
-      <>
-        {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-        {view.clock?.isPaused && <span className="paused">Pausat</span>}
-        <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
-      </>
+  // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet. Texten ligger i menyn (Jonas 2026-11-18).
+  const thingPapers = listPapers(step.documents, step.role?.pieces ?? []);
+  const isThingShown = openThing !== null && !view.isFinished && (step.piano !== null || step.rooms !== null || thingPapers.length > 0);
+  if (isThingShown && !isMenuOpen) {
+    const canMarkReady = view.me.isPlaying && step.usesReadyButton && !step.isMeDone;
+    const readyButton = canMarkReady ? <button type="button" onClick={markReady} disabled={isBusy}>{step.readyLabel ?? 'Klar'}</button> : null;
+    const melodyButton = step.piano?.hasMelody ? <MelodyButton piano={step.piano} /> : null;
+    const waiting = step.usesReadyButton && step.isMeDone ? <p className="hint">Väntar på att alla ska bli klara.</p> : null;
+    const actions = (readyButton ?? melodyButton ?? waiting ?? error) ? <>{error && <p className="error" role="alert">{error}</p>}{melodyButton}{readyButton}{waiting}</> : undefined;
+    return (
+      <ThingScreen className={step.piano ? 'piano-screen' : undefined} header={screenHeader('menu')} actions={actions}>
+        {step.piano && view.me.isPlaying && <PianoKeys keys={step.piano.myKeys} onPlayKey={game.playKey} />}
+        {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
+        {thingPapers.length > 0 && <PaperStack papers={thingPapers} />}
+      </ThingScreen>
     );
-    return <PianoScreen keys={step.piano.myKeys} piano={step.piano} header={header} onPlayKey={game.playKey} />;
   }
   // I källaren ser den instängda bara mörkret och ficklampan. Resten ligger i menyn, som i seansen.
   const { cellar } = step;
@@ -202,8 +218,8 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (isBoardShown) {
     actions.push(<button key="board" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till brädet</button>);
   }
-  if (isPianoShown) {
-    actions.push(<button key="piano" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till pianot</button>);
+  if (isThingShown && openThing) {
+    actions.push(<button key="thing" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till {openThing.name.toLowerCase()}</button>);
   }
   if (isCellarShown) {
     actions.push(<button key="cellar" type="button" onClick={() => setIsMenuOpen(false)}>Tillbaka till källaren</button>);
@@ -265,7 +281,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         </form>
       )}
       {cellar && <CellarStatus cellar={cellar} clockOffsetMs={clockOffsetMs} onTimeUp={timeUpInCellar} />}
-      {step.piano && <PianoTask piano={step.piano} canPlay={!isPianoShown && view.me.isPlaying && !view.isFinished} onPlayKey={game.playKey} />}
+      {step.piano && <PianoTask piano={step.piano} canPlay={!isThingShown && view.me.isPlaying && !view.isFinished} onPlayKey={game.playKey} />}
       {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}

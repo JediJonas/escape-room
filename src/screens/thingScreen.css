@@ -1,0 +1,101 @@
+/*
+ * En sak i huset fyller hela skärmen, kant i kant som ouijabrädet
+ * (Jonas 2026-11-18). Klockan och knappen ligger överst och huvudhandlingen
+ * underst. Bakgrunden är mörkt trä.
+ */
+.thing-screen {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: #1d120b;
+  background-image: linear-gradient(#3a2416, #1d120b 60%);
+}
+
+.thing-screen .game-header {
+  margin: 0;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 1rem 0.5rem;
+  align-items: center;
+  color: rgb(240 225 200 / 0.85);
+}
+
+.thing-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.thing-actions {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0 0.75rem calc(1rem + var(--bottom-gap));
+}
+
+.thing-screen .error:empty { display: none; }
+.thing-screen .document-card { margin: 0; }
+.thing-screen .thing-empty { text-align: center; color: rgb(240 225 200 / 0.6); }
+
+/* Ett enda papper, som gästboken, kan rulla om det är långt. */
+.thing-paper { max-height: 100%; overflow: auto; }
+
+/*
+ * Högen med papper. Det översta går att dra i sidled, och kanterna på dem
+ * under syns lite förskjutna, så att man ser att det finns fler.
+ */
+.paper-stack {
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Högen är lika hög som det översta papperet, så att ett kort urklipp blir en liten lapp. */
+.paper-pile {
+  position: relative;
+  min-height: 0;
+  display: flex;
+}
+
+.paper {
+  position: relative;
+  flex: 1 1 auto;
+  margin: 0 0.75rem 0.75rem 0;
+  max-height: 100%;
+  overflow: auto;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.45);
+  transition: transform 0.2s ease-out;
+  /* Fingret bläddrar i sidled men får rulla texten uppåt och nedåt. */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.paper-only-mine { margin-top: 0.75rem; font-size: 0.8rem; font-style: italic; opacity: 0.7; }
+
+.paper-behind {
+  position: absolute;
+  inset: 0 0.75rem 0.75rem 0;
+  margin: 0;
+  background: var(--paper, #efe6d2);
+  border-radius: 0.2rem;
+}
+
+.paper-behind.depth-1 { transform: translate(6px, 9px) rotate(2deg); filter: brightness(0.9); }
+.paper-behind.depth-2 { transform: translate(10px, 16px) rotate(-1.5deg); filter: brightness(0.8); }
+
+.paper-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  color: rgb(240 225 200 / 0.85);
+}
+
+.paper-nav button { min-width: 3rem; min-height: 2.5rem; padding: 0.25rem 0.75rem; font-size: 1.4rem; }

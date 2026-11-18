@@ -148,20 +148,39 @@ button.secondary {
 .house-list { display: grid; gap: 0.5rem; margin: 0 0 1rem; }
 .house-list h2 { margin-bottom: 0; font-size: 1rem; }
 
-/* Brädet kallar på gruppen: knappen flimrar som ett svagt sken (Jonas 2026-11-17). */
-.house-list .is-calling { animation: thing-calling 2.4s steps(1, end) infinite; }
+/*
+ * Brädet kallar på gruppen: knappen skimrar, med ett sken som glider över
+ * den och ett varmt ljus runt kanten (Jonas 2026-11-18).
+ */
+.house-list .is-calling {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 10px 1px rgb(255 214 140 / 0.45);
+  animation: thing-glow 2.8s ease-in-out infinite;
+}
+.house-list .is-calling::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 236 190 / 0.4) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: thing-shimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
 .calling-note { font-weight: 400; font-style: italic; }
 
-@keyframes thing-calling {
-  0%, 100% { opacity: 1; }
-  41% { opacity: 0.55; }
-  44% { opacity: 1; }
-  47% { opacity: 0.7; }
-  73% { opacity: 0.85; }
+@keyframes thing-glow {
+  0%, 100% { box-shadow: 0 0 4px 0 rgb(255 214 140 / 0.2); }
+  50% { box-shadow: 0 0 16px 3px rgb(255 214 140 / 0.65); }
+}
+
+@keyframes thing-shimmer {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(100%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .house-list .is-calling { animation: none; }
+  .house-list .is-calling, .house-list .is-calling::after { animation: none; }
 }
 
 .game-header {

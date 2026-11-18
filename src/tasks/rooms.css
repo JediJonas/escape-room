@@ -4,10 +4,79 @@
  * var de än är (Jonas 2026-11-17).
  */
 
-.grandfather-clock { display: grid; justify-items: center; gap: 0.75rem; margin: 1rem 0; }
+/*
+ * Golvuret: urtavlan överst i ett huvud av trä, och skåpet med pendeln
+ * fortsätter nedåt mot skärmens underkant (Jonas 2026-11-18). Enkelt tills
+ * designen görs.
+ */
+.grandfather-clock {
+  --clock-wood: #5a3a22;
+  --clock-wood-dark: #3a2717;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.thing-stage > .grandfather-clock { flex: 1 1 auto; min-height: 0; margin: 0; }
+
+.clock-hood {
+  padding: 0.75rem;
+  background: var(--clock-wood);
+  border: 3px solid var(--clock-wood-dark);
+  border-radius: 50% 50% 0.5rem 0.5rem / 30% 30% 0.5rem 0.5rem;
+}
+
+.clock-trunk {
+  flex: 1 1 auto;
+  min-height: 6rem;
+  width: min(44vw, 10rem);
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+  background: linear-gradient(90deg, var(--clock-wood-dark), var(--clock-wood) 20% 80%, var(--clock-wood-dark));
+}
+
+.clock-window {
+  width: 55%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  background: rgb(10 6 3 / 0.6);
+  border: 2px solid #8a6a3f;
+  border-radius: 999px 999px 0.3rem 0.3rem;
+}
+
+.clock-pendulum {
+  width: 3px;
+  height: 75%;
+  background: #b8954f;
+  position: relative;
+  /* Pendeln står still, eftersom uret stannade kvart över nio. */
+}
+
+.clock-pendulum::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 2rem;
+  height: 2rem;
+  transform: translate(-50%, 50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f0d48a, #b8954f 60%, #7a5f2c);
+}
+
+.clock-base {
+  width: min(56vw, 13rem);
+  height: 1.25rem;
+  background: var(--clock-wood-dark);
+  border-radius: 0.25rem 0.25rem 0 0;
+}
 
 .clock-face {
-  width: min(80vw, 18rem);
+  display: block;
+  width: min(66vw, 15rem);
   height: auto;
   /* Fingret vrider visarna och ska inte rulla sidan. */
   touch-action: none;

@@ -24,8 +24,13 @@ export function ThingScreen({ className, header, actions, children }: {
   );
 }
 
-/** Ett papper i högen: en artikel som alla ser eller ett urklipp som bara spelaren har. */
-export type Paper = { key: string; document?: MissionDocument; text?: string };
+/** Ett papper i högen: en artikel som alla ser, ett urklipp som bara spelaren har eller en sida i en bok. */
+export type Paper = { key: string; document?: MissionDocument; text?: string; page?: string };
+
+/** Sidorna i en bok, som gästboken, med första sidan överst (Jonas 2026-11-18). */
+export function listPages(pages: readonly string[]): Paper[] {
+  return pages.map((page, index) => ({ key: `s:${index}`, page }));
+}
 
 /** Artiklarna först, sedan spelarens egna urklipp. */
 export function listPapers(documents: readonly MissionDocument[], pieces: readonly string[]): Paper[] {
@@ -37,6 +42,15 @@ export function listFoundPapers(found: readonly FoundItem[]): Paper[] {
 }
 
 function PaperContent({ paper }: { paper: Paper }) {
+  if (paper.page !== undefined) {
+    const [heading, ...lines] = paper.page.split('\n');
+    return (
+      <>
+        <p className="dateline">{heading}</p>
+        {lines.map((line) => <p key={line} className="page-line">{line}</p>)}
+      </>
+    );
+  }
   if (paper.document) {
     return (
       <>

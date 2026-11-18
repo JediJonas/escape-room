@@ -78,30 +78,37 @@ export function GrandfatherClock({ dialMinutes, canTurn, onTurn }: {
 
   return (
     <div className="grandfather-clock">
-      <svg
-        viewBox={`0 0 ${DIAL_SIZE} ${DIAL_SIZE}`}
-        className={canTurn ? 'clock-face can-turn' : 'clock-face'}
-        role="img"
-        aria-label={`Golvuret står på ${formatDialTime(shownMinutes)}`}
-        onPointerDown={startDrag}
-        onPointerMove={drag}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-      >
-        <circle cx={CENTER} cy={CENTER} r={96} className="clock-rim" />
-        <circle cx={CENTER} cy={CENTER} r={90} className="clock-dial" />
-        {ROMAN.map((numeral, hour) => {
-          const radians = (hour / DIAL_HOURS) * 2 * Math.PI;
-          return (
-            <text key={numeral} x={CENTER + Math.sin(radians) * NUMERAL_RADIUS} y={CENTER - Math.cos(radians) * NUMERAL_RADIUS} className="clock-numeral" textAnchor="middle" dominantBaseline="central">
-              {numeral}
-            </text>
-          );
-        })}
-        <line x1={CENTER} y1={CENTER + HOUR_HAND.tail} x2={CENTER} y2={CENTER - HOUR_HAND.length} className="clock-hand hour" transform={`rotate(${hands.hour} ${CENTER} ${CENTER})`} />
-        <line x1={CENTER} y1={CENTER + MINUTE_HAND.tail} x2={CENTER} y2={CENTER - MINUTE_HAND.length} className="clock-hand minute" transform={`rotate(${hands.minute} ${CENTER} ${CENTER})`} />
-        <circle cx={CENTER} cy={CENTER} r={4} className="clock-pin" />
-      </svg>
+      <div className="clock-hood">
+        <svg
+          viewBox={`0 0 ${DIAL_SIZE} ${DIAL_SIZE}`}
+          className={canTurn ? 'clock-face can-turn' : 'clock-face'}
+          role="img"
+          aria-label={`Golvuret står på ${formatDialTime(shownMinutes)}`}
+          onPointerDown={startDrag}
+          onPointerMove={drag}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+        >
+          <circle cx={CENTER} cy={CENTER} r={96} className="clock-rim" />
+          <circle cx={CENTER} cy={CENTER} r={90} className="clock-dial" />
+          {ROMAN.map((numeral, hour) => {
+            const radians = (hour / DIAL_HOURS) * 2 * Math.PI;
+            return (
+              <text key={numeral} x={CENTER + Math.sin(radians) * NUMERAL_RADIUS} y={CENTER - Math.cos(radians) * NUMERAL_RADIUS} className="clock-numeral" textAnchor="middle" dominantBaseline="central">
+                {numeral}
+              </text>
+            );
+          })}
+          <line x1={CENTER} y1={CENTER + HOUR_HAND.tail} x2={CENTER} y2={CENTER - HOUR_HAND.length} className="clock-hand hour" transform={`rotate(${hands.hour} ${CENTER} ${CENTER})`} />
+          <line x1={CENTER} y1={CENTER + MINUTE_HAND.tail} x2={CENTER} y2={CENTER - MINUTE_HAND.length} className="clock-hand minute" transform={`rotate(${hands.minute} ${CENTER} ${CENTER})`} />
+          <circle cx={CENTER} cy={CENTER} r={4} className="clock-pin" />
+        </svg>
+      </div>
+      {/* Skåpet under urtavlan, så att man ser att det är ett golvur. Designen kommer senare (Jonas 2026-11-18). */}
+      <div className="clock-trunk" aria-hidden="true">
+        <div className="clock-window"><div className="clock-pendulum" /></div>
+      </div>
+      <div className="clock-base" aria-hidden="true" />
     </div>
   );
 }

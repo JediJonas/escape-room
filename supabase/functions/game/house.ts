@@ -21,6 +21,11 @@ export type HouseThing = {
   name: string;
   /** Texten i vyn, till exempel det som står på tavlan. */
   text?: string;
+  /**
+   * Sidor att bläddra i, som gästboken. Spelaren börjar på första sidan
+   * (Jonas 2026-11-18). Varje rad på en sida blir ett stycke.
+   */
+  pages?: string[];
   /** Stegen som saken öppnar, till exempel båda seanserna vid ouijabrädet. */
   opensSteps?: string[];
   /** Saken går att hitta först när gruppen har kommit till det här steget. */
@@ -105,6 +110,7 @@ export type ThingView = {
   id: string;
   name: string;
   text: string | null;
+  pages: string[] | null;
   /** Steget som saken öppnar, om det är det steg gruppen är på nu. */
   opensCurrentStep: boolean;
   /** Steget som saken öppnade tidigare och som går att läsa igen, med namnet i Hittat. */
@@ -158,6 +164,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     id: thing.id,
     name: thing.name,
     text: thing.text ?? null,
+    pages: thing.pages ?? null,
     opensCurrentStep: current !== undefined,
     opensFound,
     isCalling: current !== undefined && isStepCalling(current.step, state),
@@ -207,6 +214,8 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   thingIds.add(thing.id);
   if (!isFilledText(thing.name)) errors.push(`${name} saknar namn`);
   if (thing.text !== undefined && !isFilledText(thing.text)) errors.push(`${name} har en tom text`);
+  const { pages } = thing;
+  if (pages !== undefined && !(Array.isArray(pages) && pages.length > 0 && pages.every(isFilledText))) errors.push(`${name} har sidor som är tomma eller inte är en lista`);
   if (thing.fromStep !== undefined && !stepIds.includes(thing.fromStep)) errors.push(`${name} pekar på ett steg som inte finns: ${String(thing.fromStep)}`);
   const opens = thing.opensSteps;
   if (opens !== undefined && !(Array.isArray(opens) && opens.length > 0)) errors.push(`${name} ska öppna en lista med steg`);
@@ -214,7 +223,7 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
     if (!stepIds.includes(stepId)) errors.push(`${name} pekar på ett steg som inte finns: ${String(stepId)}`);
   }
   if (thing.callingText !== undefined && !(isFilledText(thing.callingText) && opens !== undefined)) errors.push(`${name} har en tom text för när den kallar, eller öppnar inga steg`);
-  if (thing.text === undefined && opens === undefined) errors.push(`${name} har varken text eller steg att öppna`);
+  if (thing.text === undefined && pages === undefined && opens === undefined) errors.push(`${name} har varken text, sidor eller steg att öppna`);
   return errors;
 }
 

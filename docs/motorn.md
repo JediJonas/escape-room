@@ -335,7 +335,8 @@ vilka bitar i tillståndets `found`, och varje spelare ser sedan dokumenten
 och bara sina egna bitar. Se `found.ts`.
 
 **Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
-rum dörrarna och sakerna. En sak har en text att visa eller ett steg som den
+rum dörrarna och sakerna. En sak har en text att visa, sidor att bläddra i
+(`pages`, som gästboken) eller ett steg som den
 öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna), och kan hittas först från ett visst steg (`fromStep`).
 Var spelaren är sparas i `placeByPlayer`, som platskorten använder, och det
 gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr,

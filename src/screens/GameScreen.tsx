@@ -15,7 +15,7 @@ import { LeaderPanel } from './LeaderPanel.tsx';
 import { canLeaderSkip } from './leaderSkip.ts';
 import { DocumentList, FoundView } from './FoundDocuments.tsx';
 import { RoomList } from './HouseView.tsx';
-import { PaperStack, ThingScreen, listFoundPapers, listPapers } from './ThingScreen.tsx';
+import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
@@ -111,7 +111,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (openThing && !openThing.opensCurrentStep) {
     // Golvuret och pianot går att använda hela tiden, också innan berättelsen har kommit dit (Jonas 2026-11-18).
     const { instrument } = openThing;
-    const papers = openThing.opensFound ? listFoundPapers(view.found.filter((item) => item.title === openThing.opensFound)) : [];
+    const papers = openThing.opensFound ? listFoundPapers(view.found.filter((item) => item.title === openThing.opensFound)) : listPages(openThing.pages ?? []);
     return (
       <ThingScreen className={instrument?.type === 'piano' ? 'piano-screen' : undefined} header={screenHeader('back')} actions={error ? <p className="error" role="alert">{error}</p> : undefined}>
         {instrument?.type === 'piano' && view.me.isPlaying && <PianoKeys keys={instrument.keys} onPlayKey={game.playKey} />}

@@ -63,7 +63,12 @@
           {
             "id": "gastboken",
             "name": "Gästboken",
-            "text": "De sista sidorna i gästboken. Efter den sista raden är sidorna tomma.\n14 juni 1958. Ingrid Lindahl, Tore Lindahl, Birgitta Nyberg, Lennart Nyberg, Ulla Forsén.\n26 december 1959. Gunnar Ahl, Karin Ahl, Olof Nyman, Maj Sundin, Bertil Sundin.\n15 april 1961. Astrid Lindqvist, Rut Malm, Harald Malm, Signe Ström, Nils Ström.\n27 oktober 1962. Arvid Lund, Elsa Rydén, Margit Holm, Sven Dahl, Vera Sjö.",
+            "pages": [
+              "14 juni 1958\nIngrid Lindahl\nTore Lindahl\nBirgitta Nyberg\nLennart Nyberg\nUlla Forsén",
+              "26 december 1959\nGunnar Ahl\nKarin Ahl\nOlof Nyman\nMaj Sundin\nBertil Sundin",
+              "15 april 1961\nAstrid Lindqvist\nRut Malm\nHarald Malm\nSigne Ström\nNils Ström",
+              "27 oktober 1962\nArvid Lund\nElsa Rydén\nMargit Holm\nSven Dahl\nVera Sjö\nEfter den här sidan är boken tom."
+            ],
             "fromStep": "tidningsurklippen"
           },
           {

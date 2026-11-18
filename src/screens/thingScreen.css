@@ -100,3 +100,12 @@
 
 .paper-nav button { min-width: 3rem; min-height: 2.5rem; padding: 0.25rem 0.75rem; font-size: 1.4rem; }
 .paper .page-line { margin: 0.35rem 0; }
+
+/* En berättartext i helskärm, som spelaren bekräftar att hon har läst (Jonas 2026-11-18). */
+.story-text {
+  margin: 0 auto;
+  max-width: 32rem;
+  padding: 0 0.5rem;
+  color: #f0e1c8;
+  font: 1.3rem/1.55 Georgia, 'Times New Roman', serif;
+}

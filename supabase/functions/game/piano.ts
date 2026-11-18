@@ -76,14 +76,12 @@ export function dealKeys(keys: readonly string[], playerIds: readonly string[]):
  * Spelarna som har tangenter, i lottad ordning så att det inte alltid är
  * den som gick med först som får de lägsta (Jonas 2026-11-18). Lotten räknas
  * ur spelarnas id och vem som spelar melodin, så den blir densamma vid varje
- * anrop. Den som spelar melodin har inga tangenter, utom när de bara är två.
- * Då får båda tangenter, så att de måste samarbeta (Jonas 2026-11-18).
+ * anrop. Också den som spelar melodin har tangenter, så att ingen förlorar
+ * pianot hon kunde spela på innan (Jonas 2026-11-18).
  */
 export function listKeyPlayers(melodyPlayerId: string | null, participantIds: readonly string[]): string[] {
-  const others = participantIds.filter((playerId) => playerId !== melodyPlayerId);
-  const keyPlayers = others.length > 1 ? others : [...participantIds];
   const lot = (playerId: string) => hashText(`${melodyPlayerId ?? ''}:${playerId}`);
-  return keyPlayers.sort((first, second) => lot(first) - lot(second));
+  return [...participantIds].sort((first, second) => lot(first) - lot(second));
 }
 
 /** Klart när de senaste tonerna är melodin, i rätt ordning. */
@@ -112,8 +110,10 @@ export function pressKey({ piano, step, playerId, participantIds, key }: {
 export type MelodyNote = { note: string; beats: number };
 
 export type PianoView = {
-  /** Om melodin spelas från spelarens mobil. Då har hon inga tangenter, utom när de bara är två. */
+  /** Om melodin spelas från spelarens mobil. Hon har tangenter som alla andra. */
   hasMelody: boolean;
+  /** Berättartexten för den som har melodin, annars null. */
+  melodyText: string | null;
   melodyPlayerName: string;
   /** Melodin, bara hos den vars mobil spelar den. */
   melody: MelodyNote[] | null;
@@ -141,6 +141,7 @@ export function describePiano({ piano, step, viewerId, participantIds, melodyPla
   const hasMelody = piano.melodyPlayerId === viewerId;
   return {
     hasMelody,
+    melodyText: hasMelody ? step.melodyText ?? null : null,
     melodyPlayerName,
     melody: hasMelody ? step.solution.melody : null,
     beatMs: step.beatMs,
@@ -169,6 +170,7 @@ export function findPianoErrors(step: Record<string, unknown>, name: string): st
   const melody = (step.solution as { melody?: unknown } | undefined)?.melody;
   const isMelody = Array.isArray(melody) && melody.length >= MIN_MELODY_NOTES && melody.every((tone) => isMelodyNote(tone, hasKeys ? keys : []));
   if (!isMelody) errors.push(`${name} ska ha en melodi på minst ${MIN_MELODY_NOTES} toner, alla bland tangenterna och högst ${MAX_BEATS} slag långa`);
+  if (step.melodyText !== undefined && !(typeof step.melodyText === 'string' && step.melodyText.trim().length > 0)) errors.push(`${name} har en tom text för den som får melodin`);
   if (step.callsFromHouse !== undefined && typeof step.callsFromHouse !== 'boolean') errors.push(`${name} har callsFromHouse som inte är sant eller falskt`);
   if (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined) errors.push(`${name} är ett piano och kan inte ha plats eller roller`);
   return errors;

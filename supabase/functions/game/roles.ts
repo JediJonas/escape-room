@@ -22,9 +22,17 @@ export type RoleDeal = {
 function pickPlayers(role: Role, candidates: PlayerRecord[], history: readonly string[]): PlayerRecord[] {
   const count = role.count === 'rest' ? candidates.length : role.count;
   if (!role.isProminent) return candidates.slice(0, count);
-  const lastTurn = (player: PlayerRecord) => history.lastIndexOf(player.id);
-  // Sorteringen är stabil, så lika fall behåller den ordning de gick med i.
-  return [...candidates].sort((first, second) => lastTurn(first) - lastTurn(second)).slice(0, count);
+  return sortByLastTurn(candidates, history).slice(0, count);
+}
+
+/**
+ * Den som aldrig har haft en framträdande roll först, sedan den som hade en
+ * för längst sedan. Sorteringen är stabil, så lika fall behåller den ordning
+ * de gick med i.
+ */
+export function sortByLastTurn<Player extends { id: string }>(candidates: readonly Player[], history: readonly string[]): Player[] {
+  const lastTurn = (player: Player) => history.lastIndexOf(player.id);
+  return [...candidates].sort((first, second) => lastTurn(first) - lastTurn(second));
 }
 
 /**

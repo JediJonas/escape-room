@@ -294,6 +294,21 @@ och servern avgör. Hann det fram sätts `markWhenCaught` i tillståndets
 rörelsesensorn utan att fråga, eftersom tillståndet begärs i en scen
 tidigare (`asksFor`). Kommer inga värden styr fingret. Se `cellar.ts`.
 
+**Pianot** har typen `piano`. Steget öppnas från pianot i hallen, och bara
+den som står där kan slå an en tangent. Steget har `keys`, pianots
+tangenter som "C4" eller "F#4", och `beatMs`, hur långt ett slag är.
+Melodin står i `solution.melody` som toner med antal slag. När gruppen
+kommer till steget väljer servern en lyssnare, som en framträdande roll, så
+att den roterar. Bara lyssnarens vy har melodin. Tangenterna delas mellan de
+andra i den ordning de gick med, så att alla har minst en och varje tangent
+finns hos någon. Det räknas fram vid varje anrop, så servern sparar bara
+lyssnaren, hur många toner i följd som är rätt och hur många fel det har
+blivit. Handlingen `playKey` tar en tangent. Rätt ton för gruppen framåt,
+och en fel ton gör att den börjar om. Alla får en ny vy, så att alla ser hur
+långt gruppen har kommit och hör den falska tonen. När melodin är spelad går
+gruppen vidare. Med `callsFromHouse` kallar pianot på gruppen som brädet.
+Tonerna görs i ljudmotorn, så att inget klipp behöver hämtas. Se `piano.ts`.
+
 **Tidningsurklippen** är en scen med roller. Urklippen är bitarna i en roll
 för alla, så att de delas ut och ingen har alla. Det som alla ser, som
 huvudartikeln och gästboken, står i scenens `documents`. Med `foundTitle`

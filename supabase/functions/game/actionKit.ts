@@ -61,6 +61,8 @@ const STATUS_FOR_ERROR: Record<ActionError, number> = {
   noMoreFuses: HTTP_CONFLICT,
   noDoor: HTTP_CONFLICT,
   noMoreHints: HTTP_CONFLICT,
+  notYourKey: HTTP_FORBIDDEN,
+  unknownKey: HTTP_BAD_REQUEST,
   unknownMission: HTTP_SERVER_ERROR,
   noFreeJoinCode: HTTP_UNAVAILABLE,
 };

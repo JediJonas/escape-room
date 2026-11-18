@@ -9,7 +9,8 @@ import { type CellarStep, type Mission, type MissionDocument, type MissionStep, 
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
-import { dealRoles } from './roles.ts';
+import { dealRoles, sortByLastTurn } from './roles.ts';
+import { type PianoRefusal, type PianoView, describePiano, startPiano } from './piano.ts';
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
 import { type RoomsRefusal, type RoomsView, describeRooms, startRooms } from './rooms.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
@@ -17,7 +18,7 @@ import { type FoundItem, describeFound, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | RoomsRefusal;
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | RoomsRefusal | PianoRefusal;
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
@@ -34,7 +35,14 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     seance: step.type === 'seance' ? startSeance() : null,
     rooms: step.type === 'rooms' ? startRooms(step) : null,
     cellar: step.type === 'cellar' ? startCellar() : null,
+    piano: null,
   };
+  // Lyssnaren vid pianot är en framträdande roll, så den roterar som de andra.
+  if (step.type === 'piano') {
+    const [listener] = sortByLastTurn(sortByJoinOrder(players), state.prominentHistory);
+    const prominentHistory = listener ? [...state.prominentHistory, listener.id] : state.prominentHistory;
+    return { ...cleared, roleByPlayer: {}, prominentHistory, piano: startPiano(listener?.id ?? null) };
+  }
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
   const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory });
@@ -42,7 +50,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
 }
 
 function finish(state: GameState): GameState {
-  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null, rooms: null, cellar: null };
+  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null, rooms: null, cellar: null, piano: null };
 }
 
 /**
@@ -112,8 +120,8 @@ function usesReadyButton(step: MissionStep, state: GameState): boolean {
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
-  // Rummen minns är klar för alla samtidigt, när minnet har bleknat. Se taskActions.ts.
-  if (step.type === 'rooms') return false;
+  // Rummen minns och pianot är klara för alla samtidigt. Se taskActions.ts.
+  if (step.type === 'rooms' || step.type === 'piano') return false;
   if (step.type === 'scene' && isDoneWhenArrived(step)) return isAtGoal(step, state, playerId);
   return usesReadyButton(step, state) && state.readyPlayerIds.includes(playerId);
 }
@@ -317,6 +325,8 @@ export type GameView = {
     rooms: RoomsView | null;
     /** Källaren, med bilden bara hos den instängda. */
     cellar: CellarView | null;
+    /** Pianot, med melodin bara hos lyssnaren och tangenterna bara hos den som har dem. */
+    piano: PianoView | null;
   };
   /** Det gruppen har hittat och kan läsa igen, med bara spelarens egna bitar. */
   found: FoundItem[];
@@ -411,6 +421,15 @@ export function buildGameView({ game, mission, players, viewer }: {
         ? describeRooms({ rooms: state.rooms, step, places, viewerId: viewer.id, participantIds: participants.map((player) => player.id) })
         : null,
       cellar: step.type === 'cellar' && state.cellar && isRunning ? describeCellarFor(step, state, players, viewer.id) : null,
+      piano: step.type === 'piano' && state.piano && isRunning
+        ? describePiano({
+          piano: state.piano,
+          step,
+          viewerId: viewer.id,
+          participantIds: sortByJoinOrder(participants).map((player) => player.id),
+          listenerName: players.find((player) => player.id === state.piano?.listenerId)?.name ?? '',
+        })
+        : null,
     },
     progress: showsLeaderTools
       ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))

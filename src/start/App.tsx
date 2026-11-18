@@ -201,6 +201,7 @@ export function App() {
     turnClock: (minutes) => sendInGame({ type: 'turnClock', minutes }),
     chooseMemoryRoom: (placeId) => sendInGame({ type: 'chooseMemoryRoom', placeId }),
     fadeMemory: () => sendInGame({ type: 'fadeMemory' }),
+    playKey: (key) => sendInGame({ type: 'playKey', key }),
     moveInCellar: (move) => sendInGame({ type: 'moveInCellar', move }),
     walk: (placeId) => sendInGame({ type: 'walk', placeId }),
     searchRoom: () => sendInGame({ type: 'searchRoom' }),

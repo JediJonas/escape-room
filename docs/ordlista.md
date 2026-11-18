@@ -84,8 +84,8 @@ sist under Namn som är bestämda.
 | Sakvy | Det som öppnas när spelaren trycker på en sak: saken i fullskärm, utan rubrik och text, med klockan och Tillbaka överst. | `ThingScreen` |
 | Berättartext | En text i fullskärm som dyker upp av sig själv, visas en gång och bekräftas med Fortsätt eller Ok. | `narration`, `melodyText`, `callingFrom` |
 | Fullskärm | En vy som fyller skärmen. Inte helskärm. Bakgrunden går kant i kant, men innehållet har en största bredd och höjd. | `ThingScreen` |
-| Fyra hörn | Varje skärm har samma fyra hörn: uppdraget uppe till vänster, tiden uppe till höger, statusraden nere till vänster och spelledarens meny nere till höger. I fullskärm står Tillbaka i uppdragets hörn. Hörnen följer innehållets kanter, inte skärmens. | |
-| Statusrad | Den korta raden text nere till vänster, som Väntar på att alla ska bli klara, Gå runt i huset och leta eller vem skenet väntar på. Hette tidigare notis. | |
+| Fyra hörn | Varje skärm har samma fyra hörn: uppdraget uppe till vänster, tiden uppe till höger, statusraden nere till vänster och spelledarens meny nere till höger. I fullskärm står Tillbaka i uppdragets hörn. Knapparna står ovanför den nedre raden. Hörnen följer innehållets kanter, inte skärmens. | |
+| Statusrad | Den korta raden text nere till vänster, som står kvar och beskriver läget, som Väntar på att alla ska bli klara, Gå runt i huset och leta eller vem skenet väntar på. Hette tidigare notis. | |
 | Tillbaka | Knappen uppe till vänster som tar spelaren ut ur en sakvy till textvyn eller rumsvyn, den hon kom från. Alla har den. | `leaveThing` |
 | Meny | Spelledarens hamburgare i nedre högra hörnet. Spelarna har ingen meny, utom den instängda i källaren. | `LeaderMenu` |
 | Inforuta | Den tillfälliga rutan längst ner som visar en ny ledtråd hos alla en stund. Går att trycka bort. Inte samma sak som statusraden, som står kvar. | `InfoBox` |

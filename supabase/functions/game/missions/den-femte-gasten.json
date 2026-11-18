@@ -122,7 +122,7 @@
       "id": "runt-bordet",
       "type": "scene",
       "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Frågar mobilen om rörelse, tryck Tillåt.",
-      "readyLabel": "Jag sitter",
+      "readyLabel": "Uppfattat",
       "asksFor": [
         "sound",
         "motion"
@@ -145,7 +145,7 @@
       "id": "vera-svarar",
       "type": "scene",
       "text": "Skenet slocknar. Någon har svarat er, och hon vill ha hjälp. Ni vet inte vem hon är. Gå runt i huset och leta efter vad som hände här.",
-      "readyLabel": "Vi är redo att leta"
+      "readyLabel": "Uppfattat"
     },
     {
       "id": "tidningsurklippen",

@@ -1,5 +1,5 @@
 import { type PointerEvent, type ReactNode, useEffect, useRef, useState } from 'react';
-import { BOARD_LETTERS, type BoardPoint, type BoardTouch, START_CELL, type SeanceView, findGlowProgress, findPointOnSegment } from '../../supabase/functions/game/seance.ts';
+import { BOARD_LETTERS, type BoardPoint, type BoardTouch, START_CELL, type SeanceView, findEchoGlowPoint, findGlowProgress, findPointOnSegment } from '../../supabase/functions/game/seance.ts';
 import { LIFT_GRACE_MS, clampToBoard, describeSeanceStatus, CATCH_UP_SPEED, holdGlowProgress, isPlanchetteOnGlow, shouldReportArrival } from './seanceBoard.ts';
 import './seance.css';
 
@@ -179,6 +179,44 @@ export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, answer }
           {boardAnswer}
         </div>
       )}
+    </section>
+  );
+}
+
+/**
+ * Brädet när det bokstaverar av sig självt, om och om igen, som VERA efter att
+ * gruppen har svarat (Jonas 2026-11-18). Ingen planchett och inget skickas.
+ * Skenet räknas ur serverns tid, så att alla mobiler visar samma bokstav.
+ */
+export function EchoBoard({ message, clockOffsetMs }: { message: string; clockOffsetMs: number }) {
+  const glowRef = useRef<HTMLDivElement>(null);
+  const latest = useRef({ message, clockOffsetMs });
+
+  useEffect(() => {
+    latest.current = { message, clockOffsetMs };
+  }, [message, clockOffsetMs]);
+
+  useEffect(() => {
+    let frame = 0;
+    const draw = () => {
+      const { message: current, clockOffsetMs: offset } = latest.current;
+      if (glowRef.current) Object.assign(glowRef.current.style, toPercent(findEchoGlowPoint(current, Date.now() + offset)));
+      frame = requestAnimationFrame(draw);
+    };
+    frame = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  return (
+    <section className="seance" aria-label="Brädet">
+      <div className="seance-board" aria-label="Brädet. Skenet rör sig av sig självt.">
+        <div className="seance-letters" aria-hidden="true">
+          {BOARD_CELLS.map((symbol, cell) => (
+            <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
+          ))}
+        </div>
+        <div ref={glowRef} className="seance-glow" />
+      </div>
     </section>
   );
 }

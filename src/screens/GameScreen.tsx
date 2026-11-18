@@ -9,7 +9,7 @@ import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
 import { MelodyButton, PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
 import { FlashbackScreen, useFlashbackTime } from '../tasks/FlashbackScreen.tsx';
-import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
+import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
 import { canHelpWithTask, describeDone } from './leaderMenu.ts';
@@ -193,6 +193,15 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const isNarrationScene = house !== null && step.type === 'scene' && step.opensFrom === null && step.documents.length === 0 && step.goTo === null && step.role === null && !view.isFinished;
   if (isNarrationScene && !step.isMeDone && !openThing) {
     return showNarration(step.text, view.me.isPlaying ? markReady : undefined);
+  }
+  // Efteråt bokstaverar brädet av sig självt, om och om igen, som VERA (Jonas 2026-11-18).
+  if (openThing && !openThing.opensCurrentStep && openThing.echo) {
+    return withLeaderMenu(
+      <main className="seance-screen">
+        <p className="hint game-header">{screenHeader}</p>
+        <EchoBoard message={openThing.echo} clockOffsetMs={clockOffsetMs} />
+      </main>,
+    );
   }
   // En sak vars steg gruppen inte är på visas i fullskärm, och Tillbaka går till rummet (Jonas 2026-11-18).
   if (openThing && !openThing.opensCurrentStep) {

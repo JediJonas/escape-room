@@ -28,7 +28,17 @@
               "vem-ar-jag"
             ],
             "callingText": "Från salongen hörs planchetten skrapa mot ouijabrädet.",
-            "isFoundFromStart": true
+            "isFoundFromStart": true,
+            "echoes": [
+              {
+                "fromStep": "det-ar-vera",
+                "message": "VERA"
+              },
+              {
+                "fromStep": "vera-vill-byta",
+                "message": "EN AV ER"
+              }
+            ]
           },
           {
             "id": "golvuret",

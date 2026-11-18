@@ -77,11 +77,15 @@ export function measureDistanceInCells(first: BoardPoint, second: BoardPoint): n
 /** Sträckan som skenet glider mot en bokstav: från förra bokstaven, eller från starten. */
 export type GlowSegment = { from: BoardPoint; to: BoardPoint; durationMs: number };
 
+function findSegmentBetween(fromCell: number, toCell: number): GlowSegment {
+  const from = findCellCenter(fromCell);
+  const to = findCellCenter(toCell);
+  return { from, to, durationMs: (measureDistanceInCells(from, to) / GLOW_CELLS_PER_SECOND) * MS_PER_SECOND };
+}
+
 export function findSegment(letters: readonly string[], letterIndex: number): GlowSegment {
   const findCell = (index: number) => (index < 0 ? START_CELL : BOARD_LETTERS.indexOf(letters[index]));
-  const from = findCellCenter(findCell(letterIndex - 1));
-  const to = findCellCenter(findCell(letterIndex));
-  return { from, to, durationMs: (measureDistanceInCells(from, to) / GLOW_CELLS_PER_SECOND) * MS_PER_SECOND };
+  return findSegmentBetween(findCell(letterIndex - 1), findCell(letterIndex));
 }
 
 /** Skenet står still vid starten tills alla följer, så tiden det startar spelar ingen roll. */
@@ -271,6 +275,43 @@ export function findPointOnSegment(segment: GlowSegment, progress: number): Boar
   const { from, to } = segment;
   const share = easeGlow(progress);
   return { x: from.x + (to.x - from.x) * share, y: from.y + (to.y - from.y) * share };
+}
+
+/** Hur länge skenet vilar vid starten innan brädet bokstaverar ekot igen. */
+export const ECHO_REST_MS = 5000;
+
+/** Ekots sträckor: till varje bokstav och sist tillbaka till starten, med vilan efter var och en. */
+function listEchoLegs(message: string): { segment: GlowSegment; restMs: number }[] {
+  const letters = splitMessage(message);
+  return [
+    ...letters.map((_, index) => ({ segment: findSegment(letters, index), restMs: GLOW_PAUSE_MS })),
+    { segment: findSegmentBetween(BOARD_LETTERS.indexOf(letters[letters.length - 1]), START_CELL), restMs: ECHO_REST_MS },
+  ];
+}
+
+/** Hur lång tid ett varv av ekot tar. */
+export function findEchoLapMs(message: string): number {
+  return listEchoLegs(message).reduce((sum, leg) => sum + leg.segment.durationMs + leg.restMs, 0);
+}
+
+/**
+ * Skenet när brädet bokstaverar av sig självt, om och om igen, som VERA efter
+ * att gruppen har svarat (Jonas 2026-11-18). Det glider som i seansen och
+ * stannar på varje bokstav, går tillbaka till starten och vilar där. Allt
+ * räknas ur serverns tid, så att brädet visar samma sak i alla mobiler utan
+ * att något skickas.
+ */
+export function findEchoGlowPoint(message: string, serverNowMs: number): BoardPoint {
+  const legs = listEchoLegs(message);
+  const lapMs = findEchoLapMs(message);
+  let leftMs = ((serverNowMs % lapMs) + lapMs) % lapMs;
+  for (const { segment, restMs } of legs) {
+    if (leftMs < segment.durationMs) return findPointOnSegment(segment, leftMs / segment.durationMs);
+    leftMs -= segment.durationMs;
+    if (leftMs < restMs) return segment.to;
+    leftMs -= restMs;
+  }
+  return findCellCenter(START_CELL);
 }
 
 export function findGlowPoint(seance: SeanceView, serverNowMs: number): { point: BoardPoint; hasArrived: boolean } {

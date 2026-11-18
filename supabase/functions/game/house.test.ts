@@ -46,7 +46,7 @@ test('alla börjar i salongen, och seansbordet står i listan från början och 
   const view = viewFor(start());
   assert.equal(view.house?.room.name, 'Salongen');
   assert.deepEqual(view.house?.doors.map((door) => door.name), ['Hallen']);
-  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null }]);
+  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null, echo: null }]);
   assert.equal(view.step.opensFrom, 'Ouijabrädet');
 });
 
@@ -56,6 +56,16 @@ test('ett låst rum går bara att gå in i för den som ska dit', () => {
   assert.deepEqual(walk({ state, house: locked, playerId: 'p1', placeId: 'D' }), { refusal: 'locked' });
   assert.equal(viewFor(readState(walk({ state, house: locked, playerId: 'p1', placeId: 'D', mayEnterLocked: true }))).house?.room.name, 'Biblioteket');
   assert.deepEqual(findHouseErrors({ ...HOUSE, rooms: [{ ...HOUSE.rooms[0], isLocked: 'ja' }, ...HOUSE.rooms.slice(1)] }, MISSION.places, ['seansen', 'urklippen']), ['rummet F har ett lås som inte är sant eller falskt']);
+});
+
+test('brädet bokstaverar det senaste ekot som berättelsen har kommit till, men inte i sitt eget steg', () => {
+  const echoing: House = { ...HOUSE, rooms: HOUSE.rooms.map((room) => ({ ...room, things: room.things.map((thing) => (thing.id === 'bordet' ? { ...thing, echoes: [{ fromStep: 'urklippen', message: 'VERA' }, { fromStep: 'slut', message: 'EN AV ER' }] } : thing)) })) };
+  const mission = { ...MISSION, house: echoing };
+  const boardAt = (stepIndex: number) => buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state: { ...start(), stepIndex } }, mission, players: PLAYERS, viewer: PLAYERS[1] }).house?.things[0].echo;
+  assert.equal(boardAt(0), null);
+  assert.equal(boardAt(1), 'VERA');
+  assert.equal(boardAt(3), 'EN AV ER');
+  assert.deepEqual(findHouseErrors({ ...echoing, rooms: [{ ...echoing.rooms[0], things: [{ ...echoing.rooms[0].things[0], echoes: [{ fromStep: 'urklippen', message: 'vera!' }] }] }, ...echoing.rooms.slice(1)] }, MISSION.places, ['seansen', 'urklippen']), ['saken bordet i huset har ett eko med andra tecken än bokstäverna på brädet']);
 });
 
 test('spelaren går bara genom dörrar till rummen intill', () => {
@@ -86,7 +96,7 @@ test('en sak hittas först när berättelsen har kommit dit, och syns sedan för
   assert.equal(viewFor(state, PLAYERS[2]).house?.things[0].name, 'Byrån');
 
   state = moveOn(state, MISSION, PLAYERS);
-  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, pages: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null });
+  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, pages: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null });
 });
 
 test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns', () => {

@@ -10,7 +10,7 @@
 
 import type { Mission, MissionStep, Place } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
-import { isSeanceComplete } from './seance.ts';
+import { SEANCE_LETTERS, isSeanceComplete } from './seance.ts';
 import { type PianoKey, listKeyPlayers, listMyKeys } from './piano.ts';
 import { readDialTime } from './flashback.ts';
 import type { GameState } from './state.ts';
@@ -42,6 +42,12 @@ export type HouseThing = {
    * till exempel att det hörs något från salongen (Jonas 2026-11-18).
    */
   callingText?: string;
+  /**
+   * Det brädet bokstaverar av sig självt när någon går in på det efteråt,
+   * om och om igen, från ett visst steg. Det senaste som berättelsen har
+   * kommit till gäller (Jonas 2026-11-18).
+   */
+  echoes?: { fromStep: string; message: string }[];
 };
 
 export type HouseRoom = {
@@ -139,6 +145,8 @@ export type ThingView = {
    * öppnar inte är det gruppen är på (Jonas 2026-11-18). Annars null.
    */
   instrument: Instrument | null;
+  /** Det brädet bokstaverar av sig självt när steget det öppnar inte är det gruppen är på, annars null. */
+  echo: string | null;
 };
 
 export type Instrument = { type: 'clock'; dialMinutes: number } | { type: 'piano'; keys: PianoKey[] };
@@ -186,6 +194,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     opensFound,
     isCalling: current !== undefined && isStepCalling(current.step, state),
     instrument: current === undefined && viewer ? describeInstrument(opened.map(({ step }) => step), state, viewer.id, viewer.participantIds) : null,
+    echo: current === undefined ? (thing.echoes ?? []).filter((echo) => state.stepIndex >= stepIndexOf(mission, echo.fromStep)).at(-1)?.message ?? null : null,
   };
 }
 
@@ -242,6 +251,12 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
     if (!stepIds.includes(stepId)) errors.push(`${name} pekar på ett steg som inte finns: ${String(stepId)}`);
   }
   if (thing.callingText !== undefined && !(isFilledText(thing.callingText) && opens !== undefined)) errors.push(`${name} har en tom text för när den kallar, eller öppnar inga steg`);
+  const { echoes } = thing;
+  if (echoes !== undefined && !(Array.isArray(echoes) && echoes.length > 0)) errors.push(`${name} ska ha en lista med ekon`);
+  for (const echo of Array.isArray(echoes) ? echoes as Record<string, unknown>[] : []) {
+    if (!stepIds.includes(echo?.fromStep)) errors.push(`${name} har ett eko från ett steg som inte finns: ${String(echo?.fromStep)}`);
+    if (typeof echo?.message !== 'string' || !SEANCE_LETTERS.test(echo.message)) errors.push(`${name} har ett eko med andra tecken än bokstäverna på brädet`);
+  }
   if (thing.text === undefined && pages === undefined && opens === undefined) errors.push(`${name} har varken text, sidor eller steg att öppna`);
   return errors;
 }

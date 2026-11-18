@@ -273,7 +273,12 @@ visas sakens `callingText` som en berättartext i fullskärm, en gång, med
 knappen Ok, till exempel att det hörs något från salongen (Jonas 2026-11-18).
 Knackningar togs bort,
 eftersom de var svåra att förstå (Jonas 2026-11-18). En sak i huset kan öppna flera steg med
-`opensSteps`, som ouijabrädet som öppnar båda seanserna.
+`opensSteps`, som ouijabrädet som öppnar båda seanserna. Med `echoes`
+bokstaverar en sådan sak av sig självt, om och om igen, när gruppen inte är
+på något av dess steg: det senaste ekot vars `fromStep` berättelsen har
+kommit till gäller. Skenet räknas ur serverns tid i varje mobil, så att alla
+ser samma bokstav utan att något skickas (Jonas 2026-11-18). Se
+`findEchoGlowPoint` i `seance.ts`.
 
 **Rummen minns** har typen `flashback` (Jonas 2026-11-18). Steget öppnas från golvuret i
 salongen, och bara den som står där kan vrida visarna. Steget har

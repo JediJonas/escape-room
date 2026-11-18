@@ -79,6 +79,8 @@
 .leader-menu-actions { display: grid; gap: 0.5rem; }
 .leader-menu-actions button { width: 100%; }
 .leader-menu button.secondary { border-color: rgb(240 225 200 / 0.6); color: #f0e1c8; }
+/* Avsluta spelet går inte att ångra, så knappen i frågan är röd. */
+.leader-menu button.danger { border-color: #c0392b; background: #c0392b; color: #ffffff; }
 
 /*
  * Hamburgaren ligger ensam i den understa raden, aldrig bredvid en knapp, i

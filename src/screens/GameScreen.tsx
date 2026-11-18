@@ -41,6 +41,8 @@ export type GameActions = {
   /** Vid byrån en ledtråd om urklippen, annars om uppgiften. */
   giveHint: (isAboutReading: boolean) => void;
   showSolution: () => void;
+  /** Spelledaren avslutar spelet för alla. */
+  endGame: () => void;
   answerPending: (playerId: string, isAdmitted: boolean) => void;
   leave: () => void;
 };
@@ -125,6 +127,16 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     setOpenThingId(null);
   }
 
+  // Har spelledaren avslutat spelet visas bara det, inte steget gruppen var på (Jonas 2026-11-18).
+  if (view.isEndedByLeader) {
+    return (
+      <ScreenLayout actions={<button type="button" onClick={game.leave}>Till startsidan</button>}>
+        <p className="hint game-header"><span>{view.missionTitle} · slut</span></p>
+        <p className="scene-text">{view.me.isLeader ? 'Du har avslutat spelet.' : 'Spelledaren har avslutat spelet.'}</p>
+      </ScreenLayout>
+    );
+  }
+
   // Bara spelledaren har en meny, en hamburgare i nedre högra hörnet. Spelarna har Tillbaka (Jonas 2026-11-18).
   const isLeaderMenuShown = view.me.isLeader && !view.isFinished;
   function withLeaderMenu(screen: ReactNode, { stepText = null, isAtTask = false }: { stepText?: string | null; isAtTask?: boolean } = {}) {
@@ -146,6 +158,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
           onGiveHint={game.giveHint}
           onShowSolution={game.showSolution}
           onNextStep={game.nextStep}
+          onEndGame={game.endGame}
           onAnswerPending={game.answerPending}
         />
       </div>

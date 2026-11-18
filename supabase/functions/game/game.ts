@@ -4,7 +4,7 @@
  * docs/motorn.md.
  */
 
-import { type ClockView, describeClock, pauseClock, resumeClock, shortenClock, startClock } from './clock.ts';
+import { type ClockView, describeClock, shortenClock, startClock } from './clock.ts';
 import { type CellarStep, type Mission, type FlashbackStep, type MissionDocument, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
@@ -57,8 +57,9 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
   return { ...cleared, roleByPlayer: deal.roleByPlayer, prominentHistory: deal.prominentHistory };
 }
 
-function finish(state: GameState): GameState {
-  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], seance: null, flashback: null, cellar: null, piano: null };
+/** Mobiler som väntar på att få vara med släpps, så att de ser att spelet är slut i stället för att vänta. */
+export function finish(state: GameState): GameState {
+  return { ...state, status: 'finished', roleByPlayer: {}, readyPlayerIds: [], pendingPlayers: [], seance: null, flashback: null, cellar: null, piano: null };
 }
 
 /**
@@ -365,19 +366,6 @@ export function showSolution({ state, mission, player }: { state: GameState; mis
   return { state: { ...state, isSolutionShown: true } };
 }
 
-/** Pausar eller fortsätter nedräkningen. Bara spelledaren får göra det. */
-export function setPaused({ state, player, isPaused, nowMs }: {
-  state: GameState;
-  player: PlayerRecord;
-  isPaused: boolean;
-  nowMs: number;
-}): StateChange {
-  if (!player.isLeader) return { refusal: 'notLeader' };
-  if (state.status !== 'running' || !state.clock) return { refusal: 'notRunning' };
-  const clock = isPaused ? pauseClock(state.clock, nowMs) : resumeClock(state.clock, nowMs);
-  return { state: { ...state, clock } };
-}
-
 /**
  * Det en spelare ser under spelet. Texten på en plats finns bara med hos den
  * som är där.
@@ -389,6 +377,8 @@ export type GameView = {
   /** isPlaying är falskt för spelledaren som står utanför. Hon får ingen roll. */
   me: { playerId: string; name: string; isLeader: boolean; isPlaying: boolean };
   isFinished: boolean;
+  /** Spelledaren avslutade spelet innan uppdraget var slut. */
+  isEndedByLeader: boolean;
   step: {
     number: number;
     count: number;
@@ -524,6 +514,7 @@ export function buildGameView({ game, mission, players, viewer }: {
     missionTitle: mission.title,
     me: { ...describeViewer(viewer), isPlaying: participants.some((player) => player.id === viewer.id) },
     isFinished: state.status === 'finished',
+    isEndedByLeader: state.status === 'finished' && state.isEndedByLeader,
     step: {
       number: stepIndex + 1,
       count: mission.steps.length,

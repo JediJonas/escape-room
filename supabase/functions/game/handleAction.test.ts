@@ -127,6 +127,23 @@ test('spelledaren går vidare steg för steg, och efter sista steget är spelet 
   assert.deepEqual(await send(memory.store, 'user-leader', { type: 'nextStep', gameId }), { status: 409, body: { error: 'notRunning' } });
 });
 
+test('spelledaren avslutar spelet för alla, och den som väntar på att få vara med släpps', async () => {
+  const memory = await createGameWithPlayers(['Bo']);
+  const gameId = memory.games[0].id;
+  assert.deepEqual(await send(memory.store, 'user-leader', { type: 'endGame', gameId }), { status: 409, body: { error: 'notRunning' } });
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId });
+  await send(memory.store, 'user-Cia', { type: 'joinGame', joinCode: 'BCDF', name: 'Cia' });
+  assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'endGame', gameId }), { status: 403, body: { error: 'notLeader' } });
+  memory.sentViews.length = 0;
+  const view = readGameView((await send(memory.store, 'user-leader', { type: 'endGame', gameId })).body);
+  assert.deepEqual({ isFinished: view.isFinished, isEndedByLeader: view.isEndedByLeader, clock: view.clock, pending: view.pending }, { isFinished: true, isEndedByLeader: true, clock: null, pending: null });
+  // Alla får en ny vy, också den som väntade på att få vara med.
+  assert.equal(memory.sentViews.length, 3);
+  for (const { view: sent } of memory.sentViews) assert.equal((sent as GameView).isEndedByLeader, true);
+  assert.deepEqual(await send(memory.store, 'user-leader', { type: 'endGame', gameId }), { status: 409, body: { error: 'notRunning' } });
+  assert.deepEqual(await send(memory.store, 'user-Dan', { type: 'joinGame', joinCode: 'BCDF', name: 'Dan' }), { status: 409, body: { error: 'gameStarted' } });
+});
+
 test('när gruppen delar på sig syns bitarna först på platsen, och bara hos den som är där', async () => {
   const memory = await createGameWithPlayers(['Bo']);
   const gameId = memory.games[0].id;

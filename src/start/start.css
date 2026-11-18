@@ -8,6 +8,14 @@
    testsidans stil, oavsett i vilken ordning bygget lägger filerna. */
 html body { padding: 0; }
 
+/*
+ * Avståndet från skärmens kant till en fast ruta, som spelledarens meny och
+ * inforutan med ledtrådar. Rutorna följer innehållets kanter, inte skärmens,
+ * så att de inte dras ut över hela skärmen i iPad och dator
+ * (Jonas 2026-11-18). Innehållet är 32rem brett där.
+ */
+:root { --content-edge: max(0.75rem, calc(50% - 16rem + 0.75rem)); }
+
 .screen {
   display: flex;
   flex-direction: column;

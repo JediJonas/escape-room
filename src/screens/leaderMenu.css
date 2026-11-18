@@ -6,11 +6,10 @@
 :root {
   --leader-menu-size: 3rem;
   /*
-   * Avståndet till skärmens högerkant. Hamburgaren står i innehållets
-   * högerkant, inte i skärmens hörn, så att den står i rad med knapparna
-   * också i iPad och dator (Jonas 2026-11-18). Innehållet är 32rem brett där.
+   * Hamburgaren står i innehållets högerkant, inte i skärmens hörn, så att
+   * den står i rad med knapparna också i iPad och dator (Jonas 2026-11-18).
    */
-  --leader-menu-right: max(0.75rem, calc(50% - 16rem + 0.75rem));
+  --leader-menu-right: var(--content-edge);
 }
 
 .leader-menu-button {

@@ -156,13 +156,17 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>
     </>
   );
-  // Den som har melodin får en berättartext i helskärm direkt när pianosteget börjar, efter
-  // ouijabrädet. Hon trycker Fortsätt när hon har läst, och den visas bara en gång (Jonas 2026-11-18).
-  const storyText = view.isFinished ? null : step.piano?.melodyText ?? null;
-  const storyId = `${view.gameId}:${step.number}:melodi`;
-  if (storyText && !readStories.includes(storyId)) {
+  // Berättartexter i helskärm, som var och en visas en gång och bekräftas med en knapp (Jonas 2026-11-18).
+  // Först det som hörs från ett annat rum när något kallar på gruppen, som planchetten, eller pianots
+  // ensamma ton när gruppen lämnar ouijabrädet. Sedan melodin, för den som har den.
+  const stories = view.isFinished ? [] : [
+    { id: `${view.gameId}:${step.number}:kallar`, text: house?.callingFrom ?? null, button: 'Ok' },
+    { id: `${view.gameId}:${step.number}:melodi`, text: step.piano?.melodyText ?? null, button: 'Fortsätt' },
+  ];
+  const story = stories.find(({ id, text }) => text !== null && !readStories.includes(id));
+  if (story?.text) {
     const markStoryRead = () => {
-      const read = [...readStories, storyId];
+      const read = [...readStories, story.id];
       setReadStories(read);
       saveReadStories(read);
     };
@@ -173,8 +177,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       </>
     );
     return withLeaderMenu(
-      <ThingScreen header={storyHeader} actions={<button type="button" onClick={markStoryRead}>Fortsätt</button>}>
-        <p className="story-text">{storyText}</p>
+      <ThingScreen header={storyHeader} actions={<button type="button" onClick={markStoryRead}>{story.button}</button>}>
+        <p className="story-text">{story.text}</p>
       </ThingScreen>,
     );
   }

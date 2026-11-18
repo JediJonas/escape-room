@@ -240,6 +240,16 @@ Två gånger går en spelare iväg på riktigt, till ett annat rum i bostaden me
 
 Det är de enda tillfällena då gruppen splittras på riktigt, och de blir starkare av det.
 
+### Planlösning
+
+![Planlösning av huset](planlosning.svg)
+
+Huset är en rektangel med två våningar och källare (Jonas 2026-11-18). Ytterdörren leder in i hallen, mitt på husets framsida. Rakt fram ligger salongen, till vänster biblioteket och till höger köket. Sovrummet ligger på övervåningen. Källaren ligger under huset, med det dolda rummet bakom.
+
+- **Hallen.** Dörren till salongen sitter längst till höger i hallens bortre vägg, med pianot till vänster om den. Dörren till köket sitter strax till höger om salongsdörren. Dörren till biblioteket sitter långt ner på vänstra väggen. I högra hörnet vid ytterväggen ligger två trappor på tvären: överst trappan upp till sovrummet och under den källartrappan, bakom den låsta källardörren (Jonas 2026-11-18).
+- **Bara via hallen.** Det finns inga dörrar mellan de andra rummen, så alla rum nås från hallen (Jonas 2026-11-18).
+- **Dörrarna i rundbilderna.** Rummen behöver inte vara rektangulära i rundbilderna, men dörrarna ska sitta på rätt ställe i rummen enligt planlösningen (Jonas 2026-11-18).
+
 ### Nu och 1962
 
 Varje plats finns i två tider: som den är nu och som den var kvällen 1962 (Jonas 2026-11-17).

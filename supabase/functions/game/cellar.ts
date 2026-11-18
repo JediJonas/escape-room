@@ -131,7 +131,7 @@ export function describeCellar({ cellar, step, isTrapped, isTrappedHere, trapped
 }): CellarView {
   const outcomeTexts = {
     found: isTrapped ? step.foundText : step.othersFoundText,
-    caught: step.caughtText,
+    caught: isTrapped ? step.caughtText : step.othersCaughtText,
   };
   return {
     isTrapped,
@@ -186,7 +186,7 @@ export function findCellarErrors(step: Record<string, unknown>, name: string): s
   if (!isFilledText(step.image)) errors.push(`${name} saknar bild`);
   for (const field of ['minutes', 'lightMs', 'wrongTapMs'] as const) if (!isPositiveNumber(step[field])) errors.push(`${name} saknar ${field}`);
   if (!Number.isInteger(step.fuses) || (step.fuses as number) < 0) errors.push(`${name} ska ha ett antal säkringar`);
-  for (const field of ['goDownText', 'othersGoDownText', 'foundText', 'othersFoundText', 'caughtText', 'markWhenCaught'] as const) if (!isFilledText(step[field])) errors.push(`${name} saknar ${field}`);
+  for (const field of ['goDownText', 'othersGoDownText', 'foundText', 'othersFoundText', 'caughtText', 'othersCaughtText', 'markWhenCaught'] as const) if (!isFilledText(step[field])) errors.push(`${name} saknar ${field}`);
   const solution = step.solution as Record<string, unknown> | undefined;
   if (!isFiniteNumber(solution?.doorYawDeg) || !isPositiveNumber(solution?.toleranceDeg)) errors.push(`${name} saknar dörrens riktning i facit`);
   if (step.goTo !== undefined || step.textAtPlace !== undefined) errors.push(`${name} skickar spelarna med rollerna, inte med en plats för alla`);

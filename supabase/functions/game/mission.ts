@@ -204,8 +204,9 @@ export type CellarStep = {
   foundText: string;
   /** Det de andra ser när hon har hittat dörren. */
   othersFoundText: string;
-  /** Det alla ser om det hann fram. */
+  /** Det den instängda ser om det hann fram, och det de andra ser, där {name} blir hennes namn (Jonas 2026-11-18). */
   caughtText: string;
+  othersCaughtText: string;
   /** Markeringen som senare steg och slut läser om det hann fram. */
   markWhenCaught: string;
   hints: string[];

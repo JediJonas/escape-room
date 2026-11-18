@@ -62,6 +62,15 @@ test('bara den instängda ser bilden och rummet bakom, med sitt eget namn', () =
   assert.match(other.outcomeText ?? '', /^Cia har hittat något/);
 });
 
+test('hinner det fram får den instängda och de andra var sin text', () => {
+  const caught = readCellar(apply(ARRIVED, { type: 'timeUp' }, { nowMs: 1000 + STEP.minutes * 60_000 }));
+  const trapped = describeCellar({ cellar: caught, step: STEP, isTrapped: true, isTrappedHere: true, trappedName: 'Cia' });
+  const other = describeCellar({ cellar: caught, step: STEP, isTrapped: false, isTrappedHere: false, trappedName: 'Cia' });
+  assert.equal(trapped.outcomeText, STEP.caughtText);
+  assert.match(other.outcomeText ?? '', /intill Cia/);
+  assert.equal(other.goDownText, 'Cia går ner i källaren.');
+});
+
 test('en sparad källare läses, och en trasig blir null', () => {
   const saved = { arrivedAtMs: 1, penaltyMs: 0, fusesUsed: 2, litUntilMs: null, outcome: 'found' };
   assert.deepEqual(readCellarState(saved), saved);

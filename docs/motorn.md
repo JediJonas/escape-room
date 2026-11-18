@@ -222,9 +222,12 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   Också vem som får vilken roll och vilka bitar lottas, i stället för att
   gå på ordningen spelarna gick med i (Jonas 2026-11-18).
   Ordningen sparas i tillståndet som `prominentHistory`.
-- **Berättelsen mellan uppgifterna** är steg av typen `scene`. En scen kan
-  ha en egen text på knappen med `readyLabel`, till exempel "Jag har läst".
-  Utan den står det Klar (Jonas 2026-11-18). En scen med `endsWithStep`
+- **Berättelsen mellan uppgifterna** är steg av typen `scene`. I ett uppdrag
+  med hus visas en scen som en berättartext i fullskärm med knappen Ok, och
+  efter Ok är spelaren tillbaka i rummet och väntar på de andra
+  (Jonas 2026-11-18). Det gäller scener utan sak, dokument, plats och roller.
+  Utan huset kan en scen ha en egen text på knappen med `readyLabel`, och
+  annars står det Klar (Jonas 2026-11-18). En scen med `endsWithStep`
   har ingen knapp. Spelaren blir klar av att lämna saken med Tillbaka
   (`isDoneByLeaving` i vyn), och scenen slutar när alla är klara och gruppen
   har klarat uppgiften i nästa steg, i vilken ordning som helst. Urklippen
@@ -316,7 +319,8 @@ tidigare (`asksFor`). Kommer inga värden styr fingret. Se `cellar.ts`.
 
 Steget börjar med en berättartext i fullskärm: stegets text och vem som går
 ner, `goDownText` för den instängda och `othersGoDownText` för de andra, där
-`{name}` blir hennes namn. Raden står sedan kvar i statusraden tills hon är
+`{name}` blir hennes namn. Om det hinner fram läser den instängda
+`caughtText` och de andra `othersCaughtText`. Raden om vem som går ner står sedan kvar i statusraden tills hon är
 nere. Hon går dit genom huset som vanligt. Ett rum med `isLocked` går bara
 att gå in i för den som steget skickar dit, så källardörren i hallen är låst
 för alla andra (Jonas 2026-11-18).

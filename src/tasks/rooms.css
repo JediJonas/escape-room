@@ -83,3 +83,5 @@
   .memory-screen { animation: none; filter: sepia(0.6); }
   .memory { transition: none; }
 }
+.memory-left { margin: 0 0 0.75rem; font-variant-numeric: tabular-nums; font-weight: 600; }
+.memory-left.is-fading { color: var(--bad); }

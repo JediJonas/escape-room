@@ -100,7 +100,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
           <span>{view.missionTitle} · steg {step.number} av {step.count}</span>
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
-        <MemoryScreen rooms={step.rooms} isFading={memory.isFading} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseMemoryRoom} />
+        <MemoryScreen rooms={step.rooms} isFading={memory.isFading} msLeft={memory.msLeft} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseMemoryRoom} />
         <LeaderPanel view={view} isBusy={isBusy} onSetPaused={game.setPaused} onGiveHint={game.giveHint} onShowSolution={game.showSolution} onAnswerPending={game.answerPending} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>

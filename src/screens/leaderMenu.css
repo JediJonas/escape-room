@@ -81,19 +81,27 @@
 .leader-menu button.secondary { border-color: rgb(240 225 200 / 0.6); color: #f0e1c8; }
 
 /*
- * Hamburgaren ligger på samma ställe i alla vyer (Jonas 2026-11-18). På en
- * vanlig skärm, som rummen, får knapparna därför samma luft nertill som i
- * fullskärm, så att den understa knappen står i höjd med hamburgaren.
+ * Hamburgaren ligger ensam i den understa raden, aldrig bredvid en knapp, i
+ * mobil som i dator (Jonas 2026-11-18). Spelledarens knappar står därför en
+ * rad högre och får innehållets hela bredd. Spelarna har ingen meny, och
+ * deras knappar ligger kvar längst ner.
  */
-.has-leader-menu > .screen { padding-bottom: calc(1rem + var(--bottom-gap)); }
+:root { --leader-menu-row: calc(1rem + var(--leader-menu-size) + 0.5rem + var(--bottom-gap)); }
 
 .has-leader-menu { display: contents; }
-
-/* Den understa raden lämnar plats åt hamburgaren, som står i samma rad. */
-.has-leader-menu .screen-actions,
-.has-leader-menu .thing-actions { padding-right: calc(var(--leader-menu-size) + 1.25rem); }
+.has-leader-menu > .screen { padding-bottom: var(--leader-menu-row); }
+.has-leader-menu .thing-actions { padding-bottom: var(--leader-menu-row); }
+/*
+ * En rad text utan knapp, som Väntar på att alla ska bli klara eller vem
+ * skenet väntar på, får stå bredvid hamburgaren (Jonas 2026-11-18).
+ */
+.has-leader-menu > .screen:not(:has(.screen-actions button)) { padding-bottom: calc(1rem + var(--bottom-gap)); }
+.has-leader-menu .thing-actions:not(:has(button)) { padding-bottom: calc(1rem + var(--bottom-gap)); }
+.has-leader-menu .screen-actions:not(:has(button)),
+.has-leader-menu .thing-actions:not(:has(button)) { min-height: var(--leader-menu-size); align-content: center; padding-right: calc(var(--leader-menu-size) + 1.25rem); }
 .has-leader-menu .seance-status { max-width: calc(100% - 2 * (var(--leader-menu-size) + 1rem)); }
-.has-leader-menu .board-answer { margin-right: calc(var(--leader-menu-size) + 0.5rem); }
+/* Svarsrutan på brädet har en knapp och står därför ovanför hamburgaren. */
+.has-leader-menu .seance-status:has(.board-answer) { bottom: var(--leader-menu-row); max-width: calc(100% - 2rem); }
 
 /* Den lilla raden om vilka som är klara, som bara spelledaren ser. */
 .leader-done { display: block; margin-top: 0.15rem; font-size: 0.8rem; }

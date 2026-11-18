@@ -10,6 +10,8 @@ Spelmotorn och uppdragen hålls isär. Motorn och uppgiftstyperna byggs en gång
 
 Inget är provspelat ännu. Tider, svårighetsgrad och vad mobilerna klarar är uppskattningar som behöver prövas.
 
+Begreppen som används här och i koden förklaras i [ordlistan](ordlista.md).
+
 ## Spelidén i korthet
 
 Spelet är ett partyspel: tre till tio personer som umgås i samma hem löser ett uppdrag tillsammans på ungefär 60 minuter, var och en med sin mobil.

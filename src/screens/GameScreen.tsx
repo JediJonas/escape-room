@@ -12,6 +12,7 @@ import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
+import { canLeaderSkip } from './leaderSkip.ts';
 import { PlaceScanner } from './PlaceScanner.tsx';
 import { DocumentList, FoundView } from './FoundDocuments.tsx';
 import { RoomList, ThingContent } from './HouseView.tsx';
@@ -208,7 +209,8 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (canFlipFuse) {
     actions.push(<button key="fuse" type="button" onClick={() => game.moveInCellar({ type: 'flipFuse' })} disabled={isBusy}>Tänd lampan i källaren</button>);
   }
-  if (view.me.isLeader && !view.isFinished) {
+  const canSkip = canLeaderSkip({ isLeaderPlaying: view.me.isPlaying, usesReadyButton: step.usesReadyButton, isMeDone: step.isMeDone, progress: view.progress ?? [] });
+  if (view.me.isLeader && !view.isFinished && canSkip) {
     // För när någon har gått iväg och gruppen inte ska behöva vänta.
     actions.push(<button key="skip" type="button" className="secondary" onClick={game.nextStep} disabled={isBusy}>{isTask ? 'Hoppa över uppgiften' : 'Gå vidare ändå'}</button>);
   }

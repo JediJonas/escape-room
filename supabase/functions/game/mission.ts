@@ -193,6 +193,13 @@ export type CellarStep = {
   lightMs: number;
   /** Hur mycket närmare det kommer av ett tryck på fel ställe. */
   wrongTapMs: number;
+  /**
+   * Raden i berättartexten när steget börjar, som sedan står kvar i
+   * statusraden tills hon är nere (Jonas 2026-11-18). Den instängda får
+   * goDownText och de andra othersGoDownText, där {name} blir hennes namn.
+   */
+  goDownText: string;
+  othersGoDownText: string;
   /** Det den instängda ser i rummet bakom. {name} blir hennes namn. */
   foundText: string;
   /** Det de andra ser när hon har hittat dörren. */

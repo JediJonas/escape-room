@@ -159,9 +159,13 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Berättartexter i fullskärm, som var och en visas en gång och bekräftas med en knapp (Jonas 2026-11-18).
   // Först det som hörs från ett annat rum när något kallar på gruppen, som planchetten, eller pianots
   // ensamma ton när gruppen lämnar ouijabrädet. Sedan melodin, för den som har den.
+  // Källaren börjar med Veras ord och vem som går ner (Jonas 2026-11-18).
+  const { cellar } = step;
+  const cellarText = house && cellar && cellar.outcome === null ? `${step.text}\n\n${cellar.goDownText}` : null;
   const narrations = view.isFinished ? [] : [
     { id: `${view.gameId}:${step.number}:kallar`, text: house?.callingFrom ?? null, button: 'Ok' },
     { id: `${view.gameId}:${step.number}:melodi`, text: step.piano?.melodyText ?? null, button: 'Fortsätt' },
+    { id: `${view.gameId}:${step.number}:kallaren`, text: cellarText, button: 'Fortsätt' },
   ];
   const narration = narrations.find(({ id, text }) => text !== null && !readNarrations.includes(id));
   if (narration?.text) {
@@ -179,7 +183,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     );
     return withLeaderMenu(
       <ThingScreen header={narrationHeader} actions={<button type="button" onClick={markNarrationRead}>{narration.button}</button>}>
-        <p className="narration-text">{narration.text}</p>
+        {narration.text.split('\n\n').map((paragraph) => <p key={paragraph} className="narration-text">{paragraph}</p>)}
       </ThingScreen>,
     );
   }
@@ -200,10 +204,12 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
   // Ett steg som öppnas från en sak, som seansen från ouijabrädet, syns först när spelaren har öppnat saken.
   const showsStep = step.opensFrom === null || openThing !== null || view.isFinished || !house;
-  if (!showsStep && house) {
+  // Den som ska ner i källaren går dit genom huset, som vanligt, och statusraden säger vart (Jonas 2026-11-18).
+  const isGoingDown = cellar !== null && cellar.isTrapped && cellar.catchMs === null && cellar.outcome === null && !view.isFinished;
+  if ((!showsStep || isGoingDown) && house) {
     const houseActions = [];
     if (view.me.isPlaying && house.canSearch) houseActions.push(<button key="search" type="button" onClick={game.searchRoom} disabled={isBusy}>Leta i rummet</button>);
-    const houseHint = <p className="hint">Gå runt i huset och leta.{doneLine}</p>;
+    const houseHint = <p className="hint">{isGoingDown ? cellar.goDownText : 'Gå runt i huset och leta.'}{doneLine}</p>;
     return withLeaderMenu(
       <ScreenLayout actions={houseActions.length > 0 ? houseActions : houseHint}>
         <p className="hint game-header">
@@ -267,7 +273,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     );
   }
   // I källaren ser den instängda bara mörkret och ficklampan. Resten ligger i menyn, som i seansen.
-  const { cellar } = step;
   const isCellarShown = cellar?.image !== null && cellar?.image !== undefined && cellar.outcome === null && !view.isFinished;
   const timeUpInCellar = () => game.moveInCellar({ type: 'timeUp' });
   if (cellar?.image && isCellarShown && !isMenuOpen) {
@@ -324,6 +329,10 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   if (canAnswer) {
     actions.push(<button key="answer" type="submit" form={ANSWER_FORM_ID} disabled={isBusy || !answer.trim()}>Svara</button>);
   }
+  // De andra ser vem som går ner i statusraden tills hon är framme (Jonas 2026-11-18).
+  if (house && cellar && cellar.catchMs === null && cellar.outcome === null && !view.isFinished) {
+    actions.push(<p key="going-down" className="hint">{cellar.goDownText}</p>);
+  }
   if (view.isFinished) {
     actions.push(<button key="leave" type="button" onClick={game.leave}>Till startsidan</button>);
   }
@@ -336,7 +345,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
       </p>
       {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
-      <p className="scene-text">{step.text}</p>
+      {!(house && cellar) && <p className="scene-text">{step.text}</p>}
       <DocumentList documents={step.documents} />
       {step.role && (
         <section className="role-card" aria-label="Bara du ser det här">

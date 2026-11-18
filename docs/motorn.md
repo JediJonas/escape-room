@@ -314,6 +314,13 @@ och servern avgör. Hann det fram sätts `markWhenCaught` i tillståndets
 rörelsesensorn utan att fråga, eftersom tillståndet begärs i en scen
 tidigare (`asksFor`). Kommer inga värden styr fingret. Se `cellar.ts`.
 
+Steget börjar med en berättartext i fullskärm: stegets text och vem som går
+ner, `goDownText` för den instängda och `othersGoDownText` för de andra, där
+`{name}` blir hennes namn. Raden står sedan kvar i statusraden tills hon är
+nere. Hon går dit genom huset som vanligt. Ett rum med `isLocked` går bara
+att gå in i för den som steget skickar dit, så källardörren i hallen är låst
+för alla andra (Jonas 2026-11-18).
+
 **Pianot** har typen `piano`. Steget öppnas från pianot i hallen, och bara
 den som står där kan slå an en tangent. Steget har `keys`, pianots
 tangenter som "C4" eller "F#4", och `beatMs`, hur långt ett slag är.

@@ -3,7 +3,7 @@ import { test } from 'vitest';
 import type { CellarView } from '../../supabase/functions/game/cellar.ts';
 import { describeThreat, hasTimeRunOut, isLampLit, measureThreat } from './cellarText.ts';
 
-const CELLAR: CellarView = { isTrapped: false, trappedName: 'Cia', image: null, catchMs: 10_000, totalMs: 8000, fusesLeft: 3, litUntilMs: 5000, outcome: null, outcomeText: null };
+const CELLAR: CellarView = { isTrapped: false, trappedName: 'Cia', goDownText: 'Cia går ner i källaren.', image: null, catchMs: 10_000, totalMs: 8000, fusesLeft: 3, litUntilMs: 5000, outcome: null, outcomeText: null };
 
 test('hur nära det är räknas från när hon kom fram', () => {
   assert.equal(measureThreat({ ...CELLAR, catchMs: null }, 9000), 0);

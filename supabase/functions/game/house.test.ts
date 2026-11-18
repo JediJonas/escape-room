@@ -50,6 +50,14 @@ test('alla börjar i salongen, och seansbordet står i listan från början och 
   assert.equal(view.step.opensFrom, 'Ouijabrädet');
 });
 
+test('ett låst rum går bara att gå in i för den som ska dit', () => {
+  const locked: House = { ...HOUSE, rooms: HOUSE.rooms.map((room) => (room.place === 'D' ? { ...room, isLocked: true } : room)) };
+  const state = readState(walk({ state: start(), house: locked, playerId: 'p1', placeId: 'B' }));
+  assert.deepEqual(walk({ state, house: locked, playerId: 'p1', placeId: 'D' }), { refusal: 'locked' });
+  assert.equal(viewFor(readState(walk({ state, house: locked, playerId: 'p1', placeId: 'D', mayEnterLocked: true }))).house?.room.name, 'Biblioteket');
+  assert.deepEqual(findHouseErrors({ ...HOUSE, rooms: [{ ...HOUSE.rooms[0], isLocked: 'ja' }, ...HOUSE.rooms.slice(1)] }, MISSION.places, ['seansen', 'urklippen']), ['rummet F har ett lås som inte är sant eller falskt']);
+});
+
 test('spelaren går bara genom dörrar till rummen intill', () => {
   let state = start();
   assert.deepEqual(walk({ state, house: HOUSE, playerId: 'p1', placeId: 'D' }), { refusal: 'noDoor' });

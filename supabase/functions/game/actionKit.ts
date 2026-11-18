@@ -60,6 +60,7 @@ const STATUS_FOR_ERROR: Record<ActionError, number> = {
   notTrapped: HTTP_FORBIDDEN,
   noMoreFuses: HTTP_CONFLICT,
   noDoor: HTTP_CONFLICT,
+  locked: HTTP_CONFLICT,
   noMoreHints: HTTP_CONFLICT,
   notYourKey: HTTP_FORBIDDEN,
   unknownKey: HTTP_BAD_REQUEST,

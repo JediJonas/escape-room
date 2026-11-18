@@ -44,7 +44,16 @@ export type HouseThing = {
   callingText?: string;
 };
 
-export type HouseRoom = { place: PlaceId; doors: PlaceId[]; things: HouseThing[] };
+export type HouseRoom = {
+  place: PlaceId;
+  doors: PlaceId[];
+  things: HouseThing[];
+  /**
+   * Dörren till rummet är låst för alla utom den som steget skickar dit, som
+   * den instängda till källaren (Jonas 2026-11-18). Dörren står ändå i listan.
+   */
+  isLocked?: boolean;
+};
 
 export type House = {
   /** Rummet där alla börjar. */
@@ -52,7 +61,7 @@ export type House = {
   rooms: HouseRoom[];
 };
 
-export type HouseRefusal = 'noDoor' | 'unknownPlace';
+export type HouseRefusal = 'noDoor' | 'unknownPlace' | 'locked';
 
 function findRoom(house: House, place: PlaceId | undefined): HouseRoom | undefined {
   return house.rooms.find((room) => room.place === place);
@@ -80,17 +89,20 @@ export function placeInHouse(state: GameState, house: House, playerIds: readonly
   return { ...state, placeByPlayer };
 }
 
-/** Spelaren går genom en dörr. Det går bara till ett rum intill. */
-export function walk({ state, house, playerId, placeId }: {
+/** Spelaren går genom en dörr. Det går bara till ett rum intill, och in i ett låst rum bara om hon ska dit. */
+export function walk({ state, house, playerId, placeId, mayEnterLocked = false }: {
   state: GameState;
   house: House;
   playerId: string;
   placeId: unknown;
+  mayEnterLocked?: boolean;
 }): { state: GameState } | { refusal: HouseRefusal } {
-  if (!isPlaceId(placeId) || !findRoom(house, placeId)) return { refusal: 'unknownPlace' };
+  const target = isPlaceId(placeId) ? findRoom(house, placeId) : undefined;
+  if (!isPlaceId(placeId) || !target) return { refusal: 'unknownPlace' };
   const here = findRoom(house, state.placeByPlayer[playerId]);
   // Den som av någon anledning står utanför huset får gå till vilket rum som helst.
   if (here && !here.doors.includes(placeId)) return { refusal: 'noDoor' };
+  if (target.isLocked === true && !mayEnterLocked) return { refusal: 'locked' };
   return { state: { ...state, placeByPlayer: { ...state.placeByPlayer, [playerId]: placeId } } };
 }
 
@@ -246,6 +258,7 @@ export function findHouseErrors(house: unknown, places: Record<string, unknown>,
   for (const room of rooms) {
     const place = room?.place;
     if (!isPlaceId(place) || !(place in places)) errors.push(`huset har ett rum på en plats som uppdraget saknar: ${String(place)}`);
+    if (room?.isLocked !== undefined && typeof room.isLocked !== 'boolean') errors.push(`rummet ${String(place)} har ett lås som inte är sant eller falskt`);
     if (!Array.isArray(room?.doors) || !Array.isArray(room?.things)) {
       errors.push(`rummet ${String(place)} saknar dörrar eller saker`);
       continue;

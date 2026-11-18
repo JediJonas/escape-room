@@ -18,7 +18,7 @@ import { type FoundItem, describeFound, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
-export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | FlashbackRefusal | PianoRefusal;
+export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | 'locked' | FlashbackRefusal | PianoRefusal;
 
 export type StateChange = { state: GameState } | { refusal: GameRefusal };
 
@@ -89,7 +89,7 @@ export function findRole(step: MissionStep, state: GameState, playerId: string):
  * Platsen som spelaren ska till i steget. En roll kan ha en egen plats, så
  * att gruppen delar på sig. Annars gäller stegets plats, om det har någon.
  */
-function findGoal(step: MissionStep, state: GameState, playerId: string): PlaceId | undefined {
+export function findGoal(step: MissionStep, state: GameState, playerId: string): PlaceId | undefined {
   return findRole(step, state, playerId)?.goTo ?? step.goTo;
 }
 
@@ -227,10 +227,14 @@ export function choosePlace({ state, mission, players, player, placeId, nowMs }:
   const place = listPlaces(mission).find((candidate) => candidate.id === placeId);
   if (!place) return { refusal: 'unknownPlace' };
   const moved = { ...state, placeByPlayer: { ...state.placeByPlayer, [player.id]: place.id } };
+  return { state: moveOnIfAllDone(markTrappedArrival(moved, mission, player.id, nowMs), mission, players) };
+}
+
+/** Kommer den instängda fram till källaren, i listan eller genom dörren i huset, börjar det komma närmare. */
+export function markTrappedArrival(state: GameState, mission: Mission, playerId: string, nowMs: number): GameState {
   const step = mission.steps[state.stepIndex];
-  const isTrappedArriving = step.type === 'cellar' && moved.cellar !== null && findRole(step, moved, player.id)?.id === step.trappedRoleId && isAtGoal(step, moved, player.id);
-  const arrived = isTrappedArriving && moved.cellar ? { ...moved, cellar: markArrived(moved.cellar, nowMs) } : moved;
-  return { state: moveOnIfAllDone(arrived, mission, players) };
+  const isTrappedArriving = step.type === 'cellar' && state.cellar !== null && findRole(step, state, playerId)?.id === step.trappedRoleId && isAtGoal(step, state, playerId);
+  return isTrappedArriving && state.cellar ? { ...state, cellar: markArrived(state.cellar, nowMs) } : state;
 }
 
 /** Stora och små bokstäver och extra mellanslag spelar ingen roll i ett svar. */

@@ -47,7 +47,8 @@
           "F",
           "C",
           "D",
-          "E"
+          "E",
+          "A"
         ],
         "things": [
           {
@@ -115,6 +116,14 @@
           "B"
         ],
         "things": []
+      },
+      {
+        "place": "A",
+        "doors": [
+          "B"
+        ],
+        "things": [],
+        "isLocked": true
       }
     ]
   },
@@ -330,7 +339,7 @@
     {
       "id": "kallaren",
       "type": "cellar",
-      "text": "Vera viskar: Det finns ett rum bakom källaren. En av er måste gå ner. Den som får källaren går ner dit. De andra stannar vid bordet och lotsar.",
+      "text": "Vera viskar: Det finns ett rum bakom källaren. En av er måste gå ner.",
       "roles": [
         {
           "id": "instangd",
@@ -366,6 +375,8 @@
       "fuses": 3,
       "lightMs": 3000,
       "wrongTapMs": 15000,
+      "goDownText": "Du går ner i källaren.",
+      "othersGoDownText": "{name} går ner i källaren.",
       "foundText": "Bakom hyllan finns ett litet rum. På väggen står namn inristade, vart och ett överstruket och följt av nästa. Det sista är Vera. Under det håller någon på att rista in ett nytt namn: {name}. Berätta det för de andra genom dörren.",
       "othersFoundText": "{name} har hittat något bakom hyllan. Det har blivit alldeles tyst i källaren. Fråga vad hon ser.",
       "caughtText": "Lyktan slocknar. Något andas alldeles intill den som är i källaren. Sedan går källardörren upp av sig själv, och ingen hann se vad som fanns bakom hyllan.",

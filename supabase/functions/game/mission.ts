@@ -119,8 +119,8 @@ export type SeanceStep = {
   roles?: undefined;
   hints: string[];
   /**
-   * Brädet kallar på gruppen från huset: det flimrar i listan och det
-   * knackar i mobilerna tills meddelandet är klart (Jonas 2026-11-17).
+   * Brädet kallar på gruppen från huset: det skimrar i listan tills
+   * meddelandet är klart (Jonas 2026-11-18).
    */
   callsFromHouse?: boolean;
   /** Med svar i facit skriver gruppen ett svar på meddelandet i stället för att trycka Klar. Det här står ovanför fältet. */

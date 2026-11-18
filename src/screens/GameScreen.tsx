@@ -8,7 +8,6 @@ import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
 import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
-import { useKnocking } from '../tasks/useKnocking.ts';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
@@ -60,9 +59,6 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [openThingId, setOpenThingId] = useState<string | null>(null);
   const { step } = view;
   const memory = useMemoryTime(step.rooms?.remembersUntilMs ?? null, clockOffsetMs, game.fadeMemory);
-  // Brädet kallar med knackningar så länge spelaren är ute i huset (Jonas 2026-11-17).
-  const isHouseCalling = view.house?.things.some((thing) => thing.isCalling) ?? false;
-  useKnocking(isHouseCalling && openThingId === null && !isFoundOpen && !view.isFinished);
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
   const hasPlaceToGo = step.goTo !== null && !isAtGoal;
   const needsPlace = view.me.isPlaying && hasPlaceToGo && !view.isFinished;

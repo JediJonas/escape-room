@@ -4,7 +4,7 @@
  * docs/motorn.md.
  */
 
-import { type ClockView, describeClock, pauseClock, resumeClock, startClock } from './clock.ts';
+import { type ClockView, describeClock, pauseClock, resumeClock, shortenClock, startClock } from './clock.ts';
 import { type CellarStep, type Mission, type MissionDocument, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
@@ -28,6 +28,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     ...state,
     stepIndex,
     readyPlayerIds: [],
+    wrongAnswers: 0,
     hintsGiven: 0,
     isSolutionShown: false,
     seance: step.type === 'seance' ? startSeance() : null,
@@ -86,13 +87,26 @@ function isDoneWhenArrived(step: MissionStep): boolean {
   return step.goTo !== undefined && step.textAtPlace === undefined && !hasRolesWithOwnPlace;
 }
 
+function isSeanceDone(step: MissionStep, state: GameState): boolean {
+  return step.type === 'seance' && state.seance !== null && isSeanceComplete(state.seance, step.solution.message);
+}
+
+/**
+ * Om gruppen kan skriva ett svar nu. En seans med svar i facit tar emot svar
+ * när meddelandet är klart, och frågan står kvar tills gruppen vet
+ * (Jonas 2026-11-17).
+ */
+function acceptsAnswer(step: MissionStep, state: GameState): boolean {
+  return step.type === 'answer' || (step.type === 'seance' && step.solution.answers !== undefined && isSeanceDone(step, state));
+}
+
 /**
  * En scen utan plats att gå till, eller med text på platsen, klaras med Klar.
  * En seans också, när meddelandet är klart, så att gruppen hinner prata om
  * det innan skärmen byts. En uppgift med svar klaras genom att lösas.
  */
 function usesReadyButton(step: MissionStep, state: GameState): boolean {
-  if (step.type === 'seance') return state.seance !== null && isSeanceComplete(state.seance, step.solution.message);
+  if (step.type === 'seance') return step.solution.answers === undefined && isSeanceDone(step, state);
   if (step.type === 'cellar') return state.cellar !== null && state.cellar.outcome !== null;
   return step.type === 'scene' && !isDoneWhenArrived(step);
 }
@@ -192,7 +206,11 @@ export function findCurrentTask(state: GameState, mission: Mission): { step: Tas
   return step.type === 'scene' ? { refusal: 'notATask' } : { step };
 }
 
-/** Vem som helst i gruppen kan svara. Ett rätt svar för alla vidare. */
+/**
+ * Vem som helst i gruppen kan svara. Ett rätt svar för alla vidare. Kostar
+ * ett fel svar tid räknas det, så att alla ser det, och dras från
+ * nedräkningen. Annars får bara den som svarade veta att det var fel.
+ */
 export function submitAnswer({ state, mission, players, answer }: {
   state: GameState;
   mission: Mission;
@@ -201,10 +219,16 @@ export function submitAnswer({ state, mission, players, answer }: {
 }): StateChange {
   const task = findCurrentTask(state, mission);
   if ('refusal' in task) return { refusal: task.refusal };
-  if (task.step.type !== 'answer') return { refusal: 'notATask' };
+  const { step } = task;
+  if (!acceptsAnswer(step, state)) return { refusal: 'notATask' };
+  const answers = step.type === 'answer' || step.type === 'seance' ? step.solution.answers ?? [] : [];
   const given = typeof answer === 'string' ? normalizeAnswer(answer) : '';
-  const isRight = given !== '' && task.step.solution.answers.some((correct) => normalizeAnswer(correct) === given);
-  return isRight ? { state: moveOn(state, mission, players) } : { refusal: 'wrongAnswer' };
+  if (given === '') return { refusal: 'wrongAnswer' };
+  if (answers.some((correct) => normalizeAnswer(correct) === given)) return { state: moveOn(state, mission, players) };
+  const minutes = step.type === 'seance' ? step.wrongAnswerMinutes : undefined;
+  if (minutes === undefined) return { refusal: 'wrongAnswer' };
+  const clock = state.clock ? shortenClock(state.clock, minutes) : null;
+  return { state: { ...state, clock, wrongAnswers: state.wrongAnswers + 1 } };
 }
 
 /** Spelledaren ger gruppen nästa ledtråd. Alla får den samtidigt. */
@@ -266,6 +290,11 @@ export type GameView = {
     opensFrom: string | null;
     /** Om spelaren trycker Klar i steget, eller blir klar av att komma fram. */
     usesReadyButton: boolean;
+    /** Om gruppen kan skriva ett svar nu, och frågan ovanför fältet när steget har en. */
+    acceptsAnswer: boolean;
+    question: string | null;
+    /** Fel svar hittills i uppgiften, och vad varje fel kostar, när fel svar kostar tid. */
+    wrongAnswers: { count: number; minutes: number } | null;
     isMeDone: boolean;
     /** Ledtrådarna som gruppen har fått, och hur många uppgiften har. */
     hints: string[];
@@ -357,6 +386,9 @@ export function buildGameView({ game, mission, players, viewer }: {
       type: step.type,
       opensFrom: findOpener(mission.house, step.id),
       usesReadyButton: usesReadyButton(step, state),
+      acceptsAnswer: isRunning && acceptsAnswer(step, state),
+      question: step.type === 'seance' && isSeanceDone(step, state) ? step.question ?? null : null,
+      wrongAnswers: step.type === 'seance' && step.wrongAnswerMinutes !== undefined ? { count: state.wrongAnswers, minutes: step.wrongAnswerMinutes } : null,
       isMeDone: isPlayerDone(step, state, viewer.id),
       hints: step.hints?.slice(0, state.hintsGiven) ?? [],
       hintCount: step.hints?.length ?? 0,

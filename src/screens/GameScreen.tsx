@@ -8,6 +8,7 @@ import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
 import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
+import { useKnocking } from '../tasks/useKnocking.ts';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
@@ -59,6 +60,9 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const [openThingId, setOpenThingId] = useState<string | null>(null);
   const { step } = view;
   const memory = useMemoryTime(step.rooms?.remembersUntilMs ?? null, clockOffsetMs, game.fadeMemory);
+  // Brädet kallar med knackningar så länge spelaren är ute i huset (Jonas 2026-11-17).
+  const isHouseCalling = view.house?.things.some((thing) => thing.isCalling) ?? false;
+  useKnocking(isHouseCalling && openThingId === null && !isFoundOpen && !view.isFinished);
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
   const hasPlaceToGo = step.goTo !== null && !isAtGoal;
   const needsPlace = view.me.isPlaying && hasPlaceToGo && !view.isFinished;
@@ -172,7 +176,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   }
   const isTask = step.type !== 'scene' && !view.isFinished;
   // Spelledaren som står utanför svarar inte och trycker inte Klar.
-  const canAnswer = step.type === 'answer' && !view.isFinished && view.me.isPlaying;
+  const canAnswer = step.acceptsAnswer && !view.isFinished && view.me.isPlaying;
 
   // Tillstånden måste begäras direkt i trycket, annars nekar iPhone. Svaret behövs inte här:
   // en uppgift som använder rörelse lyssnar bara, och fingret tar över om inga värden kommer.
@@ -249,6 +253,10 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         </section>
       )}
       {!view.me.isPlaying && !view.isFinished && <p className="hint">Du står utanför och leder spelet. Du ser det alla ser, men ingen roll.</p>}
+      {step.question && <p className="status" role="status">{step.question}</p>}
+      {step.wrongAnswers && step.wrongAnswers.count > 0 && (
+        <p className="status" role="status">Fel svar {step.wrongAnswers.count} {step.wrongAnswers.count === 1 ? 'gång' : 'gånger'}. Varje fel kostar {step.wrongAnswers.minutes} minuter.</p>
+      )}
       {canAnswer && (
         <form id={ANSWER_FORM_ID} className="field" onSubmit={submitAnswer}>
           <label htmlFor="answer">Ert svar</label>

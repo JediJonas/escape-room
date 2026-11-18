@@ -111,8 +111,20 @@ export type SeanceStep = {
   textAtPlace?: undefined;
   roles?: undefined;
   hints: string[];
-  /** Meddelandet, med versaler och mellanslag mellan orden. Lämnar aldrig servern i sin helhet. */
-  solution: { message: string };
+  /**
+   * Brädet kallar på gruppen från huset: det flimrar i listan och det
+   * knackar i mobilerna tills meddelandet är klart (Jonas 2026-11-17).
+   */
+  callsFromHouse?: boolean;
+  /** Med svar i facit skriver gruppen ett svar på meddelandet i stället för att trycka Klar. Det här står ovanför fältet. */
+  question?: string;
+  /** Så många minuter kostar ett fel svar. */
+  wrongAnswerMinutes?: number;
+  /**
+   * Meddelandet, med versaler och mellanslag mellan orden, och svaren som
+   * gruppen kan skriva. Lämnar aldrig servern i sin helhet.
+   */
+  solution: { message: string; answers?: string[] };
 };
 
 /** Ett rum i Rummen minns: platsen och det som syns där i minnet, viktigast först. */
@@ -186,7 +198,7 @@ export type MissionStep = SceneStep | TaskStep;
 /** Facit som text, det som spelledaren ser när hon ber om det. */
 export function describeSolution(step: TaskStep, places: readonly Place[]): string {
   if (step.type === 'answer') return step.solution.answers[0];
-  if (step.type === 'seance') return step.solution.message;
+  if (step.type === 'seance') return step.solution.answers ? `${step.solution.message}, svar: ${step.solution.answers[0]}` : step.solution.message;
   if (step.type === 'cellar') return `Dörren åt ${step.solution.doorYawDeg} grader i bilden`;
   return describeRoomsSolution(step, places);
 }
@@ -264,6 +276,13 @@ function findSeanceErrors(step: Record<string, unknown>, name: string): string[]
   const message = (step.solution as { message?: unknown } | undefined)?.message;
   if (typeof message !== 'string' || !SEANCE_LETTERS.test(message)) errors.push(`${name} ska ha ett meddelande med versaler A till Ö och ett mellanslag mellan orden`);
   if (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined) errors.push(`${name} är en seans och kan inte ha plats eller roller`);
+  if (step.callsFromHouse !== undefined && typeof step.callsFromHouse !== 'boolean') errors.push(`${name} har callsFromHouse som inte är sant eller falskt`);
+  const answers = (step.solution as { answers?: unknown } | undefined)?.answers;
+  const hasAnswers = answers !== undefined;
+  if (hasAnswers && !(Array.isArray(answers) && answers.length > 0 && answers.every(isFilledText))) errors.push(`${name} har tomma svar i facit`);
+  if (hasAnswers !== isFilledText(step.question)) errors.push(`${name} ska ha både en fråga och svar i facit, eller ingetdera`);
+  const minutes = step.wrongAnswerMinutes;
+  if (minutes !== undefined && !(hasAnswers && typeof minutes === 'number' && minutes > 0)) errors.push(`${name} har en kostnad för fel svar utan svar, eller en ogiltig kostnad`);
   return errors;
 }
 

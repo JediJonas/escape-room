@@ -10,6 +10,7 @@
 
 import type { Mission, MissionStep, Place } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
+import { isSeanceComplete } from './seance.ts';
 import type { GameState } from './state.ts';
 
 /** En sak i ett rum som spelaren kan trycka på. Den öppnar alltid en vy. */
@@ -18,8 +19,8 @@ export type HouseThing = {
   name: string;
   /** Texten i vyn, till exempel det som står på tavlan. */
   text?: string;
-  /** Steget som saken öppnar, till exempel seansen vid ouijabrädet. */
-  opensStep?: string;
+  /** Stegen som saken öppnar, till exempel båda seanserna vid ouijabrädet. */
+  opensSteps?: string[];
   /** Saken går att hitta först när gruppen har kommit till det här steget. */
   fromStep?: string;
   /** Saken står i listan från början, som ouijabrädet. */
@@ -101,6 +102,8 @@ export type ThingView = {
   opensCurrentStep: boolean;
   /** Steget som saken öppnade tidigare och som går att läsa igen, med namnet i Hittat. */
   opensFound: string | null;
+  /** Saken kallar på gruppen, som brädet när det vill fråga något (Jonas 2026-11-17). */
+  isCalling: boolean;
 };
 
 export type HouseView = {
@@ -111,11 +114,27 @@ export type HouseView = {
   canSearch: boolean;
 };
 
+/** En seans som kallar på gruppen gör det tills meddelandet är klart. */
+function isStepCalling(step: MissionStep, state: GameState): boolean {
+  return step.type === 'seance' && step.callsFromHouse === true && state.seance !== null && !isSeanceComplete(state.seance, step.solution.message);
+}
+
 function describeThing(thing: HouseThing, mission: Mission, state: GameState): ThingView {
-  const opened: MissionStep | undefined = mission.steps.find((step) => step.id === thing.opensStep);
-  const openedIndex = stepIndexOf(mission, thing.opensStep);
-  const opensFound = opened?.type === 'scene' && opened.foundTitle !== undefined && openedIndex < state.stepIndex ? opened.foundTitle : null;
-  return { id: thing.id, name: thing.name, text: thing.text ?? null, opensCurrentStep: opened !== undefined && openedIndex === state.stepIndex, opensFound };
+  const opened = (thing.opensSteps ?? []).flatMap((stepId) => {
+    const step = mission.steps.find((candidate) => candidate.id === stepId);
+    return step ? [{ step, index: stepIndexOf(mission, stepId) }] : [];
+  });
+  const current = opened.find(({ index }) => index === state.stepIndex);
+  const found = opened.filter(({ step, index }) => step.type === 'scene' && step.foundTitle !== undefined && index < state.stepIndex).at(-1);
+  const opensFound = found?.step.type === 'scene' ? found.step.foundTitle ?? null : null;
+  return {
+    id: thing.id,
+    name: thing.name,
+    text: thing.text ?? null,
+    opensCurrentStep: current !== undefined,
+    opensFound,
+    isCalling: current !== undefined && isStepCalling(current.step, state),
+  };
 }
 
 export function describeHouse({ state, mission, house, places, viewerId }: {
@@ -140,7 +159,7 @@ export function describeHouse({ state, mission, house, places, viewerId }: {
 /** Namnet på saken som öppnar steget, om steget öppnas från en sak i huset. */
 export function findOpener(house: House | undefined, stepId: string): string | null {
   const things = house?.rooms.flatMap((room) => room.things) ?? [];
-  return things.find((thing) => thing.opensStep === stepId)?.name ?? null;
+  return things.find((thing) => thing.opensSteps?.includes(stepId))?.name ?? null;
 }
 
 function isFilledText(value: unknown): value is string {
@@ -154,10 +173,13 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   thingIds.add(thing.id);
   if (!isFilledText(thing.name)) errors.push(`${name} saknar namn`);
   if (thing.text !== undefined && !isFilledText(thing.text)) errors.push(`${name} har en tom text`);
-  for (const field of ['opensStep', 'fromStep'] as const) {
-    if (thing[field] !== undefined && !stepIds.includes(thing[field])) errors.push(`${name} pekar på ett steg som inte finns: ${String(thing[field])}`);
+  if (thing.fromStep !== undefined && !stepIds.includes(thing.fromStep)) errors.push(`${name} pekar på ett steg som inte finns: ${String(thing.fromStep)}`);
+  const opens = thing.opensSteps;
+  if (opens !== undefined && !(Array.isArray(opens) && opens.length > 0)) errors.push(`${name} ska öppna en lista med steg`);
+  for (const stepId of Array.isArray(opens) ? opens : []) {
+    if (!stepIds.includes(stepId)) errors.push(`${name} pekar på ett steg som inte finns: ${String(stepId)}`);
   }
-  if (thing.text === undefined && thing.opensStep === undefined) errors.push(`${name} har varken text eller steg att öppna`);
+  if (thing.text === undefined && opens === undefined) errors.push(`${name} har varken text eller steg att öppna`);
   return errors;
 }
 

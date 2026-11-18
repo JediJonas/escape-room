@@ -54,7 +54,7 @@ function saveRooms({ state, mission, players, step, rooms }: { state: GameState;
 
 /** Rummet där saken som öppnar steget står, till exempel salongen med golvuret. */
 function findOpenerPlace(mission: Mission, stepId: string): PlaceId | undefined {
-  return mission.house?.rooms.find((room) => room.things.some((thing) => thing.opensStep === stepId))?.place;
+  return mission.house?.rooms.find((room) => room.things.some((thing) => thing.opensSteps?.includes(stepId)))?.place;
 }
 
 /** Spelaren vrider golvurets visare. Står de på rätt tid börjar hela huset minnas. */

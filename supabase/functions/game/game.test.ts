@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { advanceStep, buildGameView, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
+import { advanceStep, buildGameView, choosePlace, giveHint, markReady, showSolution, startGame, submitAnswer } from './game.ts';
+import { endGame, setPaused } from './leaderControls.ts';
 import type { Mission } from './mission.ts';
 import { getMission } from './missions/index.ts';
 import { type GameRecord, type GameState, type PlayerRecord, createInitialState } from './state.ts';
@@ -45,6 +46,22 @@ test('spelet tar slut när gruppen kommer till sluttexten, och står kvar där',
   assert.deepEqual({ status: state.status, stepIndex: state.stepIndex }, { status: 'finished', stepIndex: lastIndex });
   const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: 'prov', state }, mission: MISSION, players: [LEADER, GUEST], viewer: GUEST });
   assert.deepEqual({ isFinished: view.isFinished, text: view.step.text }, { isFinished: true, text: MISSION.steps[lastIndex].text });
+});
+
+test('ett spel som tar slut av sig självt är inte avslutat av spelledaren', () => {
+  const lastIndex = MISSION.steps.length - 1;
+  const state = readState(advanceStep({ state: { ...createInitialState(), status: 'running', stepIndex: lastIndex - 1 }, mission: MISSION, players: [LEADER, GUEST], player: LEADER }));
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: 'prov', state }, mission: MISSION, players: [LEADER, GUEST], viewer: GUEST });
+  assert.equal(view.isEndedByLeader, false);
+});
+
+test('bara spelledaren kan avsluta spelet, och bara medan det är igång', () => {
+  const running: GameState = { ...createInitialState(), status: 'running', stepIndex: 1 };
+  assert.deepEqual(endGame({ state: running, player: GUEST }), { refusal: 'notLeader' });
+  assert.deepEqual(endGame({ state: createInitialState(), player: LEADER }), { refusal: 'notRunning' });
+  const state = readState(endGame({ state: running, player: LEADER }));
+  assert.deepEqual({ status: state.status, isEndedByLeader: state.isEndedByLeader, stepIndex: state.stepIndex }, { status: 'finished', isEndedByLeader: true, stepIndex: 1 });
+  assert.deepEqual(endGame({ state, player: LEADER }), { refusal: 'notRunning' });
 });
 
 test('platsen sparas per spelare och bara texten för den egna platsen syns', () => {
@@ -109,6 +126,21 @@ test('bara spelledaren pausar, och vyn visar tiden som är kvar', () => {
   assert.deepEqual(buildGameView({ game, mission: MISSION, players: PLAYERS, viewer: GUEST }).clock, { isPaused: true, remainingMs: 44 * 60_000 });
   const resumed = readState(setPaused({ state: paused, player: LEADER, isPaused: false, nowMs: 120_000 }));
   assert.deepEqual(buildGameView({ game: { ...game, state: resumed }, mission: MISSION, players: PLAYERS, viewer: GUEST }).clock, { isPaused: false, endsAtMs: 46 * 60_000 });
+});
+
+test('pausen stoppar också minnet, skenet och källaren', () => {
+  const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: LEADER, leaderPlays: true, minutes: 45, nowMs: 0 }));
+  const timed: GameState = {
+    ...started,
+    flashback: { dialMinutes: 0, remembersUntilMs: 90_000, choices: [], seenPlaces: [] },
+    seance: { letterIndex: 1, followerIds: ['p1'], progress: 0.5, anchorMs: 50_000, pauseUntilMs: 55_000, brokenBy: { playerId: 'p2', atMs: 40_000 } },
+    cellar: { arrivedAtMs: 30_000, penaltyMs: 0, fusesUsed: 0, litUntilMs: null, outcome: null },
+  };
+  const paused = readState(setPaused({ state: timed, player: LEADER, isPaused: true, nowMs: 60_000 }));
+  const resumed = readState(setPaused({ state: paused, player: LEADER, isPaused: false, nowMs: 80_000 }));
+  assert.equal(resumed.flashback?.remembersUntilMs, 110_000);
+  assert.deepEqual(resumed.seance, { ...timed.seance, anchorMs: 70_000, pauseUntilMs: 75_000, brokenBy: { playerId: 'p2', atMs: 60_000 } });
+  assert.deepEqual(resumed.cellar, { ...timed.cellar, arrivedAtMs: 50_000 });
 });
 
 const TASK_STEP_INDEX = MISSION.steps.findIndex((step) => step.type === 'answer');

@@ -18,6 +18,8 @@ export type PendingPlayer = { playerId: string; takesOverPlayerId: string | null
 
 export type GameState = {
   status: 'lobby' | 'running' | 'finished';
+  /** Spelledaren avslutade spelet innan uppdraget var slut (Jonas 2026-11-18). */
+  isEndedByLeader: boolean;
   /** Det steg i uppdraget som gruppen är på. */
   stepIndex: number;
   /** Var varje spelare är, efter spelarens id. */
@@ -87,7 +89,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, readingHintsGiven: 0, isUnreadHintGiven: false, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, flashback: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [], foundReaders: {} };
+  return { status: 'lobby', isEndedByLeader: false, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, readingHintsGiven: 0, isUnreadHintGiven: false, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, flashback: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [], foundReaders: {} };
 }
 
 /**
@@ -107,6 +109,7 @@ export function readGameState(saved: unknown): GameState {
   }
   return {
     status,
+    isEndedByLeader: fields.isEndedByLeader === true,
     roleByPlayer: readRoleByPlayer(fields.roleByPlayer),
     prominentHistory: readStringList(fields.prominentHistory),
     stepIndex: Number.isInteger(fields.stepIndex) ? fields.stepIndex as number : initial.stepIndex,

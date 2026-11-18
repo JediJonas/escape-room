@@ -1,0 +1,20 @@
+/*
+ * Pausrutan täcker allt, också inforutan, men inte spelledarens meny
+ * (z-index 29 till 31 i leaderMenu.css).
+ */
+.pause-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: var(--page);
+  color: var(--text);
+  text-align: center;
+}
+
+.pause-cover h1 { margin: 0; }
+.pause-cover p { max-width: 22rem; margin: 0; color: var(--muted); }

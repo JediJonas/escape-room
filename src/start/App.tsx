@@ -208,6 +208,7 @@ export function App() {
     searchRoom: () => sendInGame({ type: 'searchRoom' }),
     giveHint: (isAboutReading) => sendInGame({ type: 'giveHint', isAboutReading }),
     showSolution: () => sendInGame({ type: 'showSolution' }),
+    endGame: () => sendInGame({ type: 'endGame' }),
     answerPending: (playerId, isAdmitted) => sendInGame({ type: isAdmitted ? 'admitPlayer' : 'rejectPlayer', playerId }),
     leave: () => {
       saveGameId(null);

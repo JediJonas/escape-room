@@ -44,6 +44,7 @@ export type LeaderMenuProps = {
   onGiveHint: (isAboutReading: boolean) => void;
   onShowSolution: () => void;
   onNextStep: () => void;
+  onEndGame: () => void;
   onAnswerPending: (playerId: string, isAdmitted: boolean) => void;
 };
 
@@ -52,9 +53,18 @@ export type LeaderMenuProps = {
  * (Jonas 2026-11-18). Där finns paus, Hoppa över i en uppgift och i urklippen,
  * och vid saken som är uppgiften ledtrådar och facit. Alla är klara togs bort,
  * så i en scen väntar gruppen tills alla har tryckt (Jonas 2026-11-18).
+ * Avsluta spelet ligger sist och frågar först, eftersom det inte går att
+ * ångra (Jonas 2026-11-18).
  */
-export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWithReading, onSetPaused, onGiveHint, onShowSolution, onNextStep, onAnswerPending }: LeaderMenuProps) {
+export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWithReading, onSetPaused, onGiveHint, onShowSolution, onNextStep, onEndGame, onAnswerPending }: LeaderMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isConfirmingEnd, setIsConfirmingEnd] = useState(false);
+  // Frågan om att avsluta börjar om varje gång menyn öppnas.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen);
+    setIsConfirmingEnd(false);
+  }
   const { step } = view;
   // Ett nytt steg börjar med menyn stängd.
   const [openStep, setOpenStep] = useState(step.number);
@@ -84,6 +94,16 @@ export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWit
       {isOpen && (
         <>
           <button type="button" className="leader-menu-backdrop" aria-label="Stäng menyn" tabIndex={-1} onClick={() => setIsOpen(false)} />
+          {isConfirmingEnd ? (
+            <section className="leader-menu" aria-label="Avsluta spelet">
+              <h2>Avsluta spelet för alla?</h2>
+              <p>Det går inte att ångra. Alla mobiler visar att spelet är slut.</p>
+              <div className="leader-menu-actions">
+                <button type="button" className="secondary" onClick={() => setIsConfirmingEnd(false)}>Avbryt</button>
+                <button type="button" className="danger" onClick={runAndClose(onEndGame)} disabled={isBusy}>Avsluta spelet</button>
+              </div>
+            </section>
+          ) : (
           <section className="leader-menu" aria-label="Spelledarens meny">
             <PendingList view={view} isBusy={isBusy} onAnswer={onAnswerPending} />
             {stepText && <p className="leader-menu-text">{stepText}</p>}
@@ -112,8 +132,10 @@ export function LeaderMenu({ view, isBusy, stepText, canHelpWithTask, canHelpWit
                   {isPaused ? 'Fortsätt spelet' : 'Pausa spelet'}
                 </button>
               )}
+              <button type="button" className="secondary" onClick={() => setIsConfirmingEnd(true)} disabled={isBusy}>Avsluta spelet</button>
             </div>
           </section>
+          )}
         </>
       )}
       <button

@@ -29,6 +29,7 @@ sist under Namn som är bestämda.
 | Vändningen | Den överraskning i berättelsen som en enskild spelare upptäcker på sin egen skärm och berättar för de andra. | |
 | Följd | Det ett misslyckande kostar: tid, eller en markering som senare steg och slut läser. | `wrongAnswerMinutes`, `marks` |
 | Slut | Ett av uppdragets avslutningar. Gruppens val och prestation avgör vilket. Inte byggt än. | |
+| Avsluta spelet | Spelledaren avslutar spelet för alla innan uppdraget är slut. Finns i hennes meny. | `endGame`, `isEndedByLeader` |
 | Förberedelsenivå | Hur mycket spelledaren behöver göra före spelet, från 1 (skriva ut ett ark) till 3 (bygga rekvisita). | |
 | Reserv | Ett sätt att klara ett moment på skärmen när en utskrift, sensor eller fysisk handling inte fungerar. | |
 

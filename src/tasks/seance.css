@@ -49,6 +49,10 @@
 .seance-board {
   position: absolute;
   inset: calc(3.25rem + env(safe-area-inset-top)) 0 calc(3.5rem + var(--bottom-gap));
+  /* Brädet får samma största yta som saker i fullskärm och hamnar mitt i (Jonas 2026-11-18). */
+  max-width: var(--stage-max-width);
+  max-height: var(--stage-max-height);
+  margin: auto;
   /* Fingret ska flytta planchetten, inte rulla sidan, markera text eller öppna en meny. */
   touch-action: none;
   user-select: none;

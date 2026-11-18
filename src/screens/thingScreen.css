@@ -3,6 +3,24 @@
  * (Jonas 2026-11-18). Klockan och knappen ligger överst och huvudhandlingen
  * underst. Bakgrunden är mörkt trä.
  */
+/*
+ * Ytan för innehållet i fullskärm. Bakgrunden går kant i kant, men saken och
+ * berättartexten får en största bredd och höjd. I mobilen är det hela
+ * telefonens bredd. I iPad och dator blir ytan lite större än i mobilen, men
+ * dras inte ut över hela skärmen (Jonas 2026-11-18).
+ */
+:root {
+  --stage-max-width: 100%;
+  --stage-max-height: 100%;
+}
+
+@media (min-width: 40rem) and (min-height: 40rem) {
+  :root {
+    --stage-max-width: 32rem;
+    --stage-max-height: 46rem;
+  }
+}
+
 .thing-screen {
   position: fixed;
   inset: 0;
@@ -24,6 +42,11 @@
 .thing-stage {
   flex: 1 1 auto;
   min-height: 0;
+  width: 100%;
+  max-width: var(--stage-max-width);
+  max-height: var(--stage-max-height);
+  /* Det som blir över när ytan har nått sin största storlek fördelas runt den. */
+  margin: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -32,6 +55,9 @@
 }
 
 .thing-actions {
+  width: 100%;
+  max-width: var(--stage-max-width);
+  margin: 0 auto;
   display: grid;
   gap: 0.5rem;
   padding: 0 0.75rem calc(1rem + var(--bottom-gap));

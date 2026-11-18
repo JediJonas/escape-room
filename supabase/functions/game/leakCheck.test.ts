@@ -15,6 +15,7 @@ import { readDialTime } from './flashback.ts';
 import { listParticipants } from './participants.ts';
 import { type Mission, listPlaces, listSolutionTexts } from './mission.ts';
 import { MISSIONS } from './missions/index.ts';
+import { withCellar } from './shelved/cellarMission.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
 function createPlayers(count: number): PlayerRecord[] {
@@ -206,7 +207,10 @@ function followWholeSeance(mission: Mission, state: GameState, players: PlayerRe
   return followed;
 }
 
-for (const mission of MISSIONS) {
+// Källaren är sparad undan men ska fortfarande inte läcka (Jonas 2026-11-18).
+const CELLAR_MISSION = withCellar(MISSIONS.find((mission) => mission.id === 'den-femte-gasten')!);
+
+for (const mission of [...MISSIONS, CELLAR_MISSION]) {
   test(`${mission.id}: ingen vy läcker något, med ${mission.minPlayers} till ${MAX_PLAYERS} spelare, med och utan spelledaren`, () => {
     for (const leaderPlays of [true, false]) for (let playerCount = mission.minPlayers; playerCount <= MAX_PLAYERS; playerCount += 1) {
       // Spelledaren som står utanför räknas inte, så det behövs en spelare till.

@@ -3,8 +3,9 @@ import { test } from 'vitest';
 import { type CellarMove, type CellarState, applyCellarMove, advanceCellar, describeCellar, findCatchMs, markArrived, readCellarState, startCellar, wrapDegrees } from './cellar.ts';
 import type { CellarStep } from './mission.ts';
 import { getMission } from './missions/index.ts';
+import { withCellar } from './shelved/cellarMission.ts';
 
-const STEP = getMission('den-femte-gasten')!.steps.find((step): step is CellarStep => step.type === 'cellar')!;
+const STEP = withCellar(getMission('den-femte-gasten')!).steps.find((step): step is CellarStep => step.type === 'cellar')!;
 const MINUTE_MS = 60_000;
 const ARRIVED = markArrived(startCellar(), 1000);
 

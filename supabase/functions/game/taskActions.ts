@@ -143,7 +143,9 @@ export function chooseFlashbackRoom({ state, mission, players, player, placeId, 
 
 /**
  * En mobil säger till att minnet har bleknat. Alla mobiler kan säga det,
- * men servern avgör. Har gruppen sett alla rummen går den vidare.
+ * men servern avgör. Har gruppen sett alla rummen går den vidare. Har en
+ * annan mobil redan hunnit säga det är uppgiften klar, och då händer inget,
+ * utan något fel (Jonas 2026-11-18).
  */
 export function fadeFlashback({ state, mission, players, nowMs }: {
   state: GameState;
@@ -152,7 +154,7 @@ export function fadeFlashback({ state, mission, players, nowMs }: {
   nowMs: number;
 }): StateChange {
   const task = findFlashbackTask(state, mission, nowMs);
-  if ('refusal' in task) return task;
+  if ('refusal' in task) return task.refusal === 'notATask' ? { state } : task;
   if (task.flashback === state.flashback) return { state };
   return { state: saveFlashback({ state, mission, players, task, flashback: task.flashback }) };
 }

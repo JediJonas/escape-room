@@ -232,7 +232,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Efteråt bokstaverar brädet av sig självt, om och om igen, som VERA (Jonas 2026-11-18).
   if (openThing && !openThing.opensCurrentStep && openThing.echo) {
     return withLeaderMenu(
-      <main className="seance-screen">
+      <main className="thing-screen seance-screen is-still">
         <p className="hint game-header">{screenHeader}</p>
         <EchoBoard message={openThing.echo} clockOffsetMs={clockOffsetMs} />
       </main>,
@@ -242,7 +242,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   if (openThing && !openThing.opensCurrentStep) {
     // Golvuret och pianot går att använda hela tiden, också innan berättelsen har kommit dit (Jonas 2026-11-18).
     const { instrument } = openThing;
-    const papers = openThing.opensFound ? listFoundPapers(view.found.filter((item) => item.title === openThing.opensFound)) : listPages(openThing.pages ?? []);
+    const papers = openThing.opensFound ? listFoundPapers(view.found.filter((item) => item.title === openThing.opensFound)) : listPages(openThing.pages ?? [], openThing.cover);
     return withLeaderMenu(
       <ThingScreen className={instrument?.type === 'piano' ? 'piano-screen' : undefined} header={screenHeader} actions={error ? <p className="error" role="alert">{error}</p> : undefined}>
         {instrument?.type === 'piano' && view.me.isPlaying && <PianoKeys keys={instrument.keys} onPlayKey={game.playKey} />}
@@ -291,7 +291,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   ) : undefined;
   if (step.seance && isBoardShown) {
     return withLeaderMenu(
-      <main className="seance-screen">
+      <main className={step.seance.isComplete ? 'thing-screen seance-screen is-still' : 'thing-screen seance-screen'}>
         <p className="hint game-header">
           <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>
           {view.clock?.isPaused && <span className="paused">Pausat</span>}

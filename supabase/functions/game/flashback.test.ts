@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { advanceStep, buildGameView, markReady, startGame } from './game.ts';
-import { chooseFlashbackRoom, fadeFlashback, turnClock, walkThroughDoor } from './taskActions.ts';
+import { chooseFlashbackRoom, fadeFlashback, searchHere, turnClock, walkThroughDoor } from './taskActions.ts';
 import type { Mission, FlashbackStep } from './mission.ts';
 import { getMission } from './missions/index.ts';
 import { advanceFlashback, chooseFlashbackRoom as chooseRoom, describeFlashback, isFlashbackSolved, listChoosablePlaces, readDialTime, readFlashbackState, snapDial, startFlashback, turnClock as turnHands } from './flashback.ts';
@@ -166,6 +166,8 @@ test('golvuret går att vrida innan berättelsen har kommit dit, och då hoppar 
   const [anna, bo, cia] = PLAYERS;
   let state = readState(startGame({ state: createInitialState(), mission: later, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));
   state = readState(walkThroughDoor({ state, mission: later, player: anna, placeId: 'F', nowMs: 0 }));
+  // Golvuret syns först när någon har letat i salongen (Jonas 2026-11-18).
+  state = readState(searchHere({ state, mission: later, player: anna }));
   const viewOf = (viewer: PlayerRecord) => buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: later.id, state }, mission: later, players: PLAYERS, viewer });
   assert.deepEqual(viewOf(anna).house?.things.find((thing) => thing.id === 'golvuret')?.instrument, { type: 'clock', dialMinutes: readDialTime('4.40') });
   state = readState(turnClock({ state, mission: later, players: PLAYERS, player: anna, minutes: NINE_FIFTEEN, nowMs: 0 }));
@@ -217,4 +219,19 @@ test('en scen som väntar på minnet går gruppen förbi direkt, om minnet redan
   state = readState(fadeFlashback({ state, mission: early, players: PLAYERS, nowMs: 3 * MINUTE_MS }));
   for (const player of PLAYERS) state = readState(markReady({ state, mission: early, players: PLAYERS, player }));
   assert.equal(early.steps[state.stepIndex].id, 'sedan');
+});
+
+test('Alla är klara medan huset minns får minnet att blekna direkt, och en sen mobil som säger att det har bleknat får inget fel (Jonas 2026-11-18)', () => {
+  const later: Mission = { ...FULL, steps: [{ id: 'urklippen', type: 'scene', text: 'Läs.', endsWithStep: STEP.id }, STEP, { id: 'sedan', type: 'scene', text: 'Sedan.' }, { id: 'slut', type: 'scene', text: 'Slut.' }] };
+  const [anna] = PLAYERS;
+  let state = readState(startGame({ state: createInitialState(), mission: later, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  state = readState(walkThroughDoor({ state, mission: later, player: anna, placeId: 'F', nowMs: 0 }));
+  state = readState(turnClock({ state, mission: later, players: PLAYERS, player: anna, minutes: NINE_FIFTEEN, nowMs: 0 }));
+  assert.ok(state.flashback?.remembersUntilMs);
+  state = readState(advanceStep({ state, mission: later, players: PLAYERS, player: anna, nowMs: MINUTE_MS }));
+  assert.equal(state.flashback?.remembersUntilMs, null);
+  assert.deepEqual(state.solvedSteps, ['rummen-minns']);
+  assert.equal(later.steps[state.stepIndex].id, 'sedan');
+  const lateFade = fadeFlashback({ state, mission: later, players: PLAYERS, nowMs: 3 * MINUTE_MS });
+  assert.deepEqual(lateFade, { state });
 });

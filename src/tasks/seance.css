@@ -1,28 +1,25 @@
 /*
- * Brädet i seansen. Det är mörkt i både ljust och mörkt läge, eftersom
- * seansen ska kännas som ett nedsläckt rum. Bokstäverna syns hela tiden, och
- * skenet stannar på dem utan att något lyser upp. Brädet och planchetten blir bilder när
- * designen ses över (Jonas 2026-11-17).
+ * Brädet i seansen. Det har samma mörka trä som de andra sakvyerna, som
+ * golvuret och pianot, och står i en ram (Jonas 2026-11-18). Bokstäverna syns
+ * hela tiden, och skenet stannar på dem utan att något lyser upp. Brädet och
+ * planchetten blir bilder när designen ses över (Jonas 2026-11-17).
  */
 
 /*
- * Brädet fyller hela skärmen under seansen, kant i kant som rundbilden i
- * fullskärm (Jonas 2026-11-17). Klockan, menyknappen och raderna ligger ovanpå
- * brädet och släpper igenom fingret. Knapparna i menyn behövs inte förrän
- * skenet har slocknat.
+ * Skärmen är en sakvy (.thing-screen) och har dess bakgrund. Klockan,
+ * menyknappen och raderna ligger ovanpå brädet och släpper igenom fingret.
  */
 .seance-screen {
-  position: fixed;
-  inset: 0;
-  height: 100dvh;
-  overflow: hidden;
   /* Ett finger utanför rutnätet ska inte heller rulla eller zooma sidan. */
   touch-action: none;
-  background-color: #0d0b10;
-  background-image: radial-gradient(ellipse at center, #2b2335, #0d0b10 75%);
+  --board-wood: #6b4527;
+  --board-wood-dark: #3f2615;
+  --board-frame: #2e1c0f;
+  --board-inlay: #8a6a3f;
+  --board-ink: rgb(240 225 200 / 0.8);
 }
 
-.seance-screen .game-header {
+.thing-screen.seance-screen .game-header {
   position: absolute;
   inset: 0 0 auto;
   z-index: 3;
@@ -31,7 +28,6 @@
   margin: 0 auto;
   padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0;
   align-items: center;
-  color: rgb(230 220 200 / 0.8);
   pointer-events: none;
 }
 
@@ -44,20 +40,38 @@
 }
 
 /*
- * Bokstäverna ligger mellan klockan överst och rutan i underkant, så att
- * inget skymmer dem. Bakgrunden går ändå kant i kant, och skenet får lysa
- * utanför rutnätet.
+ * Ramen runt brädet. Den ligger mellan klockan överst och rutan i underkant,
+ * så att inget skymmer bokstäverna, och får samma största yta som saker i
+ * fullskärm. Den står mitt i sidled men överst, under Tillbaka och tiden, som
+ * andra saker (Jonas 2026-11-18).
  */
-.seance-board {
+.seance-frame {
   position: absolute;
-  inset: calc(3.25rem + env(safe-area-inset-top)) 0 calc(3.5rem + var(--bottom-gap));
-  /*
-   * Brädet får samma största yta som saker i fullskärm. Det står mitt i sidled
-   * men överst, under Tillbaka och tiden, som andra saker (Jonas 2026-11-18).
-   */
-  max-width: var(--stage-max-width);
+  inset: calc(3.25rem + env(safe-area-inset-top)) 0.5rem calc(3.5rem + var(--bottom-gap));
+  max-width: calc(var(--stage-max-width) - 1rem);
   max-height: var(--stage-max-height);
   margin: 0 auto;
+  display: flex;
+  padding: 0.6rem;
+  border: 2px solid #1a0f07;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, #4d3019, var(--board-frame) 45%, #4d3019);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.55), inset 0 0 0 1px rgb(255 230 190 / 0.12);
+}
+
+/*
+ * Själva brädet i ramen, i ljusare trä med ådring och en mässingslist som på
+ * golvuret. Skenet får lysa ut över ramen.
+ */
+.seance-board {
+  position: relative;
+  flex: 1 1 auto;
+  border-radius: 0.4rem;
+  background:
+    repeating-linear-gradient(93deg, rgb(255 235 200 / 0.035) 0 2px, transparent 2px 11px),
+    repeating-linear-gradient(87deg, rgb(0 0 0 / 0.06) 0 1px, transparent 1px 17px),
+    radial-gradient(ellipse at center, var(--board-wood), var(--board-wood-dark) 85%);
+  box-shadow: inset 0 0 0 2px var(--board-inlay), inset 0 0 1.5rem rgb(0 0 0 / 0.5);
   /* Fingret ska flytta planchetten, inte rulla sidan, markera text eller öppna en meny. */
   touch-action: none;
   user-select: none;
@@ -77,10 +91,11 @@
   place-items: center;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(1.4rem, 7vw, 2.2rem);
-  color: rgb(230 220 200 / 0.55);
+  color: var(--board-ink);
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.5);
 }
 
-.seance-letters .is-start { font-size: 1.2em; color: rgb(230 220 200 / 0.35); }
+.seance-letters .is-start { font-size: 1.2em; color: rgb(240 225 200 / 0.5); }
 
 
 .seance-glow,
@@ -130,7 +145,7 @@
   margin: 0;
   padding: 0 1rem;
   text-align: center;
-  color: rgb(230 220 200 / 0.8);
+  color: rgb(240 225 200 / 0.85);
   text-shadow: 0 1px 4px #000000;
   pointer-events: none;
 }
@@ -148,8 +163,8 @@
   transform: translateX(-50%);
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  background: rgb(13 11 16 / 0.8);
-  border: 1px solid rgb(230 220 200 / 0.25);
+  background: rgb(20 12 6 / 0.85);
+  border: 1px solid rgb(240 225 200 / 0.3);
   text-shadow: none;
 }
 
@@ -169,4 +184,15 @@
 }
 
 .board-answer .hint { grid-column: 1 / -1; margin: 0; color: inherit; }
-.board-answer input { min-width: 0; }
+/*
+ * Minst 16 px, annars zoomar iPhone in när fältet får fokus. Brädet står
+ * still medan gruppen svarar, så att det går att zooma ut (Jonas 2026-11-18).
+ */
+.board-answer input { min-width: 0; font-size: max(1rem, 16px); }
+
+/*
+ * Brädet står still när skenet har slocknat eller när det bokstaverar av sig
+ * självt. Då tar det inte emot fingret, och sidan går att zooma som vanligt.
+ */
+.seance-screen.is-still,
+.seance-screen.is-still .seance-board { touch-action: manipulation; }

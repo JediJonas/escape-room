@@ -10,7 +10,8 @@ test('golvuret och minnet syns hos alla, och en mobil som säger att minnet har 
   // Berättelsen väntar på urklippen och golvuret. Där får spelledaren ge ledtrådar om golvuret (Jonas 2026-11-18).
   while (view.step.number < 5) view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 600 }), { status: 409, body: { error: 'notAtPlace' } });
-  const atClock = readGameView((await send(memory.store, 'user-Bo', { type: 'walk', gameId, placeId: 'F' })).body);
+  await send(memory.store, 'user-Bo', { type: 'walk', gameId, placeId: 'F' });
+  const atClock = readGameView((await send(memory.store, 'user-Bo', { type: 'searchRoom', gameId })).body);
   assert.equal(atClock.house?.things.find((thing) => thing.id === 'golvuret')?.opensAwaitedTask, true);
 
   memory.sentViews.length = 0;

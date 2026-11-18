@@ -12,7 +12,7 @@ import { describePending, listParticipants } from './participants.ts';
 import { dealRoles, sortByLastTurn } from './roles.ts';
 import { type PianoRefusal, type PianoView, describePiano, startPiano } from './piano.ts';
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
-import { type FlashbackRefusal, type FlashbackView, describeFlashback, startFlashback } from './flashback.ts';
+import { type FlashbackRefusal, type FlashbackView, describeFlashback, endFlashbackNow, isRemembering, startFlashback } from './flashback.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
 import { type FoundItem, describeFound, hasRead, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
@@ -80,20 +80,12 @@ function jumpTo(state: GameState, mission: Mission, players: readonly PlayerReco
   while (nextIndex < mission.steps.length && state.solvedSteps.includes(mission.steps[nextIndex].id)) nextIndex += 1;
   if (nextIndex >= mission.steps.length) return finish(kept);
   const entered = enterStep(kept, mission, players, nextIndex);
-  const isEnding = nextIndex === mission.steps.length - 1 && mission.steps[nextIndex].type === 'scene';
-  if (isEnding) return finish(entered);
-  return isDoneOnArrival(entered, mission, players) ? jumpTo(entered, mission, players, nextIndex + 1) : entered;
-}
-
-/**
- * En scen som väntar på en uppgift, som urklippen, kan vara klar redan när
- * gruppen kommer dit: alla har läst och golvuret är ställt. Då går gruppen
- * förbi den direkt, eftersom ingen annars gör något som för den vidare.
- */
-function isDoneOnArrival(state: GameState, mission: Mission, players: readonly PlayerRecord[]): boolean {
-  const step = mission.steps[state.stepIndex];
-  if (step.type !== 'scene' || step.endsWithStep === undefined) return false;
-  return players.length > 0 && !isWaitingForTask(step, state) && players.every((player) => isPlayerDone(step, state, player.id));
+  const step = mission.steps[nextIndex];
+  if (nextIndex === mission.steps.length - 1 && step.type === 'scene') return finish(entered);
+  // En scen som väntar på en uppgift, som urklippen, kan vara klar redan när gruppen kommer dit:
+  // alla har läst och golvuret är ställt. Då går gruppen förbi den, eftersom inget annat för den vidare.
+  const isDoneOnArrival = step.type === 'scene' && step.endsWithStep !== undefined && isAllDone(entered, mission, players);
+  return isDoneOnArrival ? jumpTo(entered, mission, players, nextIndex + 1) : entered;
 }
 
 export function findRole(step: MissionStep, state: GameState, playerId: string): Role | undefined {
@@ -179,9 +171,12 @@ function isPlayerDone(step: MissionStep, state: GameState, playerId: string): bo
 
 /** Går vidare när alla är klara, så att ingen behöver vänta på spelledaren. */
 export function moveOnIfAllDone(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
+  return state.status === 'running' && isAllDone(state, mission, players) ? moveOn(state, mission, players) : state;
+}
+
+function isAllDone(state: GameState, mission: Mission, players: readonly PlayerRecord[]): boolean {
   const step = mission.steps[state.stepIndex];
-  const isAllDone = state.status === 'running' && players.length > 0 && !isWaitingForTask(step, state) && players.every((player) => isPlayerDone(step, state, player.id));
-  return isAllDone ? moveOn(state, mission, players) : state;
+  return players.length > 0 && !isWaitingForTask(step, state) && players.every((player) => isPlayerDone(step, state, player.id));
 }
 
 export function startGame({ state, mission, players, starter, leaderPlays, minutes, nowMs }: {
@@ -223,15 +218,29 @@ function dealFoundAtStart(state: GameState, mission: Mission, players: readonly 
  * Spelledaren går vidare utan att vänta på alla, till exempel när någon har
  * gått iväg. I urklippen gör `skipReading` i reading.ts det i två steg.
  */
-export function advanceStep({ state, mission, players, player }: {
+export function advanceStep({ state, mission, players, player, nowMs = 0 }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   player: PlayerRecord;
+  /** Serverns tid, för att se om huset minns just nu. */
+  nowMs?: number;
 }): StateChange {
   if (!player.isLeader) return { refusal: 'notLeader' };
   if (state.status !== 'running') return { refusal: 'notRunning' };
-  return { state: moveOn(state, mission, players) };
+  return { state: moveOn(endMemoryNow(state, mission, nowMs), mission, players) };
+}
+
+/**
+ * Minns huset när spelledaren trycker Alla är klara bleknar minnet direkt och
+ * Rummen minns räknas som klarad, så att ingen behöver vänta ut nedräkningen
+ * (Jonas 2026-11-18).
+ */
+function endMemoryNow(state: GameState, mission: Mission, nowMs: number): GameState {
+  const step = mission.steps.find((candidate): candidate is FlashbackStep => candidate.type === 'flashback');
+  if (!step || !state.flashback || !isRemembering(state.flashback, nowMs)) return state;
+  const solvedSteps = state.solvedSteps.includes(step.id) ? state.solvedSteps : [...state.solvedSteps, step.id];
+  return { ...state, flashback: endFlashbackNow(step), solvedSteps };
 }
 
 /** Spelaren har läst och gjort sitt i steget. Den sista som blir klar för gruppen vidare. */
@@ -327,8 +336,7 @@ export function nextWrongAnswerCost(minutes: number, wrongAnswers: number): numb
  */
 export function findHelpTask(state: GameState, mission: Mission): { step: TaskStep } | { refusal: GameRefusal } {
   const task = findCurrentTask(state, mission);
-  if (!('refusal' in task) || task.refusal !== 'notATask') return task;
-  const awaited = findAwaitedTask(mission.steps[state.stepIndex], state, mission);
+  const awaited = 'refusal' in task && task.refusal === 'notATask' ? findAwaitedTask(mission.steps[state.stepIndex], state, mission) : null;
   return awaited ? { step: awaited } : task;
 }
 
@@ -555,7 +563,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))
       : null,
     found: describeFound(mission, state.found, viewer.id),
-    house: mission.house && isRunning ? describeHouse({ state, mission, house: mission.house, places, viewerId: viewer.id, participantIds: sortByJoinOrder(participants).map((player) => player.id) }) : null,
+    house: mission.house && isRunning ? describeHouse({ state, mission, house: mission.house, places, viewerId: viewer.id, participantIds: sortByJoinOrder(participants).map((player) => player.id), mayEnter: findGoal(step, state, viewer.id) }) : null,
     pending: showsLeaderTools ? describePending(state, players) : null,
     clock: isRunning && state.clock ? describeClock(state.clock) : null,
     myPlace,

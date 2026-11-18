@@ -76,6 +76,15 @@ export function advanceFlashback(flashback: FlashbackState, step: FlashbackStep,
   return { dialMinutes: readStartMinutes(step), remembersUntilMs: null, choices: [], seenPlaces: flashback.seenPlaces };
 }
 
+/**
+ * Spelledaren trycker Alla är klara medan huset minns. Då bleknar minnet
+ * direkt, så att gruppen slipper vänta ut tiden, och alla rummen räknas som
+ * sedda (Jonas 2026-11-18).
+ */
+export function endFlashbackNow(step: FlashbackStep): FlashbackState {
+  return { dialMinutes: readStartMinutes(step), remembersUntilMs: null, choices: [], seenPlaces: step.rooms.map((room) => room.place) };
+}
+
 /** Uppgiften är klar när gruppen har sett alla rummen och minnet har bleknat. */
 export function isFlashbackSolved(flashback: FlashbackState, step: FlashbackStep): boolean {
   return flashback.remembersUntilMs === null && step.rooms.every((room) => flashback.seenPlaces.includes(room.place));

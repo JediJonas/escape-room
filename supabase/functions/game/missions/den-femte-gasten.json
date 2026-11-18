@@ -28,7 +28,6 @@
               "vem-ar-jag"
             ],
             "callingText": "Från salongen hörs planchetten skrapa mot ouijabrädet.",
-            "isFoundFromStart": true,
             "echoes": [
               {
                 "fromStep": "det-ar-vera",
@@ -45,8 +44,7 @@
             "name": "Golvuret",
             "opensSteps": [
               "rummen-minns"
-            ],
-            "isFoundFromStart": true
+            ]
           }
         ]
       },
@@ -66,12 +64,12 @@
             "opensSteps": [
               "pianot"
             ],
-            "callingText": "Från hallen hörs en ensam ton från pianot.",
-            "isFoundFromStart": true
+            "callingText": "Från hallen hörs en ensam ton från pianot."
           },
           {
             "id": "gastboken",
             "name": "Gästboken",
+            "cover": "Gästbok Ekbacken",
             "pages": [
               "14 juni 1958\nIngrid Lindahl\nTore Lindahl\nBirgitta Nyberg\nLennart Nyberg\nUlla Forsén",
               "26 december 1959\nGunnar Ahl\nKarin Ahl\nOlof Nyman\nMaj Sundin\nBertil Sundin",
@@ -83,6 +81,7 @@
           {
             "id": "kallardorren",
             "name": "Källardörren",
+            "doorTo": "A",
             "text": "Dörren är låst. Någon har vridit om nyckeln och tagit den med sig."
           }
         ]

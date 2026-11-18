@@ -50,14 +50,16 @@ export function giveReadingHint({ state, mission, player }: { state: GameState; 
  * över en i taget: först räknas alla som lästa, och nästa tryck hoppar över
  * Rummen minns (Jonas 2026-11-18). I andra steg går gruppen vidare som vanligt.
  */
-export function skipReading({ state, mission, players, player }: {
+export function skipReading({ state, mission, players, player, nowMs = 0 }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   player: PlayerRecord;
+  /** Serverns tid, för att se om huset minns just nu. */
+  nowMs?: number;
 }): StateChange {
   const step = mission.steps[state.stepIndex];
-  if (!player.isLeader || state.status !== 'running' || step.type !== 'scene' || step.endsWithStep === undefined) return advanceStep({ state, mission, players, player });
+  if (!player.isLeader || state.status !== 'running' || step.type !== 'scene' || step.endsWithStep === undefined) return advanceStep({ state, mission, players, player, nowMs });
   const unread = step.foundTitle === undefined ? [] : players.filter((candidate) => !hasRead(state.foundReaders, step.id, candidate.id));
   if (unread.length > 0) {
     const readers = [...(state.foundReaders[step.id] ?? []), ...unread.map((candidate) => candidate.id)];

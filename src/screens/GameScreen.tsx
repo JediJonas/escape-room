@@ -60,19 +60,10 @@ type GameScreenProps = {
 /** Det som visas i inforutan, med ett nummer så att en ny text börjar om tiden. */
 type Info = { id: number; title?: string; text: string };
 
-/** Ledtrådarna som gruppen har fått i steget, numrerade i den ordning de kom (Jonas 2026-11-18). */
-function HintCard({ step }: { step: GameView['step'] }) {
-  if (step.hints.length === 0) return null;
-  return (
-    <section className="hint-card" aria-label="Ledtrådar">
-      {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
-    </section>
-  );
-}
-
 /**
  * Spelet, med inforutan ovanpå. Ger spelledaren en ledtråd visas den hos
  * alla en stund, eftersom spelarna inte har någon meny (Jonas 2026-11-18).
+ * Ledtrådarna står inte kvar i någon lista (Jonas 2026-11-18).
  */
 export function GameScreen(props: GameScreenProps) {
   const { step } = props.view;
@@ -251,7 +242,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         </p>
         {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
         <TextView house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
-        <HintCard step={step} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>,
     );
@@ -378,7 +368,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
           {step.role.pieces.map((piece) => <p key={piece} className={step.documents.length > 0 ? 'clipping' : undefined}>{piece}</p>)}
         </section>
       )}
-      <HintCard step={step} />
       {!view.me.isPlaying && !view.isFinished && <p className="hint">Du står utanför och leder spelet. Du ser det alla ser, men ingen roll.</p>}
       {step.question && <p className="status" role="status">{step.question}</p>}
       {canAnswer && (

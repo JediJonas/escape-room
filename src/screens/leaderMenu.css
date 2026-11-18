@@ -96,6 +96,9 @@
  * skenet väntar på, får stå bredvid hamburgaren (Jonas 2026-11-18).
  */
 .has-leader-menu > .screen:not(:has(.screen-actions button)) { padding-bottom: calc(1rem + var(--bottom-gap)); }
+/* Med mus står knapparna direkt under innehållet, men en textrad står ändå längst ner bredvid hamburgaren. */
+.has-leader-menu > .screen:not(:has(.screen-actions button)) { min-height: 100dvh; }
+.has-leader-menu > .screen:not(:has(.screen-actions button)) .screen-content { flex: 1 0 auto; }
 .has-leader-menu .thing-actions:not(:has(button)) { padding-bottom: calc(1rem + var(--bottom-gap)); }
 .has-leader-menu .screen-actions:not(:has(button)),
 .has-leader-menu .thing-actions:not(:has(button)) { min-height: var(--leader-menu-size); align-content: center; padding-right: calc(var(--leader-menu-size) + 1.25rem); }

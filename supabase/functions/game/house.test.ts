@@ -98,3 +98,19 @@ test('en bok har sidor med text', () => {
   assert.deepEqual(findHouseErrors(book([]), MISSION.places, []), ['saken bok i huset har sidor som är tomma eller inte är en lista']);
   assert.deepEqual(findHouseErrors(book(['Sida ett', ' ']), MISSION.places, []), ['saken bok i huset har sidor som är tomma eller inte är en lista']);
 });
+
+test('en bok kan ha tomma sidor efter de skrivna', () => {
+  const book = (thing: Record<string, unknown>) => ({ start: 'F', rooms: [{ place: 'F', doors: [], things: [{ id: 'bok', name: 'Bok', ...thing }] }] });
+  const error = 'saken bok i huset har tomma sidor men inga sidor med text, eller ett antal som inte är ett heltal över noll';
+  assert.deepEqual(findHouseErrors(book({ pages: ['Sida ett'], blankPages: 3 }), MISSION.places, []), []);
+  assert.deepEqual(findHouseErrors(book({ pages: ['Sida ett'], blankPages: 0 }), MISSION.places, []), [error]);
+  assert.deepEqual(findHouseErrors(book({ text: 'Text', blankPages: 2 }), MISSION.places, []), [error]);
+});
+
+test('de tomma sidorna kommer efter de skrivna i bokens vy', () => {
+  const bookHouse: House = { start: 'F', rooms: [{ place: 'F', doors: [], things: [{ id: 'bok', name: 'Gästboken', pages: ['1962\nVera'], blankPages: 2, isFoundFromStart: true }] }] };
+  const mission: Mission = { ...MISSION, house: bookHouse };
+  const state = readState(startGame({ state: createInitialState(), mission, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state }, mission, players: PLAYERS, viewer: PLAYERS[1] });
+  assert.deepEqual(view.house?.things[0].pages, ['1962\nVera', '', '']);
+});

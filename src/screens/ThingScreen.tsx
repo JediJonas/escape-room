@@ -42,6 +42,8 @@ export function listFoundPapers(found: readonly FoundItem[]): Paper[] {
 }
 
 function PaperContent({ paper }: { paper: Paper }) {
+  // En tom sida i en bok, som de sista i gästboken (Jonas 2026-11-18).
+  if (paper.page === '') return <p className="page-blank">Tom sida</p>;
   if (paper.page !== undefined) {
     const [heading, ...lines] = paper.page.split('\n');
     return (
@@ -107,7 +109,7 @@ export function PaperStack({ papers }: { papers: readonly Paper[] }) {
         )).reverse()}
         <article
           key={papers[current].key}
-          className="paper document-card"
+          className={papers[current].page !== undefined ? 'paper document-card book-page' : 'paper document-card'}
           style={drag ? { transform: `translateX(${drag.dx}px) rotate(${drag.dx / PX_PER_DEGREE}deg)`, transition: 'none' } : undefined}
           onPointerDown={start}
           onPointerMove={move}

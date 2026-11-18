@@ -36,6 +36,8 @@ export type GameState = {
   hintsGiven: number;
   /** Hur många ledtrådar gruppen har fått vid byrån, för urklippen. Töms när gruppen går vidare. */
   readingHintsGiven: number;
+  /** Sakerna vars ledtråd om att de finns i huset gruppen har fått (Jonas 2026-11-18). Töms när gruppen går vidare. */
+  findHintsGiven: string[];
   /** Om byråns första ledtråd har sagt att alla inte har läst urklippen (Jonas 2026-11-18). Töms när gruppen går vidare. */
   isUnreadHintGiven: boolean;
   /** Om spelledaren har bett om facit i den aktuella uppgiften. */
@@ -89,7 +91,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', isEndedByLeader: false, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, readingHintsGiven: 0, isUnreadHintGiven: false, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, flashback: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [], foundReaders: {} };
+  return { status: 'lobby', isEndedByLeader: false, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, readingHintsGiven: 0, findHintsGiven: [], isUnreadHintGiven: false, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, flashback: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [], foundReaders: {} };
 }
 
 /**
@@ -118,6 +120,7 @@ export function readGameState(saved: unknown): GameState {
     wrongAnswers: Number.isInteger(fields.wrongAnswers) && (fields.wrongAnswers as number) >= 0 ? fields.wrongAnswers as number : initial.wrongAnswers,
     hintsGiven: Number.isInteger(fields.hintsGiven) && (fields.hintsGiven as number) >= 0 ? fields.hintsGiven as number : initial.hintsGiven,
     readingHintsGiven: Number.isInteger(fields.readingHintsGiven) && (fields.readingHintsGiven as number) >= 0 ? fields.readingHintsGiven as number : initial.readingHintsGiven,
+    findHintsGiven: readStringList(fields.findHintsGiven),
     isUnreadHintGiven: fields.isUnreadHintGiven === true,
     isSolutionShown: fields.isSolutionShown === true,
     leaderPlays: fields.leaderPlays !== false,

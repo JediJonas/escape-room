@@ -8,8 +8,9 @@
 
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
-import { giveReadingHint, markRead, skipReading } from './reading.ts';
-import { type StateChange, choosePlace, giveHint, markReady, showSolution, startGame, submitAnswer } from './game.ts';
+import { markRead, skipReading } from './reading.ts';
+import { giveHint } from './hints.ts';
+import { type StateChange, choosePlace, markReady, showSolution, startGame, submitAnswer } from './game.ts';
 import { endGame, setPaused } from './leaderControls.ts';
 import { chooseFlashbackRoom, fadeFlashback, moveInCellar, playKey, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
 import { readCellarMove } from './cellar.ts';
@@ -247,12 +248,11 @@ async function endGameAction(action: Action, context: Context): Promise<ActionRe
   });
 }
 
+/** Servern väljer ledtråden, så att spelledaren inte behöver veta vad gruppen väntar på (Jonas 2026-11-18). */
 async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
-    const isAboutReading = action.isAboutReading === true;
-    const input = { state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player };
-    const change = isAboutReading ? giveReadingHint(input) : giveHint(input);
-    return applyChange(scope, change, { action: { type: 'giveHint', stepIndex: scope.game.state.stepIndex, isAboutReading } });
+    const change = giveHint({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player });
+    return applyChange(scope, change, { action: { type: 'giveHint', stepIndex: scope.game.state.stepIndex } });
   });
 }
 

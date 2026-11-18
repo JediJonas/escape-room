@@ -12,7 +12,6 @@ import { FlashbackScreen, useFlashbackTime } from '../tasks/FlashbackScreen.tsx'
 import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
-import { canHelpWithTask } from './leaderMenu.ts';
 import { DocumentList } from './FoundDocuments.tsx';
 import { TextView } from './TextView.tsx';
 import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
@@ -39,8 +38,8 @@ export type GameActions = {
   chooseFlashbackRoom: (placeId: PlaceId) => void;
   fadeFlashback: () => void;
   playKey: (note: string) => void;
-  /** Vid byrån en ledtråd om urklippen, annars om uppgiften. */
-  giveHint: (isAboutReading: boolean) => void;
+  /** Servern väljer vilken ledtråd som kommer. */
+  giveHint: () => void;
   showSolution: () => void;
   /** Spelledaren avslutar spelet för alla. */
   endGame: () => void;
@@ -61,27 +60,14 @@ type GameScreenProps = {
 /** Det som visas i inforutan, med ett nummer så att en ny text börjar om tiden. */
 type Info = { id: number; title?: string; text: string };
 
-/** Det gruppen ska läsa, som tidningsurklippen, mitt i en mening. */
-function readingName(step: GameView['step']): string {
-  return (step.foundTitle ?? '').toLocaleLowerCase('sv');
-}
-
-/** Ledtrådarna som gruppen har fått, först de om urklippen vid byrån. */
+/** Ledtrådarna som gruppen har fått i steget, numrerade i den ordning de kom (Jonas 2026-11-18). */
 function HintCard({ step }: { step: GameView['step'] }) {
-  if (step.hints.length === 0 && step.readingHints.length === 0) return null;
+  if (step.hints.length === 0) return null;
   return (
     <section className="hint-card" aria-label="Ledtrådar">
-      {step.readingHints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1} om {readingName(step)}.</strong> {hint}</p>)}
       {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}
     </section>
   );
-}
-
-/** Ledtråden som just kom, om uppgiften eller om urklippen vid byrån. */
-function findNewHint(step: GameView['step'], seen: { count: number; readingCount: number }): { title: string; text: string } | null {
-  if (step.readingHints.length > seen.readingCount) return { title: `Ledtråd ${step.readingHints.length} om ${readingName(step)}.`, text: step.readingHints[step.readingHints.length - 1] };
-  if (step.hints.length > seen.count) return { title: `Ledtråd ${step.hints.length}.`, text: step.hints[step.hints.length - 1] };
-  return null;
 }
 
 /**
@@ -91,12 +77,11 @@ function findNewHint(step: GameView['step'], seen: { count: number; readingCount
 export function GameScreen(props: GameScreenProps) {
   const { step } = props.view;
   const [info, setInfo] = useState<Info | null>(null);
-  const [hintsSeen, setHintsSeen] = useState({ stepNumber: step.number, count: step.hints.length, readingCount: step.readingHints.length });
-  if (hintsSeen.stepNumber !== step.number || hintsSeen.count !== step.hints.length || hintsSeen.readingCount !== step.readingHints.length) {
-    const isSameStep = hintsSeen.stepNumber === step.number;
-    const newHint = isSameStep ? findNewHint(step, hintsSeen) : null;
-    setHintsSeen({ stepNumber: step.number, count: step.hints.length, readingCount: step.readingHints.length });
-    if (newHint) setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, ...newHint }));
+  const [hintsSeen, setHintsSeen] = useState({ stepNumber: step.number, count: step.hints.length });
+  if (hintsSeen.stepNumber !== step.number || hintsSeen.count !== step.hints.length) {
+    const isNewHint = hintsSeen.stepNumber === step.number && step.hints.length > hintsSeen.count;
+    setHintsSeen({ stepNumber: step.number, count: step.hints.length });
+    if (isNewHint) setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, title: `Ledtråd ${step.hints.length}.`, text: step.hints[step.hints.length - 1] }));
   }
   const closeInfo = useCallback(() => setInfo(null), []);
   return (
@@ -141,20 +126,14 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
 
   // Bara spelledaren har en meny, en hamburgare i nedre högra hörnet. Spelarna har Tillbaka (Jonas 2026-11-18).
   const isLeaderMenuShown = view.me.isLeader && !view.isFinished;
-  function withLeaderMenu(screen: ReactNode, { isAtTask = false }: { isAtTask?: boolean } = {}) {
+  function withLeaderMenu(screen: ReactNode) {
     if (!isLeaderMenuShown) return screen;
-    // Golvuret får ledtrådar också medan berättelsen väntar på urklippen (Jonas 2026-11-18).
-    const isAtAwaitedTask = openThing?.opensAwaitedTask === true;
-    // Byrån får ledtrådar om urklippen medan berättelsen väntar på att alla har läst (Jonas 2026-11-18).
-    const isAtReading = openThing?.opensCurrentStep === true && step.readingHintCount > 0;
     return (
       <div className="has-leader-menu">
         {screen}
         <LeaderMenu
           view={view}
           isBusy={isBusy}
-          canHelpWithTask={canHelpWithTask({ isTask: step.type !== 'scene' || isAtAwaitedTask, isAtTask: isAtTask || isAtAwaitedTask, isSolved: step.type !== 'scene' && step.usesReadyButton })}
-          canHelpWithReading={isAtReading}
           onSetPaused={game.setPaused}
           onGiveHint={game.giveHint}
           onShowSolution={game.showSolution}
@@ -301,7 +280,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         </p>
         <SeanceBoard seance={step.seance} answer={boardAnswer} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard}  />
       </main>,
-      { isAtTask: true },
     );
   }
   // Vid pianot, golvuret och urklippen fyller saken skärmen, som brädet, utan text. Stegets text visas inte heller i menyn (Jonas 2026-11-18).
@@ -318,7 +296,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         {step.flashback && <GrandfatherClock dialMinutes={step.flashback.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
         {thingPapers.length > 0 && <PaperStack papers={thingPapers} />}
       </ThingScreen>,
-      { isAtTask: true },
     );
   }
   // I källaren ser den instängda bara mörkret och ficklampan. Resten ligger i menyn, som i seansen.
@@ -334,10 +311,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         <CellarDark cellar={cellar} image={cellar.image} clockOffsetMs={clockOffsetMs} onOpenDoor={(yawDeg) => game.moveInCellar({ type: 'openDoor', yawDeg })} onTimeUp={timeUpInCellar} />
         <p className="error cellar-error" role="alert">{error}</p>
       </main>,
-      { isAtTask: true },
     );
   }
-  const isTask = step.type !== 'scene' && !view.isFinished;
 
   // Tillbaka går till rummet. Att lämna brädet efter meddelandet, eller urklippen efter att ha
   // läst dem, räknas som klar, så ingen Klar-knapp behövs (Jonas 2026-11-18).
@@ -433,6 +408,5 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       )}
       <p className="error" role="alert">{error}</p>
     </ScreenLayout>,
-    { isAtTask: isTask && (step.opensFrom === null || openThing !== null) },
   );
 }

@@ -59,7 +59,7 @@ export function findReadSteps(mission: Mission, thingId: unknown): string[] {
 }
 
 /** Byråns första ledtråd när någon inte har läst, som "Alla har inte läst tidningsurklippen." (Jonas 2026-11-18). */
-function describeUnreadHint(foundTitle: string): string {
+export function describeUnreadHint(foundTitle: string): string {
   return `Alla har inte läst ${foundTitle.toLocaleLowerCase('sv')}.`;
 }
 
@@ -69,11 +69,3 @@ export function givesUnreadHint(step: MissionStep, state: GameState, participant
   return participantIds.some((playerId) => !hasRead(state.foundReaders, step.id, playerId));
 }
 
-/** Ledtrådarna om urklippen som gruppen har fått vid byrån, och hur många det finns. */
-export function describeReadingHints(step: MissionStep, state: GameState, participantIds: readonly string[]): { readingHints: string[]; readingHintCount: number } {
-  const written = step.type === 'scene' ? step.readingHints ?? [] : [];
-  if (step.type !== 'scene' || written.length === 0 || step.foundTitle === undefined) return { readingHints: [], readingHintCount: 0 };
-  const unread = state.isUnreadHintGiven ? [describeUnreadHint(step.foundTitle)] : [];
-  const extra = state.isUnreadHintGiven || givesUnreadHint(step, state, participantIds) ? 1 : 0;
-  return { readingHints: [...unread, ...written.slice(0, state.readingHintsGiven)], readingHintCount: written.length + extra };
-}

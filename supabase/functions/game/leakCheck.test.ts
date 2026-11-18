@@ -6,7 +6,8 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
+import { advanceStep, buildGameView, choosePlace, showSolution, startGame } from './game.ts';
+import { giveHint } from './hints.ts';
 import { chooseFlashbackRoom, moveInCellar, playKey, touchBoard, turnClock } from './taskActions.ts';
 import { dealKeys, listKeyPlayers } from './piano.ts';
 import { sortByJoinOrder } from './lobby.ts';
@@ -207,6 +208,16 @@ function followWholeSeance(mission: Mission, state: GameState, players: PlayerRe
   return followed;
 }
 
+/** Spelledaren ger alla ledtrådar som finns kvar i steget. En klarad uppgift har inga. */
+function giveAllHints(mission: Mission, state: GameState, participants: readonly PlayerRecord[], leader: PlayerRecord): GameState {
+  let next = state;
+  for (;;) {
+    const change = giveHint({ state: next, mission, players: participants, player: leader });
+    if ('refusal' in change) return next;
+    next = change.state;
+  }
+}
+
 // Källaren är sparad undan men ska fortfarande inte läcka (Jonas 2026-11-18).
 const CELLAR_MISSION = withCellar(MISSIONS.find((mission) => mission.id === 'den-femte-gasten')!);
 
@@ -233,7 +244,7 @@ for (const mission of [...MISSIONS, CELLAR_MISSION]) {
         state = findCellarDoor(mission, state, players, participants);
         // Pianot kontrolleras med ledtrådarna och facit framme innan melodin spelas, eftersom den för gruppen vidare.
         if (mission.steps[state.stepIndex].type === 'piano') {
-          while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));
+          state = giveAllHints(mission, state, participants, leader);
           state = readState(showSolution({ state, mission, player: leader }));
           checkStep(mission, state, players);
           state = playWholeMelody(mission, state, players, participants);
@@ -241,7 +252,7 @@ for (const mission of [...MISSIONS, CELLAR_MISSION]) {
         }
         // I en uppgift kontrolleras vyerna igen med alla ledtrådar och facit framme.
         if (mission.steps[state.stepIndex].type !== 'scene') {
-          while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));
+          state = giveAllHints(mission, state, participants, leader);
           state = readState(showSolution({ state, mission, player: leader }));
           checkStep(mission, state, players);
         }

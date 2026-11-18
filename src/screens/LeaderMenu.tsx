@@ -34,12 +34,8 @@ function MenuIcon({ isOpen }: { isOpen: boolean }) {
 export type LeaderMenuProps = {
   view: GameView;
   isBusy: boolean;
-  /** Ge ledtråd och Visa facit för mig, bara vid saken som är uppgiften och inte är klarad. */
-  canHelpWithTask: boolean;
-  /** Ge ledtråd om urklippen, vid byrån medan berättelsen väntar på att alla har läst (Jonas 2026-11-18). */
-  canHelpWithReading: boolean;
   onSetPaused: (isPaused: boolean) => void;
-  onGiveHint: (isAboutReading: boolean) => void;
+  onGiveHint: () => void;
   onShowSolution: () => void;
   onNextStep: () => void;
   onEndGame: () => void;
@@ -49,12 +45,13 @@ export type LeaderMenuProps = {
 /**
  * Spelledarens meny, en hamburgare som alltid ligger i nedre högra hörnet
  * (Jonas 2026-11-18). Där finns paus, Hoppa över i en uppgift och i urklippen,
- * och vid saken som är uppgiften ledtrådar och facit. Alla är klara togs bort,
+ * och Ge ledtråd och Visa facit för mig var spelledaren än är, så länge
+ * gruppen har något olöst. Servern väljer ledtråden (Jonas 2026-11-18). Alla är klara togs bort,
  * så i en scen väntar gruppen tills alla har tryckt (Jonas 2026-11-18).
  * Avsluta spelet ligger sist och frågar först, eftersom det inte går att
  * ångra (Jonas 2026-11-18).
  */
-export function LeaderMenu({ view, isBusy, canHelpWithTask, canHelpWithReading, onSetPaused, onGiveHint, onShowSolution, onNextStep, onEndGame, onAnswerPending }: LeaderMenuProps) {
+export function LeaderMenu({ view, isBusy, onSetPaused, onGiveHint, onShowSolution, onNextStep, onEndGame, onAnswerPending }: LeaderMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmingEnd, setIsConfirmingEnd] = useState(false);
   // Frågan om att avsluta börjar om varje gång menyn öppnas.
@@ -104,25 +101,19 @@ export function LeaderMenu({ view, isBusy, canHelpWithTask, canHelpWithReading, 
           ) : (
           <section className="leader-menu" aria-label="Spelledarens meny">
             <PendingList view={view} isBusy={isBusy} onAnswer={onAnswerPending} />
-            {canHelpWithReading && <p className="hint">Gruppen har fått {step.readingHints.length} av {step.readingHintCount} ledtrådar om {(step.foundTitle ?? '').toLocaleLowerCase('sv')}.</p>}
-            {canHelpWithTask && (
+            {step.hasHelp && (
               <>
-                <p className="hint">Gruppen har fått {step.hints.length} av {step.hintCount} ledtrådar.</p>
+                <p className="hint">Gruppen har fått {step.hints.length} {step.hints.length === 1 ? 'ledtråd' : 'ledtrådar'}.</p>
                 {step.solution && <p className="solution">Facit: {step.solution}</p>}
               </>
             )}
             <div className="leader-menu-actions">
-              {canHelpWithReading && (
-                <button type="button" className="secondary" onClick={runAndClose(() => onGiveHint(true))} disabled={isBusy || step.readingHints.length >= step.readingHintCount}>
+              {step.hasHelp && (
+                <button type="button" className="secondary" onClick={runAndClose(onGiveHint)} disabled={isBusy || !step.canGiveHint}>
                   Ge ledtråd
                 </button>
               )}
-              {canHelpWithTask && (
-                <button type="button" className="secondary" onClick={runAndClose(() => onGiveHint(false))} disabled={isBusy || step.hints.length >= step.hintCount}>
-                  Ge ledtråd
-                </button>
-              )}
-              {canHelpWithTask && !step.solution && <button type="button" className="secondary" onClick={onShowSolution} disabled={isBusy}>Visa facit för mig</button>}
+              {step.canShowSolution && !step.solution && <button type="button" className="secondary" onClick={onShowSolution} disabled={isBusy}>Visa facit för mig</button>}
               {canSkip && <button type="button" className="secondary" onClick={runAndClose(onNextStep)} disabled={isBusy}>Hoppa över uppgiften</button>}
               {view.clock && (
                 <button type="button" className="secondary" onClick={runAndClose(() => onSetPaused(!isPaused))} disabled={isBusy}>

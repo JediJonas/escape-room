@@ -259,7 +259,7 @@
     {
       "id": "det-ar-vera",
       "type": "scene",
-      "text": "Planchetten glider till JA och stannar. Hon heter Vera. Hon skrev sitt namn sist i gästboken den kvällen, och hon gick aldrig ut ur huset. Då slår pianot i hallen an en ensam ton.",
+      "text": "Planchetten glider till JA och stannar. Hon heter Vera. Hon skrev sitt namn sist i gästboken den kvällen, och hon gick aldrig ut ur huset.",
       "readyLabel": "Vi förstår",
       "asksFor": [
         "sound"

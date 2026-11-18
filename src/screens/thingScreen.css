@@ -140,6 +140,10 @@
 
 .paper-nav button { min-width: 3rem; min-height: 2.5rem; padding: 0.25rem 0.75rem; font-size: 1.4rem; }
 .paper .page-line { margin: 0.35rem 0; }
+/* Sidorna i en bok är lika höga, också de tomma. */
+.paper.book-page { min-height: 16rem; }
+/* Texten finns för skärmläsare. Sidan ser tom ut. */
+.page-blank { margin: 0; color: transparent; user-select: none; }
 
 /* En berättartext i fullskärm, som spelaren bekräftar att hon har läst (Jonas 2026-11-18). */
 .narration-text {

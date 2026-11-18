@@ -26,6 +26,11 @@ export type HouseThing = {
    * (Jonas 2026-11-18). Varje rad på en sida blir ett stycke.
    */
   pages?: string[];
+  /**
+   * Tomma sidor efter de skrivna, så att en bok som gästboken känns som en
+   * liten bok och inte tar slut vid sista namnet (Jonas 2026-11-18).
+   */
+  blankPages?: number;
   /** Stegen som saken öppnar, till exempel båda seanserna vid ouijabrädet. */
   opensSteps?: string[];
   /** Saken går att hitta först när gruppen har kommit till det här steget. */
@@ -164,7 +169,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     id: thing.id,
     name: thing.name,
     text: thing.text ?? null,
-    pages: thing.pages ?? null,
+    pages: thing.pages ? [...thing.pages, ...Array.from({ length: thing.blankPages ?? 0 }, () => '')] : null,
     opensCurrentStep: current !== undefined,
     opensFound,
     isCalling: current !== undefined && isStepCalling(current.step, state),
@@ -216,6 +221,8 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   if (thing.text !== undefined && !isFilledText(thing.text)) errors.push(`${name} har en tom text`);
   const { pages } = thing;
   if (pages !== undefined && !(Array.isArray(pages) && pages.length > 0 && pages.every(isFilledText))) errors.push(`${name} har sidor som är tomma eller inte är en lista`);
+  const { blankPages } = thing;
+  if (blankPages !== undefined && !(pages !== undefined && Number.isInteger(blankPages) && (blankPages as number) > 0)) errors.push(`${name} har tomma sidor men inga sidor med text, eller ett antal som inte är ett heltal över noll`);
   if (thing.fromStep !== undefined && !stepIds.includes(thing.fromStep)) errors.push(`${name} pekar på ett steg som inte finns: ${String(thing.fromStep)}`);
   const opens = thing.opensSteps;
   if (opens !== undefined && !(Array.isArray(opens) && opens.length > 0)) errors.push(`${name} ska öppna en lista med steg`);

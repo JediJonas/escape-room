@@ -132,5 +132,6 @@ test('dokument och Hittat finns bara i scener och måste ha text', () => {
   const base = { format: 1, id: 'prov', title: 'Prov', minPlayers: 1, places: {} };
   assert.deepEqual(findMissionErrors({ ...base, steps: [{ id: 's', type: 'scene', text: 'T', documents: [{ title: 'A', text: 'B' }], foundTitle: 'Hittat' }] }), []);
   assert.deepEqual(findMissionErrors({ ...base, steps: [{ id: 's', type: 'scene', text: 'T', documents: [{ title: '', text: 'B' }], foundTitle: ' ' }] }), ['steget s har dokument utan rubrik eller text', 'steget s har ett tomt namn i Hittat']);
+  assert.deepEqual(findMissionErrors({ ...base, steps: [{ id: 's', type: 'scene', text: 'T', documents: [{ title: 'R', text: 'B', dateline: ' ' }] }] }), ['steget s har dokument utan rubrik eller text']);
   assert.deepEqual(findMissionErrors({ ...base, steps: [{ id: 's', type: 'answer', text: 'T', foundTitle: 'X', hints: ['a', 'b', 'c'], solution: { answers: ['x'] } }] }), ['steget s har dokument eller Hittat men är ingen scen']);
 });

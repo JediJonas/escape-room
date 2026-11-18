@@ -6,7 +6,7 @@ import { JoinQrCode } from './JoinQrCode.tsx';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
 /** Det spelledaren väljer när hon startar. */
-export type StartChoices = { missionId: string; usesPlaceCards: boolean; leaderPlays: boolean; minutes: number };
+export type StartChoices = { missionId: string; leaderPlays: boolean; minutes: number };
 
 export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: {
   view: LobbyView;
@@ -16,7 +16,6 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
   onLeave: () => void;
   onStart: (choices: StartChoices) => void;
 }) {
-  const [usesPlaceCards, setUsesPlaceCards] = useState(true);
   const [leaderPlays, setLeaderPlays] = useState(true);
   const [minutes, setMinutes] = useState<number>(DEFAULT_GAME_MINUTES);
   const [missionId, setMissionId] = useState(view.missionId);
@@ -28,7 +27,7 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
     <ScreenLayout
       actions={
         isLeader
-          ? <button type="button" onClick={() => onStart({ missionId: mission.id, usesPlaceCards, leaderPlays, minutes })} disabled={isBusy || missingPlayers > 0}>{isBusy ? 'Startar …' : 'Starta spelet'}</button>
+          ? <button type="button" onClick={() => onStart({ missionId: mission.id, leaderPlays, minutes })} disabled={isBusy || missingPlayers > 0}>{isBusy ? 'Startar …' : 'Starta spelet'}</button>
           : <button type="button" className="secondary" onClick={onLeave} disabled={isBusy}>Lämna spelet</button>
       }
     >
@@ -79,12 +78,6 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
         <p className="checkbox-field">
           <input id="leader-plays" type="checkbox" checked={leaderPlays} onChange={(event) => setLeaderPlays(event.target.checked)} />
           <label htmlFor="leader-plays">Jag spelar med. Utan bocken leder du spelet utan egen roll.</label>
-        </p>
-      )}
-      {isLeader && (
-        <p className="checkbox-field">
-          <input id="uses-place-cards" type="checkbox" checked={usesPlaceCards} onChange={(event) => setUsesPlaceCards(event.target.checked)} />
-          <label htmlFor="uses-place-cards">Vi har satt upp platskorten. Utan korten väljer alla plats i en lista.</label>
         </p>
       )}
       <p className="error" role="alert">{error}</p>

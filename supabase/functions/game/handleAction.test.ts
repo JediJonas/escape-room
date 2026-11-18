@@ -106,20 +106,13 @@ test('bara spelledaren kan starta, och först när det minsta antalet spelare ä
   const gameId = memory.games[0].id;
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'startGame', gameId }), { status: 403, body: { error: 'notLeader' } });
   memory.sentViews.length = 0;
-  const result = await send(memory.store, 'user-leader', { type: 'startGame', gameId, usesPlaceCards: false });
+  const result = await send(memory.store, 'user-leader', { type: 'startGame', gameId });
   assert.equal(result.status, 200);
   const view = readGameView(result.body);
   assert.equal(view.type, 'game');
-  assert.equal(view.usesPlaceCards, false);
   assert.equal(view.step.number, 1);
   assert.equal(memory.sentViews.length, 2);
   assert.deepEqual(await send(memory.store, 'user-leader', { type: 'startGame', gameId }), { status: 409, body: { error: 'gameStarted' } });
-});
-
-test('platskorten används om spelledaren inte väljer bort dem', async () => {
-  const memory = await createGameWithPlayers(['Bo']);
-  const result = await send(memory.store, 'user-leader', { type: 'startGame', gameId: memory.games[0].id });
-  assert.equal(readGameView(result.body).usesPlaceCards, true);
 });
 
 test('spelledaren går vidare steg för steg, och efter sista steget är spelet slut', async () => {
@@ -148,14 +141,14 @@ test('när gruppen delar på sig syns bitarna först på platsen, och bara hos d
   assert.deepEqual(boStep.step.role?.pieces, []);
   memory.sentViews.length = 0;
 
-  const result = await send(memory.store, 'user-Bo', { type: 'choosePlace', gameId, placeId: goTo.id, source: 'scan' });
+  const result = await send(memory.store, 'user-Bo', { type: 'choosePlace', gameId, placeId: goTo.id });
   const boView = readGameView(result.body);
   assert.deepEqual(boView.myPlace, goTo);
   const [piece] = boView.step.role?.pieces ?? [];
   assert.ok(piece);
   // Spelledaren får veta att Bo är framme, men inte vad han ser.
   assert.deepEqual(memory.sentViews.map(({ view }) => view.me.name).sort(), ['Bo', 'Ledare']);
-  assert.deepEqual(memory.events.at(-1), { gameId, playerId: boView.me.playerId, action: { type: 'choosePlace', placeId: goTo.id, source: 'scan' } });
+  assert.deepEqual(memory.events.at(-1), { gameId, playerId: boView.me.playerId, action: { type: 'choosePlace', placeId: goTo.id } });
 
   const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);
   assert.notDeepEqual(leaderView.step.goTo, goTo);

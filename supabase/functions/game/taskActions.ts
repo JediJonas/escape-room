@@ -7,11 +7,11 @@
 import { type CellarMove, applyCellarMove } from './cellar.ts';
 import { type GameRefusal, type StateChange, findCurrentTask, findRole, isAtGoal, moveOn } from './game.ts';
 import { searchRoom, walk } from './house.ts';
-import type { Mission, RoomsStep } from './mission.ts';
+import type { Mission, MissionStep, RoomsStep } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
-import { type RoomsState, advanceRooms, chooseMemoryRoom as chooseRoom, isRemembering, isRoomsSolved, turnClock as turnClockHands } from './rooms.ts';
+import { type RoomsState, advanceRooms, chooseMemoryRoom as chooseRoom, isRemembering, isRoomsSolved, snapDial, startRooms, turnClock as turnClockHands } from './rooms.ts';
 import { type BoardTouch, applyBoardTouch } from './seance.ts';
-import { isPianoSolved, pressKey } from './piano.ts';
+import { isPianoSolved, pressKey, startPiano } from './piano.ts';
 import { sortByJoinOrder } from './lobby.ts';
 import type { GameState, PlayerRecord } from './state.ts';
 
@@ -41,17 +41,41 @@ export function touchBoard({ state, mission, players, player, touch, nowMs }: {
   return { state: { ...state, seance } };
 }
 
-/** Rummen minns, framförd till nu. Har minnet bleknat efter sista rummet går gruppen vidare. */
-function findRoomsTask(state: GameState, mission: Mission, nowMs: number): { step: RoomsStep; rooms: RoomsState } | { refusal: GameRefusal } {
-  const task = findCurrentTask(state, mission);
-  if ('refusal' in task) return { refusal: task.refusal };
-  if (task.step.type !== 'rooms' || !state.rooms) return { refusal: 'notATask' };
-  return { step: task.step, rooms: advanceRooms(state.rooms, task.step, nowMs) };
+/** Uppdragets första uppgift av en typ, med var i uppdraget den står. */
+function findTaskStep<Type extends 'rooms' | 'piano'>(mission: Mission, type: Type): { step: Extract<MissionStep, { type: Type }>; index: number } | null {
+  const index = mission.steps.findIndex((step) => step.type === type);
+  return index === -1 ? null : { step: mission.steps[index] as Extract<MissionStep, { type: Type }>, index };
 }
 
-function saveRooms({ state, mission, players, step, rooms }: { state: GameState; mission: Mission; players: readonly PlayerRecord[]; step: RoomsStep; rooms: RoomsState }): GameState {
+/** Om gruppen redan har klarat uppgiften, i berättelsen eller innan den kom dit. */
+function isTaskDone(state: GameState, step: MissionStep, index: number): boolean {
+  return index < state.stepIndex || state.solvedSteps.includes(step.id);
+}
+
+/**
+ * En uppgift som är klar. Är det steget gruppen är på går den vidare. Annars
+ * sparas den, och gruppen går förbi den när berättelsen kommer dit
+ * (Jonas 2026-11-18).
+ */
+function solveTask(state: GameState, mission: Mission, players: readonly PlayerRecord[], index: number): GameState {
+  if (index === state.stepIndex) return moveOn(state, mission, players);
+  return { ...state, solvedSteps: [...state.solvedSteps, mission.steps[index].id] };
+}
+
+/**
+ * Rummen minns, framförd till nu. Golvuret går att vrida hela tiden, så
+ * minnet kan komma innan berättelsen har kommit dit (Jonas 2026-11-18).
+ */
+function findRoomsTask(state: GameState, mission: Mission, nowMs: number): { step: RoomsStep; index: number; rooms: RoomsState } | { refusal: GameRefusal } {
+  if (state.status !== 'running') return { refusal: 'notRunning' };
+  const task = findTaskStep(mission, 'rooms');
+  if (!task || isTaskDone(state, task.step, task.index)) return { refusal: 'notATask' };
+  return { ...task, rooms: advanceRooms(state.rooms ?? startRooms(task.step), task.step, nowMs) };
+}
+
+function saveRooms({ state, mission, players, task, rooms }: { state: GameState; mission: Mission; players: readonly PlayerRecord[]; task: { step: RoomsStep; index: number }; rooms: RoomsState }): GameState {
   const saved = { ...state, rooms };
-  return isRoomsSolved(rooms, step) ? moveOn(saved, mission, players) : saved;
+  return isRoomsSolved(rooms, task.step) ? solveTask(saved, mission, players, task.index) : saved;
 }
 
 /** Rummet där saken som öppnar steget står, till exempel salongen med golvuret. */
@@ -59,7 +83,16 @@ function findOpenerPlace(mission: Mission, stepId: string): PlaceId | undefined 
   return mission.house?.rooms.find((room) => room.things.some((thing) => thing.opensSteps?.includes(stepId)))?.place;
 }
 
-/** Spelaren vrider golvurets visare. Står de på rätt tid börjar hela huset minnas. */
+function isAtOpener(state: GameState, mission: Mission, player: PlayerRecord, stepId: string): boolean {
+  const place = findOpenerPlace(mission, stepId);
+  return place === undefined || state.placeByPlayer[player.id] === place;
+}
+
+/**
+ * Spelaren vrider golvurets visare. Står de på rätt tid börjar hela huset
+ * minnas. När gruppen har klarat Rummen minns går visarna fortfarande att
+ * vrida, men huset minns inte mer.
+ */
 export function turnClock({ state, mission, players, player, minutes, nowMs }: {
   state: GameState;
   mission: Mission;
@@ -68,11 +101,16 @@ export function turnClock({ state, mission, players, player, minutes, nowMs }: {
   minutes: unknown;
   nowMs: number;
 }): StateChange {
+  if (state.status !== 'running') return { refusal: 'notRunning' };
+  const roomsStep = findTaskStep(mission, 'rooms');
+  if (!roomsStep) return { refusal: 'notATask' };
+  if (!isAtOpener(state, mission, player, roomsStep.step.id)) return { refusal: 'notAtPlace' };
   const task = findRoomsTask(state, mission, nowMs);
-  if ('refusal' in task) return task;
-  const clockPlace = findOpenerPlace(mission, task.step.id);
-  if (clockPlace !== undefined && state.placeByPlayer[player.id] !== clockPlace) return { refusal: 'notAtPlace' };
-  if (isRoomsSolved(task.rooms, task.step)) return { state: saveRooms({ state, mission, players, step: task.step, rooms: task.rooms }) };
+  if ('refusal' in task) {
+    const isNumber = typeof minutes === 'number' && Number.isFinite(minutes);
+    return { state: isNumber && state.rooms ? { ...state, rooms: { ...state.rooms, dialMinutes: snapDial(minutes) } } : state };
+  }
+  if (isRoomsSolved(task.rooms, task.step)) return { state: saveRooms({ state, mission, players, task, rooms: task.rooms }) };
   const turned = turnClockHands({ rooms: task.rooms, step: task.step, minutes, nowMs });
   if ('refusal' in turned) return turned;
   return { state: { ...state, rooms: turned.rooms } };
@@ -112,12 +150,13 @@ export function fadeMemory({ state, mission, players, nowMs }: {
   const task = findRoomsTask(state, mission, nowMs);
   if ('refusal' in task) return task;
   if (task.rooms === state.rooms) return { state };
-  return { state: saveRooms({ state, mission, players, step: task.step, rooms: task.rooms }) };
+  return { state: saveRooms({ state, mission, players, task, rooms: task.rooms }) };
 }
 
 /**
- * En spelare slår an en tangent på pianot. Alla måste stå vid pianot. När
- * hela melodin är spelad går gruppen vidare.
+ * En spelare slår an en tangent på pianot, som går att spela på hela tiden.
+ * Är de senaste tonerna melodin är uppgiften klar, också innan berättelsen
+ * har kommit dit (Jonas 2026-11-18). Efteråt låter tangenterna bara.
  */
 export function playKey({ state, mission, players, player, key }: {
   state: GameState;
@@ -126,21 +165,22 @@ export function playKey({ state, mission, players, player, key }: {
   player: PlayerRecord;
   key: unknown;
 }): StateChange {
-  const task = findCurrentTask(state, mission);
-  if ('refusal' in task) return { refusal: task.refusal };
-  if (task.step.type !== 'piano' || !state.piano) return { refusal: 'notATask' };
-  const pianoPlace = findOpenerPlace(mission, task.step.id);
-  if (pianoPlace !== undefined && state.placeByPlayer[player.id] !== pianoPlace) return { refusal: 'notAtPlace' };
+  if (state.status !== 'running') return { refusal: 'notRunning' };
+  const task = findTaskStep(mission, 'piano');
+  if (!task) return { refusal: 'notATask' };
+  if (!isAtOpener(state, mission, player, task.step.id)) return { refusal: 'notAtPlace' };
   const participantIds = sortByJoinOrder(players).map((participant) => participant.id);
-  const pressed = pressKey({ piano: state.piano, step: task.step, playerId: player.id, participantIds, key });
+  const piano = state.piano ?? startPiano(null);
+  const pressed = pressKey({ piano, step: task.step, playerId: player.id, participantIds, key });
   if ('refusal' in pressed) return pressed;
+  if (isTaskDone(state, task.step, task.index)) return { state };
   const played = { ...state, piano: pressed.piano };
-  return { state: isPianoSolved(pressed.piano, task.step) ? moveOn(played, mission, players) : played };
+  return { state: isPianoSolved(pressed.piano, task.step) ? solveTask(played, mission, players, task.index) : played };
 }
 
 /** Medan huset minns står var och en kvar i sitt rum, och dörrarna är stängda (Jonas 2026-11-17). */
 function isHouseRemembering(state: GameState, mission: Mission, nowMs: number): boolean {
-  return mission.steps[state.stepIndex]?.type === 'rooms' && state.rooms !== null && isRemembering(state.rooms, nowMs);
+  return mission.steps.some((step) => step.type === 'rooms') && state.rooms !== null && isRemembering(state.rooms, nowMs);
 }
 
 /**

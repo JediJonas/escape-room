@@ -13,7 +13,7 @@ test('den som inte har angett någon plats får veta vart hon ska', () => {
   assert.equal(describePlaceStatus(KITCHEN, null), 'Gå till köket.');
 });
 
-test('den som har skannat fel kort får veta var hon är och vart hon ska', () => {
+test('den som har valt fel plats får veta var hon är och vart hon ska', () => {
   assert.equal(describePlaceStatus(KITCHEN, HALL), 'Du är i hallen. Gå till köket.');
 });
 

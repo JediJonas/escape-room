@@ -249,7 +249,7 @@ export type Mission = {
   /** Konceptet säger tre, men ett provuppdrag får ange färre (Jonas 2026-11-17). */
   minPlayers: number;
   places: Partial<Record<PlaceId, string>>;
-  /** Rummen i mobilen. Utan hus väljer spelarna plats på kortet eller i listan. */
+  /** Rummen i mobilen. Utan hus väljer spelarna plats i en lista. */
   house?: House;
   steps: MissionStep[];
 };

@@ -2,13 +2,13 @@
  * Uppgiftstypen Orkestern, så som Pianot använder den. Melodin spelas högt
  * från en spelares mobil, så att alla hör den. De andra har några av pianots
  * tangenter var, och den som spelar melodin har inga (Jonas 2026-11-18).
- * Gruppen spelar melodin ton för ton. En fel
- * ton gör att gruppen får börja om från första tonen. Se docs/koncept.md,
- * Pianot.
+ * Gruppen får spela som den vill, och inget säger till om en fel ton.
+ * Uppgiften är klar när de senaste tonerna som spelats är melodin
+ * (Jonas 2026-11-18). Se docs/koncept.md, Pianot.
  *
  * Rena funktioner. Vilka tangenter en spelare har räknas fram ur ordningen
- * spelarna gick med i, så att bara vems mobil som spelar melodin och antalet
- * rätta toner sparas.
+ * spelarna gick med i, så att bara vems mobil som spelar melodin och de
+ * senaste tonerna sparas.
  */
 
 import type { PianoStep } from './mission.ts';
@@ -16,10 +16,8 @@ import type { PianoStep } from './mission.ts';
 export type PianoState = {
   /** Den vars mobil spelar melodin. Väljs när gruppen kommer till steget. */
   melodyPlayerId: string | null;
-  /** Så många toner i följd har gruppen spelat rätt. */
-  playedCount: number;
-  /** Så många gånger gruppen har spelat fel, så att alla mobiler hör den falska tonen. */
-  wrongNotes: number;
+  /** De senaste tonerna som gruppen har spelat, högst lika många som melodin har. */
+  recentKeys: string[];
 };
 
 export type PianoRefusal = 'notYourKey' | 'unknownKey';
@@ -47,24 +45,30 @@ export function nameNote(note: string): string {
 }
 
 export function startPiano(melodyPlayerId: string | null): PianoState {
-  return { melodyPlayerId, playedCount: 0, wrongNotes: 0 };
+  return { melodyPlayerId, recentKeys: [] };
 }
 
+/** Så många intilliggande vita tangenter har varje spelare, som en hand på ett riktigt piano (Jonas 2026-11-18). */
+const KEYS_PER_PLAYER = 4;
+
 /**
- * Delar tangenterna mellan spelarna utom den som spelar melodin. Alla får minst en
- * tangent och varje tangent finns hos någon. Är spelarna fler än tangenterna
- * delar några på samma tangent.
+ * Delar tangenterna mellan spelarna utom den som spelar melodin. Var och en
+ * får fyra intilliggande tangenter, till exempel C D E F, och fönstren sprids
+ * jämnt från pianots lägsta till högsta tangent, så att varje tangent finns
+ * hos någon. Är spelarna fler överlappar fönstren mer. Är det bara en spelare,
+ * eller högst fyra tangenter, får alla alla tangenter.
  */
 export function dealKeys(keys: readonly string[], playerIds: readonly string[]): Record<string, string[]> {
   const keysByPlayer: Record<string, string[]> = {};
-  for (const playerId of playerIds) keysByPlayer[playerId] = [];
-  if (playerIds.length === 0 || keys.length === 0) return keysByPlayer;
-  const slots = Math.max(keys.length, playerIds.length);
-  for (let slot = 0; slot < slots; slot += 1) {
-    const mine = keysByPlayer[playerIds[slot % playerIds.length]];
-    const key = keys[slot % keys.length];
-    if (!mine.includes(key)) mine.push(key);
-  }
+  const lastStart = keys.length - KEYS_PER_PLAYER;
+  playerIds.forEach((playerId, index) => {
+    if (lastStart <= 0 || playerIds.length === 1) {
+      keysByPlayer[playerId] = [...keys];
+      return;
+    }
+    const start = Math.round((index * lastStart) / (playerIds.length - 1));
+    keysByPlayer[playerId] = keys.slice(start, start + KEYS_PER_PLAYER);
+  });
   return keysByPlayer;
 }
 
@@ -73,14 +77,13 @@ function listKeyPlayers(piano: PianoState, participantIds: readonly string[]): s
   return participantIds.filter((playerId) => playerId !== piano.melodyPlayerId);
 }
 
+/** Klart när de senaste tonerna är melodin, i rätt ordning. */
 export function isPianoSolved(piano: PianoState, step: PianoStep): boolean {
-  return piano.playedCount >= step.solution.melody.length;
+  const { melody } = step.solution;
+  return piano.recentKeys.length === melody.length && melody.every((tone, index) => tone.note === piano.recentKeys[index]);
 }
 
-/**
- * En spelare slår an en tangent. Är det nästa ton i melodin kommer gruppen
- * ett steg närmare, annars får den börja om (se docs/koncept.md, Pianot).
- */
+/** En spelare slår an en tangent. Tonen läggs sist bland de senaste. */
 export function pressKey({ piano, step, playerId, participantIds, key }: {
   piano: PianoState;
   step: PianoStep;
@@ -93,8 +96,7 @@ export function pressKey({ piano, step, playerId, participantIds, key }: {
   const mine = dealKeys(step.keys, listKeyPlayers(piano, participantIds))[playerId] ?? [];
   if (!mine.includes(key)) return { refusal: 'notYourKey' };
   if (isPianoSolved(piano, step)) return { piano };
-  const isRight = step.solution.melody[piano.playedCount].note === key;
-  return { piano: isRight ? { ...piano, playedCount: piano.playedCount + 1 } : { ...piano, playedCount: 0, wrongNotes: piano.wrongNotes + 1 } };
+  return { piano: { ...piano, recentKeys: [...piano.recentKeys, key].slice(-step.solution.melody.length) } };
 }
 
 /** En ton i melodin: vilken och hur många slag den varar. */
@@ -108,11 +110,17 @@ export type PianoView = {
   melody: MelodyNote[] | null;
   beatMs: number;
   /** Spelarens egna tangenter, lägst först. */
-  myKeys: { note: string; name: string }[];
-  playedCount: number;
-  noteCount: number;
-  wrongNotes: number;
+  myKeys: PianoKey[];
 };
+
+/** En tangent som spelaren har, med tonen och dess namn. */
+export type PianoKey = { note: string; name: string };
+
+/** Spelarens tangenter, lägst först. */
+export function listMyKeys(keys: readonly string[], keyPlayerIds: readonly string[], viewerId: string): PianoKey[] {
+  const mine = dealKeys(keys, keyPlayerIds)[viewerId] ?? [];
+  return keys.filter((key) => mine.includes(key)).map((note) => ({ note, name: nameNote(note) }));
+}
 
 export function describePiano({ piano, step, viewerId, participantIds, melodyPlayerName }: {
   piano: PianoState;
@@ -122,16 +130,12 @@ export function describePiano({ piano, step, viewerId, participantIds, melodyPla
   melodyPlayerName: string;
 }): PianoView {
   const hasMelody = piano.melodyPlayerId === viewerId;
-  const mine = dealKeys(step.keys, listKeyPlayers(piano, participantIds))[viewerId] ?? [];
   return {
     hasMelody,
     melodyPlayerName,
     melody: hasMelody ? step.solution.melody : null,
     beatMs: step.beatMs,
-    myKeys: step.keys.filter((key) => mine.includes(key)).map((note) => ({ note, name: nameNote(note) })),
-    playedCount: piano.playedCount,
-    noteCount: step.solution.melody.length,
-    wrongNotes: piano.wrongNotes,
+    myKeys: listMyKeys(step.keys, listKeyPlayers(piano, participantIds), viewerId),
   };
 }
 
@@ -151,6 +155,7 @@ export function findPianoErrors(step: Record<string, unknown>, name: string): st
   const { keys, beatMs } = step;
   const hasKeys = Array.isArray(keys) && keys.length >= 2 && keys.every(isNote) && new Set(keys).size === keys.length;
   if (!hasKeys) errors.push(`${name} ska ha minst två olika tangenter, som C4 eller F#4`);
+  if (hasKeys && keys.length > 2 * KEYS_PER_PLAYER) errors.push(`${name} har fler tangenter än två spelare kan dela på, högst ${2 * KEYS_PER_PLAYER}`);
   if (!(typeof beatMs === 'number' && beatMs >= MIN_BEAT_MS && beatMs <= MAX_BEAT_MS)) errors.push(`${name} ska ha ett slag på ${MIN_BEAT_MS} till ${MAX_BEAT_MS} millisekunder`);
   const melody = (step.solution as { melody?: unknown } | undefined)?.melody;
   const isMelody = Array.isArray(melody) && melody.length >= MIN_MELODY_NOTES && melody.every((tone) => isMelodyNote(tone, hasKeys ? keys : []));
@@ -164,11 +169,9 @@ export function findPianoErrors(step: Record<string, unknown>, name: string): st
 export function readPianoState(saved: unknown): PianoState | null {
   if (!saved || typeof saved !== 'object') return null;
   const fields = saved as Record<string, unknown>;
-  const isCount = (value: unknown) => Number.isInteger(value) && (value as number) >= 0;
-  if (!isCount(fields.playedCount) || !isCount(fields.wrongNotes)) return null;
+  if (!Array.isArray(fields.recentKeys)) return null;
   return {
     melodyPlayerId: typeof fields.melodyPlayerId === 'string' ? fields.melodyPlayerId : null,
-    playedCount: fields.playedCount as number,
-    wrongNotes: fields.wrongNotes as number,
+    recentKeys: fields.recentKeys.filter(isNote),
   };
 }

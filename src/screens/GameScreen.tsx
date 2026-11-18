@@ -7,27 +7,23 @@ import { requestMotionPermission } from '../device/motion.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
-import { PianoTask } from '../tasks/PianoTask.tsx';
+import { PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
 import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderPanel } from './LeaderPanel.tsx';
 import { canLeaderSkip } from './leaderSkip.ts';
-import { PlaceScanner } from './PlaceScanner.tsx';
 import { DocumentList, FoundView } from './FoundDocuments.tsx';
 import { RoomList, ThingContent } from './HouseView.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
-
-/** Hur spelaren anger platsen just nu. Utan platskort finns bara listan. */
-type PlaceInput = 'none' | 'scan' | 'list';
 
 /** Allt mobilen kan be servern om under spelet. */
 export type GameActions = {
   nextStep: () => void;
   markReady: () => void;
   setPaused: (isPaused: boolean) => void;
-  choosePlace: (placeId: PlaceId, source: 'scan' | 'list') => void;
+  choosePlace: (placeId: PlaceId) => void;
   submitAnswer: (answer: string) => void;
   touchBoard: (touch: BoardTouch) => void;
   moveInCellar: (move: CellarMove) => void;
@@ -52,10 +48,8 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   error: string;
   actions: GameActions;
 }) {
-  const [placeInput, setPlaceInput] = useState<PlaceInput>('none');
   const [answer, setAnswer] = useState('');
   const [answeredStep, setAnsweredStep] = useState(view.step.number);
-  const [cameraProblem, setCameraProblem] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const [isFoundOpen, setIsFoundOpen] = useState(false);
@@ -65,14 +59,6 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
   const hasPlaceToGo = step.goTo !== null && !isAtGoal;
   const needsPlace = view.me.isPlaying && hasPlaceToGo && !view.isFinished;
-  // Utan platskort visas listan direkt, eftersom det inte finns något att skanna.
-  const shownInput: PlaceInput = needsPlace ? (view.usesPlaceCards ? placeInput : 'list') : 'none';
-
-  function choose(placeId: PlaceId, source: 'scan' | 'list') {
-    setPlaceInput('none');
-    game.choosePlace(placeId, source);
-  }
-
   // Ett nytt steg börjar med ett tomt svarsfält.
   if (answeredStep !== view.step.number) {
     setAnsweredStep(view.step.number);
@@ -111,9 +97,14 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
   const closeThing = <button key="close" type="button" className="secondary" onClick={() => setOpenThingId(null)}>Tillbaka</button>;
   if (openThing && !openThing.opensCurrentStep) {
+    // Golvuret och pianot går att använda hela tiden, också innan berättelsen har kommit dit (Jonas 2026-11-18).
+    const { instrument } = openThing;
     return (
       <ScreenLayout actions={closeThing}>
         <ThingContent thing={openThing} found={view.found} />
+        {instrument?.type === 'clock' && <GrandfatherClock dialMinutes={instrument.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
+        {instrument?.type === 'piano' && view.me.isPlaying && <PianoKeys keys={instrument.keys} onPlayKey={game.playKey} />}
+        <p className="error" role="alert">{error}</p>
       </ScreenLayout>
     );
   }
@@ -190,11 +181,6 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
     if (answer.trim()) game.submitAnswer(answer);
   }
 
-  function showList(reason: string) {
-    setCameraProblem(reason);
-    setPlaceInput('list');
-  }
-
   // Knapparna ligger med huvudhandlingen underst, närmast tummen.
   const actions = [];
   if (openThing) actions.push(closeThing);
@@ -213,12 +199,6 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   if (view.me.isLeader && !view.isFinished && canSkip) {
     // För när någon har gått iväg och gruppen inte ska behöva vänta.
     actions.push(<button key="skip" type="button" className="secondary" onClick={game.nextStep} disabled={isBusy}>{isTask ? 'Hoppa över uppgiften' : 'Gå vidare ändå'}</button>);
-  }
-  if (needsPlace && view.usesPlaceCards && shownInput === 'scan') {
-    actions.push(<button key="list" type="button" className="secondary" onClick={() => showList('')}>Välj i listan i stället</button>);
-  }
-  if (needsPlace && view.usesPlaceCards && shownInput !== 'scan') {
-    actions.push(<button key="scan" type="button" className={shownInput === 'list' ? 'secondary' : undefined} onClick={() => setPlaceInput('scan')}>Skanna platskortet</button>);
   }
   if (view.me.isPlaying && !needsPlace && step.usesReadyButton && !step.isMeDone && !view.isFinished) {
     actions.push(<button key="ready" type="button" onClick={markReady} disabled={isBusy}>{step.readyLabel ?? 'Klar'}</button>);
@@ -271,13 +251,11 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
       {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}
-      {shownInput === 'scan' && <PlaceScanner onPlace={(placeId) => choose(placeId, 'scan')} onCameraFailed={(reason) => showList(`${reason} Välj platsen i listan.`)} />}
-      {shownInput === 'list' && (
+      {needsPlace && (
         <fieldset className="place-list">
           <legend>Var är du?</legend>
-          {cameraProblem && <p className="hint">{cameraProblem}</p>}
           {view.places.map((place) => (
-            <button key={place.id} type="button" className="secondary" onClick={() => choose(place.id, 'list')} disabled={isBusy}>{place.name}</button>
+            <button key={place.id} type="button" className="secondary" onClick={() => game.choosePlace(place.id)} disabled={isBusy}>{place.name}</button>
           ))}
         </fieldset>
       )}

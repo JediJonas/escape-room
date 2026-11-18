@@ -50,7 +50,7 @@ utan regler, som ett extra lås om schemat skulle exponeras av misstag.
 
 | Tabell | Innehåll |
 | --- | --- |
-| `games` | Kod att ansluta med, uppdrag och spelets hela tillstånd som ett JSON-värde. Speltid, platskort och om spelledaren spelar ligger i tillståndet |
+| `games` | Kod att ansluta med, uppdrag och spelets hela tillstånd som ett JSON-värde. Speltid, och om spelledaren spelar ligger i tillståndet |
 | `players` | Spel, användar-id, namn, om hon är spelledare och när mobilen senast hördes av. Behövs som egen tabell för att kanalernas regler ska kunna slå upp vem som hör till vilket spel |
 | `events` | En logg över varje handling med serverns tid. Används för felsökning och mätning |
 
@@ -153,10 +153,10 @@ kanal i samma steg.
 
 ## Platser
 
-Spelaren är på en plats när hon har skannat kortet eller valt platsen i listan.
-Serverfunktionen tar emot båda som samma handling och sparar bara varifrån
-platsen kom, för felsökningens skull. När spelledaren har valt bort platskorten
-visar mobilen listan direkt i stället för kameran.
+Spelaren är på en plats när hon har valt platsen i listan, eller gått dit i
+huset när uppdraget har ett. Spelet skannar inga platskort, och valet att
+använda dem när spelet startar är borttaget (Jonas 2026-11-18). QR-skanningen
+finns kvar på testsidan.
 
 ## Uppdragsfilen
 
@@ -282,6 +282,16 @@ mobilerna till, och servern för fram tillståndet. Visarna går då tillbaka ti
 starttiden, och har alla rum setts går gruppen vidare. Golvuret och minnet
 syns hos alla, så alla får en ny vy när de ändras. Se `rooms.ts`.
 
+**Golvuret och pianot går att använda hela tiden** (Jonas 2026-11-18). En
+sak i huset vars steg inte är det aktuella har `instrument` i vyn: urtavlan
+eller spelarens tangenter. `turnClock` och `playKey` tar emot handlingen
+oavsett steg, men bara från den som står vid saken. Klaras uppgiften innan
+berättelsen har kommit dit sparas stegets id i tillståndets `solvedSteps`,
+och när gruppen sedan kommer dit går den förbi steget. Allt annat i
+berättelsen visas som vanligt, och andra steg kan inte klaras i förväg.
+Rummen och pianot sparas därför över stegen i `rooms` och `piano`. Minnet
+visas hos alla så länge huset minns, vilket steg gruppen än är på.
+
 **Källaren** har typen `cellar`. Steget har roller som andra steg, där
 `trappedRoleId` pekar ut den instängda rollen, som har en egen plats.
 Rundbilden står i `image`, tiden i `minutes`, säkringarna i `fuses` och
@@ -301,13 +311,15 @@ Melodin står i `solution.melody` som toner med antal slag. När gruppen
 kommer till steget väljer servern vems mobil som spelar melodin, som en
 framträdande roll, så att den roterar. Bara den mobilens vy har melodin, och
 den spelas högt så att alla hör (Jonas 2026-11-18). Tangenterna delas mellan
-de andra i den ordning de gick med, så att alla har minst en och varje
-tangent finns hos någon. Det räknas fram vid varje anrop, så servern sparar
-bara vems mobil det är, hur många toner i följd som är rätt och hur många
-fel det har blivit. Handlingen `playKey` tar en tangent. Rätt ton för gruppen framåt,
-och en fel ton gör att den börjar om. Alla får en ny vy, så att alla ser hur
-långt gruppen har kommit och hör den falska tonen. När melodin är spelad går
-gruppen vidare. Med `callsFromHouse` kallar pianot på gruppen som brädet.
+de andra i den ordning de gick med. Var och en får fyra intilliggande
+tangenter, och fönstren sprids jämnt så att varje tangent finns hos någon
+(Jonas 2026-11-18). De svarta tangenterna ritas och låter i mobilen, men
+skickas inte till servern. Innan någon spelar melodin delas de mellan alla.
+Det räknas fram vid varje anrop, så servern sparar bara vems mobil det är
+och de senaste tonerna, högst lika många som melodin har. Handlingen
+`playKey` tar en tangent. Inget säger till om en fel ton, och tonen låter
+bara i mobilen som spelade den, så ingen annan får en ny vy av den. När de
+senaste tonerna är melodin är uppgiften klar (Jonas 2026-11-18). Med `callsFromHouse` kallar pianot på gruppen som brädet.
 Tonerna görs i ljudmotorn, så att inget klipp behöver hämtas. Se `piano.ts`.
 
 **Tidningsurklippen** är en scen med roller. Urklippen är bitarna i en roll
@@ -432,8 +444,7 @@ och 5 miljoner per månad, och projektet pausas aldrig.
 3. **Plats och roll.** Spelarna väljer plats med kort eller lista. Ett
    provuppdrag med några scener ger olika spelare olika texter, så att
    rollfördelning och privata vyer går att se med flera mobiler. Byggs i två
-   delar. Den första ger spelledaren knappen Starta spelet, där platskorten
-   kan väljas bort, och en tillfällig knapp Nästa som ersätts i steg 4. En
+   delar. Den första ger spelledaren knappen Starta spelet och en tillfällig knapp Nästa som ersätts i steg 4. En
    scen kan skicka spelarna till en plats, och texten där syns bara hos den
    som har kommit fram. Uppdragsfilen anger sitt minsta antal spelare, och
    provuppdraget Provhuset tillåter två (Jonas 2026-11-17). Den andra delen

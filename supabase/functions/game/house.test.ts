@@ -39,14 +39,14 @@ function viewFor(state: GameState, viewer = PLAYERS[1]) {
 }
 
 function start(): GameState {
-  return readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  return readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: PLAYERS[0], leaderPlays: true, minutes: 60, nowMs: 0 }));
 }
 
 test('alla börjar i salongen, och seansbordet står i listan från början och öppnar seansen', () => {
   const view = viewFor(start());
   assert.equal(view.house?.room.name, 'Salongen');
   assert.deepEqual(view.house?.doors.map((door) => door.name), ['Hallen']);
-  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, opensCurrentStep: true, opensFound: null, isCalling: false }]);
+  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null }]);
   assert.equal(view.step.opensFrom, 'Ouijabrädet');
 });
 
@@ -78,7 +78,7 @@ test('en sak hittas först när berättelsen har kommit dit, och syns sedan för
   assert.equal(viewFor(state, PLAYERS[2]).house?.things[0].name, 'Byrån');
 
   state = moveOn(state, MISSION, PLAYERS);
-  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false });
+  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null });
 });
 
 test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns', () => {

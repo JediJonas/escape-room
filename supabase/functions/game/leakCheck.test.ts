@@ -163,8 +163,8 @@ function findCellarDoor(mission: Mission, state: GameState, players: PlayerRecor
 }
 
 /**
- * Alla går till pianot och spelar melodin. Först slår någon an en fel ton,
- * så att gruppen får börja om, och vyerna kontrolleras efter varje ton.
+ * Alla går till pianot och spelar melodin. Först slår någon an en annan ton,
+ * som inte ska räknas, och vyerna kontrolleras efter varje ton.
  */
 function playWholeMelody(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
   const step = mission.steps[state.stepIndex];
@@ -179,7 +179,7 @@ function playWholeMelody(mission: Mission, state: GameState, players: PlayerReco
   const wrongKey = step.keys.find((key) => key !== step.solution.melody[0].note);
   assert.ok(wrongKey && ownerOf(wrongKey), `${mission.id}: ingen har en fel tangent med ${participants.length} spelare`);
   played = readState(playKey({ state: played, mission, players: participants, player: ownerOf(wrongKey)!, key: wrongKey }));
-  assert.equal(played.piano?.wrongNotes, 1);
+  assert.equal(played.stepIndex, state.stepIndex);
   for (const tone of step.solution.melody) {
     checkStep(mission, played, players);
     const owner = ownerOf(tone.note);
@@ -212,7 +212,7 @@ for (const mission of MISSIONS) {
       // Spelledaren som står utanför räknas inte, så det behövs en spelare till.
       const players = createPlayers(leaderPlays ? playerCount : Math.min(playerCount + 1, MAX_PLAYERS));
       const [leader] = players;
-      let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, usesPlaceCards: true, leaderPlays, minutes: 60, nowMs: 0 }));
+      let state = readState(startGame({ state: createInitialState(), mission, players, starter: leader, leaderPlays, minutes: 60, nowMs: 0 }));
       const participants = listParticipants(state, players);
       while (state.status === 'running') {
         // Var annan spelare går till rätt plats, så att både de som är där och de som inte är det kontrolleras.

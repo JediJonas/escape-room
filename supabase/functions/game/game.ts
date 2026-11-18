@@ -5,7 +5,7 @@
  */
 
 import { type ClockView, describeClock, pauseClock, resumeClock, shortenClock, startClock } from './clock.ts';
-import { type CellarStep, type Mission, type MissionDocument, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
+import { type CellarStep, type Mission, type RoomsStep, type MissionDocument, type MissionStep, type Permission, type Place, type Role, type TaskStep, describeSolution, listPlaces } from './mission.ts';
 import { describeViewer, sortByJoinOrder } from './lobby.ts';
 import type { PlaceId } from './places.ts';
 import { describePending, listParticipants } from './participants.ts';
@@ -33,15 +33,16 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     hintsGiven: 0,
     isSolutionShown: false,
     seance: step.type === 'seance' ? startSeance() : null,
-    rooms: step.type === 'rooms' ? startRooms(step) : null,
+    // Golvuret och pianot går att använda hela tiden, så deras läge följer med mellan stegen (Jonas 2026-11-18).
+    rooms: state.rooms ?? (step.type === 'rooms' ? startRooms(step) : null),
     cellar: step.type === 'cellar' ? startCellar() : null,
-    piano: null,
   };
   // Den vars mobil spelar melodin har en framträdande roll, så den roterar som de andra.
   if (step.type === 'piano') {
     const [melodyPlayer] = sortByLastTurn(sortByJoinOrder(players), state.prominentHistory);
     const prominentHistory = melodyPlayer ? [...state.prominentHistory, melodyPlayer.id] : state.prominentHistory;
-    return { ...cleared, roleByPlayer: {}, prominentHistory, piano: startPiano(melodyPlayer?.id ?? null) };
+    const piano = { ...(state.piano ?? startPiano(null)), melodyPlayerId: melodyPlayer?.id ?? null };
+    return { ...cleared, roleByPlayer: {}, prominentHistory, piano };
   }
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
@@ -59,8 +60,18 @@ function finish(state: GameState): GameState {
  * trycka Klar på sluttexten.
  */
 export function moveOn(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
-  const nextIndex = state.stepIndex + 1;
+  return jumpTo(state, mission, players, state.stepIndex + 1);
+}
+
+/**
+ * Går till ett senare steg. En uppgift som gruppen redan har klarat, som
+ * melodin på pianot innan berättelsen kom dit, går gruppen förbi
+ * (Jonas 2026-11-18).
+ */
+function jumpTo(state: GameState, mission: Mission, players: readonly PlayerRecord[], firstIndex: number): GameState {
   const kept = { ...state, found: keepFound(state.found, mission.steps[state.stepIndex], state.roleByPlayer) };
+  let nextIndex = firstIndex;
+  while (nextIndex < mission.steps.length && state.solvedSteps.includes(mission.steps[nextIndex].id)) nextIndex += 1;
   if (nextIndex >= mission.steps.length) return finish(kept);
   const entered = enterStep(kept, mission, players, nextIndex);
   const isEnding = nextIndex === mission.steps.length - 1 && mission.steps[nextIndex].type === 'scene';
@@ -133,12 +144,11 @@ function moveOnIfAllDone(state: GameState, mission: Mission, players: readonly P
   return isAllDone ? moveOn(state, mission, players) : state;
 }
 
-export function startGame({ state, mission, players, starter, usesPlaceCards, leaderPlays, minutes, nowMs }: {
+export function startGame({ state, mission, players, starter, leaderPlays, minutes, nowMs }: {
   state: GameState;
   mission: Mission;
   players: readonly PlayerRecord[];
   starter: PlayerRecord;
-  usesPlaceCards: boolean;
   /** Spelledaren spelar med som standard och kan välja att stå utanför. */
   leaderPlays: boolean;
   minutes: number;
@@ -146,7 +156,7 @@ export function startGame({ state, mission, players, starter, usesPlaceCards, le
 }): StateChange {
   if (!starter.isLeader) return { refusal: 'notLeader' };
   if (state.status !== 'lobby') return { refusal: 'gameStarted' };
-  const started: GameState = { ...state, status: 'running', usesPlaceCards, leaderPlays, clock: startClock(minutes, nowMs) };
+  const started: GameState = { ...state, status: 'running', leaderPlays, clock: startClock(minutes, nowMs) };
   const participants = listParticipants(started, players);
   if (participants.length < mission.minPlayers) return { refusal: 'tooFewPlayers' };
   const placed = mission.house ? placeInHouse(started, mission.house, participants.map((player) => player.id)) : started;
@@ -181,8 +191,8 @@ export function markReady({ state, mission, players, player }: {
 }
 
 /**
- * Spelaren är på en plats, oavsett om hon skannade kortet eller valde i
- * listan. Kommer den instängda fram till källaren börjar det komma närmare.
+ * Spelaren är på en plats när hon har valt den i listan eller gått dit i
+ * huset. Kommer den instängda fram till källaren börjar det komma närmare.
  */
 export function choosePlace({ state, mission, players, player, placeId, nowMs }: {
   state: GameState;
@@ -288,7 +298,6 @@ export type GameView = {
   /** isPlaying är falskt för spelledaren som står utanför. Hon får ingen roll. */
   me: { playerId: string; name: string; isLeader: boolean; isPlaying: boolean };
   isFinished: boolean;
-  usesPlaceCards: boolean;
   step: {
     number: number;
     count: number;
@@ -378,6 +387,25 @@ function describeCellarFor(step: CellarStep, state: GameState, players: readonly
   return describeCellar({ cellar: state.cellar, step, isTrapped, isTrappedHere: isTrapped && isAtGoal(step, state, viewerId), trappedName });
 }
 
+/**
+ * Golvuret och minnet i Rummen minns. Golvuret går att vrida hela tiden, så
+ * minnet syns också när huset minns innan berättelsen har kommit dit
+ * (Jonas 2026-11-18).
+ */
+function describeRoomsFor({ mission, step, state, places, viewerId, participantIds }: {
+  mission: Mission;
+  step: MissionStep;
+  state: GameState;
+  places: readonly Place[];
+  viewerId: string;
+  participantIds: readonly string[];
+}): RoomsView | null {
+  const roomsStep = mission.steps.find((candidate): candidate is RoomsStep => candidate.type === 'rooms');
+  const isShown = step.type === 'rooms' || state.rooms?.remembersUntilMs !== null;
+  if (state.status !== 'running' || !state.rooms || !roomsStep || !isShown) return null;
+  return describeRooms({ rooms: state.rooms, step: roomsStep, places, viewerId, participantIds });
+}
+
 export function buildGameView({ game, mission, players, viewer }: {
   game: GameRecord;
   mission: Mission;
@@ -398,7 +426,6 @@ export function buildGameView({ game, mission, players, viewer }: {
     missionTitle: mission.title,
     me: { ...describeViewer(viewer), isPlaying: participants.some((player) => player.id === viewer.id) },
     isFinished: state.status === 'finished',
-    usesPlaceCards: state.usesPlaceCards,
     step: {
       number: stepIndex + 1,
       count: mission.steps.length,
@@ -417,9 +444,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       seance: step.type === 'seance' && state.seance && isRunning
         ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })
         : null,
-      rooms: step.type === 'rooms' && state.rooms && isRunning
-        ? describeRooms({ rooms: state.rooms, step, places, viewerId: viewer.id, participantIds: participants.map((player) => player.id) })
-        : null,
+      rooms: describeRoomsFor({ mission, step, state, places, viewerId: viewer.id, participantIds: participants.map((player) => player.id) }),
       cellar: step.type === 'cellar' && state.cellar && isRunning ? describeCellarFor(step, state, players, viewer.id) : null,
       piano: step.type === 'piano' && state.piano && isRunning
         ? describePiano({
@@ -435,7 +460,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       ? sortByJoinOrder(participants).map((player) => ({ name: player.name, isMe: player.id === viewer.id, isDone: isPlayerDone(step, state, player.id) }))
       : null,
     found: describeFound(mission, state.found, viewer.id),
-    house: mission.house && isRunning ? describeHouse({ state, mission, house: mission.house, places, viewerId: viewer.id }) : null,
+    house: mission.house && isRunning ? describeHouse({ state, mission, house: mission.house, places, viewerId: viewer.id, participantIds: sortByJoinOrder(participants).map((player) => player.id) }) : null,
     pending: showsLeaderTools ? describePending(state, players) : null,
     clock: isRunning && state.clock ? describeClock(state.clock) : null,
     myPlace,

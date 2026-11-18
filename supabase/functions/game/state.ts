@@ -13,16 +13,11 @@ import { type PianoState, readPianoState } from './piano.ts';
 import { type RoomsState, readRoomsState } from './rooms.ts';
 import { type SeanceState, readSeanceState } from './seance.ts';
 
-/** Om spelaren skannade kortet eller valde i listan. Sparas för felsökningens skull. */
-export type PlaceSource = 'scan' | 'list';
-
 /** En mobil som kom efter start och väntar på spelledaren. */
 export type PendingPlayer = { playerId: string; takesOverPlayerId: string | null };
 
 export type GameState = {
   status: 'lobby' | 'running' | 'finished';
-  /** Spelledaren kan välja bort platskorten när spelet startar. Då väljer alla i listan. */
-  usesPlaceCards: boolean;
   /** Det steg i uppdraget som gruppen är på. */
   stepIndex: number;
   /** Var varje spelare är, efter spelarens id. */
@@ -53,6 +48,11 @@ export type GameState = {
   cellar: CellarState | null;
   /** Pianots läge medan gruppen spelar, annars null. */
   piano: PianoState | null;
+  /**
+   * Uppgifter som gruppen har klarat innan berättelsen kom dit, till exempel
+   * melodin på pianot. Gruppen går förbi dem när den kommer dit (Jonas 2026-11-18).
+   */
+  solvedSteps: string[];
   /** Följder som senare steg och slut läser, till exempel att gruppen får färre namn. */
   marks: string[];
   /** Det gruppen har hittat och kan läsa igen, med vem som hade vilka bitar. */
@@ -78,7 +78,7 @@ export type PlayerRecord = {
 };
 
 export function createInitialState(): GameState {
-  return { status: 'lobby', usesPlaceCards: true, stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null, cellar: null, piano: null, marks: [], found: {}, foundThings: [] };
+  return { status: 'lobby', stepIndex: 0, placeByPlayer: {}, roleByPlayer: {}, prominentHistory: [], readyPlayerIds: [], wrongAnswers: 0, hintsGiven: 0, isSolutionShown: false, leaderPlays: true, pendingPlayers: [], clock: null, seance: null, rooms: null, cellar: null, piano: null, solvedSteps: [], marks: [], found: {}, foundThings: [] };
 }
 
 /**
@@ -100,7 +100,6 @@ export function readGameState(saved: unknown): GameState {
     status,
     roleByPlayer: readRoleByPlayer(fields.roleByPlayer),
     prominentHistory: readStringList(fields.prominentHistory),
-    usesPlaceCards: typeof fields.usesPlaceCards === 'boolean' ? fields.usesPlaceCards : initial.usesPlaceCards,
     stepIndex: Number.isInteger(fields.stepIndex) ? fields.stepIndex as number : initial.stepIndex,
     placeByPlayer,
     readyPlayerIds: readStringList(fields.readyPlayerIds),
@@ -114,6 +113,7 @@ export function readGameState(saved: unknown): GameState {
     rooms: readRoomsState(fields.rooms),
     cellar: readCellarState(fields.cellar),
     piano: readPianoState(fields.piano),
+    solvedSteps: readStringList(fields.solvedSteps),
     marks: readStringList(fields.marks),
     found: readFoundState(fields.found, readRoleByPlayer),
     foundThings: readStringList(fields.foundThings),

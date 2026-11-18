@@ -93,13 +93,12 @@ async function startGameAction(action: Action, context: Context): Promise<Action
   return withOwnPlayer(action, context, async (scope) => {
     const mission = typeof action.missionId === 'string' ? getMission(action.missionId) : scope.mission;
     if (!mission) return fail('unknownMission');
-    const usesPlaceCards = action.usesPlaceCards !== false;
     const minutes = readGameMinutes(action.minutes);
     const leaderPlays = action.leaderPlays !== false;
-    const change = startGame({ state: scope.game.state, mission, players: scope.players, starter: scope.player, usesPlaceCards, leaderPlays, minutes, nowMs });
+    const change = startGame({ state: scope.game.state, mission, players: scope.players, starter: scope.player, leaderPlays, minutes, nowMs });
     if ('state' in change && mission.id !== scope.game.missionId) await scope.transaction.updateGameMission(scope.game.id, mission.id);
     const chosen = { ...scope, mission, game: { ...scope.game, missionId: mission.id } };
-    return applyChange(chosen, change, { action: { type: 'startGame', missionId: mission.id, usesPlaceCards, leaderPlays, minutes } });
+    return applyChange(chosen, change, { action: { type: 'startGame', missionId: mission.id, leaderPlays, minutes } });
   });
 }
 
@@ -141,9 +140,7 @@ async function choosePlaceAction(action: Action, context: Context): Promise<Acti
   const nowMs = await context.store.readServerTimeMs();
   return withParticipant(action, context, async (scope) => {
     const change = choosePlace({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, placeId: action.placeId, nowMs });
-    // Varifrån platsen kom sparas bara i loggen. För motorn är det samma sak.
-    const source = action.source === 'scan' ? 'scan' : 'list';
-    return applyChange(scope, change, { action: { type: 'choosePlace', placeId: action.placeId, source }, recipients: findRecipients(scope, change) });
+    return applyChange(scope, change, { action: { type: 'choosePlace', placeId: action.placeId }, recipients: findRecipients(scope, change) });
   });
 }
 
@@ -220,11 +217,13 @@ async function moveInCellarAction(action: Action, context: Context): Promise<Act
   });
 }
 
-/** Alla ser hur långt gruppen har kommit i melodin, så alla får en ny vy. */
+/** En ton på pianot. Den låter bara i mobilen som spelade den. */
 async function playKeyAction(action: Action, context: Context): Promise<ActionResult> {
   return withParticipant(action, context, async (scope) => {
     const change = playKey({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, key: action.key });
-    return applyChange(scope, change, { action: { type: 'playKey', key: action.key } });
+    // Tonerna syns inte hos någon, så bara när gruppen går vidare får alla en ny vy.
+    const isUnchanged = 'state' in change && change.state.stepIndex === scope.game.state.stepIndex && change.state.solvedSteps.length === scope.game.state.solvedSteps.length;
+    return applyChange(scope, change, { action: { type: 'playKey', key: action.key }, recipients: isUnchanged ? [] : undefined });
   });
 }
 

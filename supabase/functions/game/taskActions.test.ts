@@ -46,7 +46,7 @@ test('i källaren tänder de andra lampan, den instängda hittar dörren och all
   const guideUser = users.find((user) => user !== trappedUser)!;
   assert.deepEqual(await send(memory.store, guideUser, { type: 'moveInCellar', gameId, move: { type: 'flipFuse' } }), { status: 409, body: { error: 'notAtPlace' } });
 
-  const arrived = readGameView((await send(memory.store, trappedUser, { type: 'choosePlace', gameId, placeId: 'A', source: 'list' })).body);
+  const arrived = readGameView((await send(memory.store, trappedUser, { type: 'choosePlace', gameId, placeId: 'A' })).body);
   assert.equal(arrived.step.cellar?.image, 'testsida/rundbilder/kallare-stor.webp');
   assert.equal(arrived.step.cellar?.catchMs, memory.clock.nowMs + 4 * 60_000);
   const lit = readGameView((await send(memory.store, guideUser, { type: 'moveInCellar', gameId, move: { type: 'flipFuse' } })).body);

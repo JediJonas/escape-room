@@ -3,11 +3,19 @@
  * (Jonas 2026-11-18), i höjd med den understa knappen. Menyn öppnas ovanför
  * den, nära tummen. Knapparna längst ner lämnar plats åt hamburgaren.
  */
-:root { --leader-menu-size: 3rem; }
+:root {
+  --leader-menu-size: 3rem;
+  /*
+   * Avståndet till skärmens högerkant. Hamburgaren står i innehållets
+   * högerkant, inte i skärmens hörn, så att den står i rad med knapparna
+   * också i iPad och dator (Jonas 2026-11-18). Innehållet är 32rem brett där.
+   */
+  --leader-menu-right: max(0.75rem, calc(50% - 16rem + 0.75rem));
+}
 
 .leader-menu-button {
   position: fixed;
-  right: 0.75rem;
+  right: var(--leader-menu-right);
   bottom: calc(1rem + var(--bottom-gap));
   z-index: 31;
   display: grid;
@@ -51,7 +59,7 @@
 
 .leader-menu {
   position: fixed;
-  right: 0.75rem;
+  right: var(--leader-menu-right);
   bottom: calc(1.5rem + var(--leader-menu-size) + var(--bottom-gap));
   z-index: 30;
   width: min(22rem, calc(100vw - 1.5rem));
@@ -79,8 +87,9 @@
  */
 .has-leader-menu > .screen { padding-bottom: calc(1rem + var(--bottom-gap)); }
 
-/* Den understa raden lämnar plats åt hamburgaren i hörnet. */
 .has-leader-menu { display: contents; }
+
+/* Den understa raden lämnar plats åt hamburgaren, som står i samma rad. */
 .has-leader-menu .screen-actions,
 .has-leader-menu .thing-actions { padding-right: calc(var(--leader-menu-size) + 1.25rem); }
 .has-leader-menu .seance-status { max-width: calc(100% - 2 * (var(--leader-menu-size) + 1rem)); }

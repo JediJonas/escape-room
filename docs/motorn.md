@@ -460,7 +460,8 @@ och 5 miljoner per månad, och projektet pausas aldrig.
    trycker spelaren Klar efter att ha läst den (Jonas 2026-11-17). En uppgift
    går vidare när den är löst. Är sista steget en scen är det slutet, och
    spelet tar slut när gruppen kommer dit. Spelledaren ser vilka som är klara och kan gå
-   vidare ändå om någon har gått iväg. Hon väljer speltid, 45, 60 eller 75
+   vidare ändå om någon har gått iväg. Har alla andra tryckt Klar döljs Gå
+   vidare ändå, eftersom hon då kan trycka Klar själv (Jonas 2026-11-18). Hon väljer speltid, 45, 60 eller 75
    minuter, när hon startar, och kan pausa. Den andra delen ger ledtrådar,
    att hoppa över och facit, med uppgiftstypen `answer` där gruppen skriver
    in ett svar. Provhuset får uppgiften Lappen. Spelledaren ger ledtrådarna

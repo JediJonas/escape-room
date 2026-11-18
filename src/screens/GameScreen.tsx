@@ -7,7 +7,7 @@ import { requestMotionPermission } from '../device/motion.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
-import { PianoTask } from '../tasks/PianoTask.tsx';
+import { PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
 import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
@@ -96,9 +96,14 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
   const closeThing = <button key="close" type="button" className="secondary" onClick={() => setOpenThingId(null)}>Tillbaka</button>;
   if (openThing && !openThing.opensCurrentStep) {
+    // Golvuret och pianot går att använda hela tiden, också innan berättelsen har kommit dit (Jonas 2026-11-18).
+    const { instrument } = openThing;
     return (
       <ScreenLayout actions={closeThing}>
         <ThingContent thing={openThing} found={view.found} />
+        {instrument?.type === 'clock' && <GrandfatherClock dialMinutes={instrument.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
+        {instrument?.type === 'piano' && view.me.isPlaying && <PianoKeys keys={instrument.keys} onPlayKey={game.playKey} />}
+        <p className="error" role="alert">{error}</p>
       </ScreenLayout>
     );
   }

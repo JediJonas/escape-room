@@ -11,6 +11,8 @@
 import type { Mission, MissionStep, Place } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import { isSeanceComplete } from './seance.ts';
+import { type PianoKey, listMyKeys } from './piano.ts';
+import { readDialTime } from './rooms.ts';
 import type { GameState } from './state.ts';
 
 /** En sak i ett rum som spelaren kan trycka på. Den öppnar alltid en vy. */
@@ -109,7 +111,25 @@ export type ThingView = {
   opensFound: string | null;
   /** Saken kallar på gruppen, som brädet när det vill fråga något (Jonas 2026-11-17). */
   isCalling: boolean;
+  /**
+   * Golvuret och pianot går att använda hela tiden, också när steget de
+   * öppnar inte är det gruppen är på (Jonas 2026-11-18). Annars null.
+   */
+  instrument: Instrument | null;
 };
+
+export type Instrument = { type: 'clock'; dialMinutes: number } | { type: 'piano'; keys: PianoKey[] };
+
+/** Golvuret eller pianot, när steget det öppnar inte är det gruppen är på. */
+function describeInstrument(opened: readonly MissionStep[], state: GameState, viewerId: string, participantIds: readonly string[]): Instrument | null {
+  const rooms = opened.find((step) => step.type === 'rooms');
+  if (rooms?.type === 'rooms') return { type: 'clock', dialMinutes: state.rooms?.dialMinutes ?? readDialTime(rooms.clockStart) ?? 0 };
+  const piano = opened.find((step) => step.type === 'piano');
+  if (piano?.type !== 'piano') return null;
+  // Utanför steget spelar ingen melodin, så tangenterna delas mellan alla.
+  const keyPlayers = participantIds.filter((id) => id !== state.piano?.melodyPlayerId);
+  return { type: 'piano', keys: listMyKeys(piano.keys, keyPlayers, viewerId) };
+}
 
 export type HouseView = {
   room: Place;
@@ -127,7 +147,7 @@ function isStepCalling(step: MissionStep, state: GameState): boolean {
   return step.type === 'seance' && step.callsFromHouse === true && state.seance !== null && !isSeanceComplete(state.seance, step.solution.message);
 }
 
-function describeThing(thing: HouseThing, mission: Mission, state: GameState): ThingView {
+function describeThing(thing: HouseThing, mission: Mission, state: GameState, viewer?: { id: string; participantIds: readonly string[] }): ThingView {
   const opened = (thing.opensSteps ?? []).flatMap((stepId) => {
     const step = mission.steps.find((candidate) => candidate.id === stepId);
     return step ? [{ step, index: stepIndexOf(mission, stepId) }] : [];
@@ -142,15 +162,18 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState): T
     opensCurrentStep: current !== undefined,
     opensFound,
     isCalling: current !== undefined && isStepCalling(current.step, state),
+    instrument: current === undefined && viewer ? describeInstrument(opened.map(({ step }) => step), state, viewer.id, viewer.participantIds) : null,
   };
 }
 
-export function describeHouse({ state, mission, house, places, viewerId }: {
+export function describeHouse({ state, mission, house, places, viewerId, participantIds }: {
   state: GameState;
   mission: Mission;
   house: House;
   places: readonly Place[];
   viewerId: string;
+  /** I den ordning de gick med, så att pianots tangenter delas lika varje gång. */
+  participantIds: readonly string[];
 }): HouseView | null {
   const room = findRoom(house, state.placeByPlayer[viewerId]);
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
@@ -162,7 +185,7 @@ export function describeHouse({ state, mission, house, places, viewerId }: {
   return {
     room: findPlace(room.place),
     doors: room.doors.map(findPlace),
-    things: visible.map((thing) => describeThing(thing, mission, state)),
+    things: visible.map((thing) => describeThing(thing, mission, state, { id: viewerId, participantIds })),
     callingFrom: callingThing ? callingThing.callingText ?? `Något rör sig vid ${callingThing.name.toLocaleLowerCase('sv')} i ${callingPlace}.` : null,
     canSearch: room.things.some((thing) => isFindable(thing, mission, state) && !isFound(thing, state)),
   };

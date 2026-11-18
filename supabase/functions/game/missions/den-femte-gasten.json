@@ -33,7 +33,7 @@
           {
             "id": "golvuret",
             "name": "Golvuret",
-            "text": "Ett högt golvur i mörkt trä. Pendeln hänger stilla, och visarna står på tjugo i fem.",
+            "text": "Ett högt golvur i mörkt trä. Pendeln hänger stilla.",
             "opensSteps": [
               "rummen-minns"
             ],
@@ -53,7 +53,7 @@
           {
             "id": "pianot",
             "name": "Pianot",
-            "text": "Ett svart piano. Locket är stängt, och det ligger damm på det.",
+            "text": "Ett svart piano med gulnade tangenter. Det ligger damm ovanpå.",
             "opensSteps": [
               "pianot"
             ],
@@ -122,7 +122,7 @@
       "id": "runt-bordet",
       "type": "scene",
       "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Frågar mobilen om rörelse, tryck Tillåt.",
-      "readyLabel": "Jag sitter",
+      "readyLabel": "Uppfattat",
       "asksFor": [
         "sound",
         "motion"
@@ -145,7 +145,7 @@
       "id": "vera-svarar",
       "type": "scene",
       "text": "Skenet slocknar. Någon har svarat er, och hon vill ha hjälp. Ni vet inte vem hon är. Gå runt i huset och leta efter vad som hände här.",
-      "readyLabel": "Vi är redo att leta"
+      "readyLabel": "Jag förstår"
     },
     {
       "id": "tidningsurklippen",
@@ -263,7 +263,7 @@
     {
       "id": "pianot",
       "type": "piano",
-      "text": "Locket är uppfällt och noterna står uppslagna, men bladen är tomma. Melodin som spelades när ljuset slocknade 1962 finns i en av era mobiler. Spela den för varandra, och spela den sedan ton för ton på era tangenter. En fel ton och ni får börja om från början.",
+      "text": "Locket är uppfällt och noterna står uppslagna, men bladen är tomma. Melodin som spelades när ljuset slocknade 1962 finns i en av era mobiler. Spela den för varandra, och spela den sedan på era tangenter.",
       "callsFromHouse": true,
       "keys": [
         "C4",
@@ -317,7 +317,7 @@
     {
       "id": "vera-ar-nara",
       "type": "scene",
-      "text": "Den sista tonen klingar ut. Det blir kallt i hallen, och lågan i lampan böjer sig som för ett andetag. Vera är alldeles nära nu.",
+      "text": "Melodin hänger kvar i hallen. Det blir kallt, och lågan i lampan böjer sig som för ett andetag. Vera är alldeles nära nu.",
       "readyLabel": "Vi känner henne"
     },
     {

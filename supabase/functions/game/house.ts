@@ -25,6 +25,11 @@ export type HouseThing = {
   fromStep?: string;
   /** Saken står i listan från början, som ouijabrädet. */
   isFoundFromStart?: boolean;
+  /**
+   * Det som spelarna i de andra rummen får veta när saken kallar på gruppen,
+   * till exempel att det hörs något från salongen (Jonas 2026-11-18).
+   */
+  callingText?: string;
 };
 
 export type HouseRoom = { place: PlaceId; doors: PlaceId[]; things: HouseThing[] };
@@ -110,6 +115,8 @@ export type HouseView = {
   room: Place;
   doors: Place[];
   things: ThingView[];
+  /** Det som hörs från ett annat rum där något kallar på gruppen, annars null. */
+  callingFrom: string | null;
   /** Om det finns något kvar att hitta i rummet. Visas inte, men säger om knappen behövs. */
   canSearch: boolean;
 };
@@ -148,10 +155,14 @@ export function describeHouse({ state, mission, house, places, viewerId }: {
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
   if (!room) return null;
   const visible = room.things.filter((thing) => isFound(thing, state) && isFindable(thing, mission, state));
+  const callingRoom = house.rooms.find((other) => other !== room && other.things.some((thing) => describeThing(thing, mission, state).isCalling));
+  const callingThing = callingRoom?.things.find((thing) => describeThing(thing, mission, state).isCalling);
+  const callingPlace = callingRoom ? findPlace(callingRoom.place).name.toLocaleLowerCase('sv') : '';
   return {
     room: findPlace(room.place),
     doors: room.doors.map(findPlace),
     things: visible.map((thing) => describeThing(thing, mission, state)),
+    callingFrom: callingThing ? callingThing.callingText ?? `Något rör sig vid ${callingThing.name.toLocaleLowerCase('sv')} i ${callingPlace}.` : null,
     canSearch: room.things.some((thing) => isFindable(thing, mission, state) && !isFound(thing, state)),
   };
 }
@@ -179,6 +190,7 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   for (const stepId of Array.isArray(opens) ? opens : []) {
     if (!stepIds.includes(stepId)) errors.push(`${name} pekar på ett steg som inte finns: ${String(stepId)}`);
   }
+  if (thing.callingText !== undefined && !(isFilledText(thing.callingText) && opens !== undefined)) errors.push(`${name} har en tom text för när den kallar, eller öppnar inga steg`);
   if (thing.text === undefined && opens === undefined) errors.push(`${name} har varken text eller steg att öppna`);
   return errors;
 }

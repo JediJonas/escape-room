@@ -82,3 +82,24 @@ test('en seans med svar behöver både fråga och svar, och kostnaden kräver sv
   assert.match(findMissionErrors(mission({ question: undefined, wrongAnswerMinutes: 2, solution: { message: 'VEM' } })).join(), /kostnad för fel svar/);
   assert.match(findMissionErrors(mission({ callsFromHouse: 'ja' })).join(), /callsFromHouse/);
 });
+
+test('den som står i ett annat rum får veta att brädet kallar, och den som står vid brädet ser det skimra', () => {
+  const house = {
+    start: 'B' as const,
+    rooms: [
+      { place: 'F' as const, doors: ['B' as const], things: [{ id: 'bradet', name: 'Ouijabrädet', opensSteps: ['vem-ar-jag'], callingText: 'Från salongen hörs planchetten.', isFoundFromStart: true }] },
+      { place: 'B' as const, doors: ['F' as const], things: [] },
+    ],
+  };
+  const mission: Mission = { ...MISSION, house };
+  assert.deepEqual(findMissionErrors(mission), []);
+  const started = readState(startGame({ state: createInitialState(), mission, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const view = (state: GameState) => buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state }, mission, players: PLAYERS, viewer: PLAYERS[1] });
+  assert.equal(view(started).house?.callingFrom, 'Från salongen hörs planchetten.');
+  const atBoard = { ...started, placeByPlayer: { ...started.placeByPlayer, [PLAYERS[1].id]: 'F' as const } };
+  assert.equal(view(atBoard).house?.callingFrom, null);
+  assert.equal(view(atBoard).house?.things[0].isCalling, true);
+  const withoutText: Mission = { ...mission, house: { ...house, rooms: [{ ...house.rooms[0], things: [{ id: 'bradet', name: 'Ouijabrädet', opensSteps: ['vem-ar-jag'], isFoundFromStart: true }] }, house.rooms[1]] } };
+  const generic = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: mission.id, state: started }, mission: withoutText, players: PLAYERS, viewer: PLAYERS[1] });
+  assert.equal(generic.house?.callingFrom, 'Något rör sig vid ouijabrädet i salongen.');
+});

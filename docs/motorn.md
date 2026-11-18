@@ -256,7 +256,9 @@ Klar när meddelandet är klart, utan skriver ett svar under `question`, och
 frågan står kvar tills gruppen vet. Med `wrongAnswerMinutes` dras tid från
 nedräkningen för varje fel svar, och alla ser hur många fel det har blivit.
 Med `callsFromHouse` kallar brädet på gruppen tills meddelandet är klart:
-saken som öppnar seansen skimrar i rummets lista. Knackningar togs bort,
+saken som öppnar seansen skimrar i rummets lista, och i de andra rummen
+står sakens `callingText`, till exempel att det hörs något från salongen.
+Knackningar togs bort,
 eftersom de var svåra att förstå (Jonas 2026-11-18). En sak i huset kan öppna flera steg med
 `opensSteps`, som ouijabrädet som öppnar båda seanserna.
 

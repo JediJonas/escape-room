@@ -48,11 +48,15 @@
   width: 100%;
   max-width: var(--stage-max-width);
   max-height: var(--stage-max-height);
-  /* Det som blir över när ytan har nått sin största storlek fördelas runt den. */
-  margin: auto;
+  /*
+   * Innehållet börjar överst, under Tillbaka och tiden, som i textvyn, och
+   * centreras inte i höjdled (Jonas 2026-11-18). Det som blir över när ytan
+   * har nått sin största bredd fördelas på sidorna.
+   */
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 1rem;
   padding: 0.5rem 0.75rem;
 }
@@ -66,7 +70,8 @@
 .thing-actions {
   width: 100%;
   max-width: var(--stage-max-width);
-  margin: 0 auto;
+  /* Knapparna står längst ner även när innehållet ovanför har nått sin största höjd. */
+  margin: auto auto 0;
   display: grid;
   gap: 0.5rem;
   padding: 0 0.75rem calc(1rem + var(--bottom-gap));

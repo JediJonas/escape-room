@@ -1,6 +1,6 @@
 /**
- * Handlingarna i uppgifter som har ett eget läge: seansen, golvuret och
- * källaren. Rena funktioner som game.ts, men i en egen fil så att den inte
+ * Handlingarna i uppgifter som har ett eget läge: seansen, golvuret,
+ * källaren och pianot. Rena funktioner som game.ts, men i en egen fil så att den inte
  * växer med varje ny uppgiftstyp.
  */
 
@@ -11,6 +11,8 @@ import type { Mission, RoomsStep } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import { type RoomsState, advanceRooms, chooseMemoryRoom as chooseRoom, isRemembering, isRoomsSolved, turnClock as turnClockHands } from './rooms.ts';
 import { type BoardTouch, applyBoardTouch } from './seance.ts';
+import { isPianoSolved, pressKey } from './piano.ts';
+import { sortByJoinOrder } from './lobby.ts';
 import type { GameState, PlayerRecord } from './state.ts';
 
 /**
@@ -111,6 +113,29 @@ export function fadeMemory({ state, mission, players, nowMs }: {
   if ('refusal' in task) return task;
   if (task.rooms === state.rooms) return { state };
   return { state: saveRooms({ state, mission, players, step: task.step, rooms: task.rooms }) };
+}
+
+/**
+ * En spelare slår an en tangent på pianot. Alla måste stå vid pianot. När
+ * hela melodin är spelad går gruppen vidare.
+ */
+export function playKey({ state, mission, players, player, key }: {
+  state: GameState;
+  mission: Mission;
+  players: readonly PlayerRecord[];
+  player: PlayerRecord;
+  key: unknown;
+}): StateChange {
+  const task = findCurrentTask(state, mission);
+  if ('refusal' in task) return { refusal: task.refusal };
+  if (task.step.type !== 'piano' || !state.piano) return { refusal: 'notATask' };
+  const pianoPlace = findOpenerPlace(mission, task.step.id);
+  if (pianoPlace !== undefined && state.placeByPlayer[player.id] !== pianoPlace) return { refusal: 'notAtPlace' };
+  const participantIds = sortByJoinOrder(players).map((participant) => participant.id);
+  const pressed = pressKey({ piano: state.piano, step: task.step, playerId: player.id, participantIds, key });
+  if ('refusal' in pressed) return pressed;
+  const played = { ...state, piano: pressed.piano };
+  return { state: isPianoSolved(pressed.piano, task.step) ? moveOn(played, mission, players) : played };
 }
 
 /** Medan huset minns står var och en kvar i sitt rum, och dörrarna är stängda (Jonas 2026-11-17). */

@@ -7,6 +7,7 @@ import { requestMotionPermission } from '../device/motion.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
+import { PianoTask } from '../tasks/PianoTask.tsx';
 import { MemoryScreen, useMemoryTime } from '../tasks/MemoryScreen.tsx';
 import { SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
@@ -34,6 +35,7 @@ export type GameActions = {
   turnClock: (minutes: number) => void;
   chooseMemoryRoom: (placeId: PlaceId) => void;
   fadeMemory: () => void;
+  playKey: (note: string) => void;
   giveHint: () => void;
   showSolution: () => void;
   answerPending: (playerId: string, isAdmitted: boolean) => void;
@@ -263,6 +265,7 @@ export function GameScreen({ view, clockOffsetMs, isBusy, error, actions: game }
         </form>
       )}
       {cellar && <CellarStatus cellar={cellar} clockOffsetMs={clockOffsetMs} onTimeUp={timeUpInCellar} />}
+      {step.piano && <PianoTask piano={step.piano} canPlay={view.me.isPlaying && !view.isFinished} onPlayKey={game.playKey} />}
       {step.rooms && <GrandfatherClock dialMinutes={step.rooms.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
       {step.goTo && <p className="status" role="status">{describePlaceStatus(step.goTo, view.myPlace)}</p>}
       {step.textAtPlace && <p className="place-text">{step.textAtPlace}</p>}

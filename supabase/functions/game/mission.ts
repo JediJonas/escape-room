@@ -9,6 +9,7 @@ import { MAX_PLAYERS } from './lobby.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import { findCellarErrors } from './cellar.ts';
 import { type House, findHouseErrors } from './house.ts';
+import { type MelodyNote, describePianoSolution, findPianoErrors } from './piano.ts';
 import { describeRoomsSolution, findRoomsErrors } from './rooms.ts';
 import { SEANCE_LETTERS } from './seance.ts';
 
@@ -197,8 +198,31 @@ export type CellarStep = {
   solution: { doorYawDeg: number; toleranceDeg: number };
 };
 
+/**
+ * Pianot: en spelare hör melodin och de andra spelar den på sina tangenter.
+ * Se piano.ts.
+ */
+export type PianoStep = {
+  id: string;
+  type: 'piano';
+  /** Det alla ser ovanför tangenterna. */
+  text: string;
+  goTo?: undefined;
+  textAtPlace?: undefined;
+  roles?: undefined;
+  /** Pianots tangenter, lägst först, som "C4" eller "F#4". De delas mellan spelarna utom den som spelar melodin. */
+  keys: string[];
+  /** Hur länge ett slag varar när melodin spelas. */
+  beatMs: number;
+  /** Pianot kallar på gruppen från huset tills melodin är spelad, som brädet (Jonas 2026-11-18). */
+  callsFromHouse?: boolean;
+  hints: string[];
+  /** Melodin. Lämnar aldrig servern, utom till mobilen som spelar den och till spelledaren som ber om facit. */
+  solution: { melody: MelodyNote[] };
+};
+
 /** Uppgifter är de steg som gruppen löser, med ledtrådar och facit. */
-export type TaskStep = AnswerStep | SeanceStep | RoomsStep | CellarStep;
+export type TaskStep = AnswerStep | SeanceStep | RoomsStep | CellarStep | PianoStep;
 
 export type MissionStep = SceneStep | TaskStep;
 
@@ -207,6 +231,7 @@ export function describeSolution(step: TaskStep, places: readonly Place[]): stri
   if (step.type === 'answer') return step.solution.answers[0];
   if (step.type === 'seance') return step.solution.answers ? `${step.solution.message}, svar: ${step.solution.answers[0]}` : step.solution.message;
   if (step.type === 'cellar') return `Dörren åt ${step.solution.doorYawDeg} grader i bilden`;
+  if (step.type === 'piano') return describePianoSolution(step);
   return describeRoomsSolution(step, places);
 }
 
@@ -309,7 +334,8 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   if (!isFilledText(step.id)) errors.push('ett steg saknar id');
   const name = `steget ${String(step.id)}`;
   if (step.type === 'cellar') errors.push(...findHintErrors(step, name), ...findCellarErrors(step, name));
-  if (!['scene', 'answer', 'seance', 'rooms', 'cellar'].includes(String(step.type))) errors.push(`${name} har en okänd typ: ${String(step.type)}`);
+  if (step.type === 'piano') errors.push(...findHintErrors(step, name), ...findPianoErrors(step, name));
+  if (!['scene', 'answer', 'seance', 'rooms', 'cellar', 'piano'].includes(String(step.type))) errors.push(`${name} har en okänd typ: ${String(step.type)}`);
   if (step.type === 'answer') errors.push(...findAnswerErrors(step, name));
   if (step.type === 'seance') errors.push(...findSeanceErrors(step, name));
   if (step.type === 'rooms') errors.push(...findHintErrors(step, name), ...findRoomsErrors(step, name, places));
@@ -321,7 +347,7 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   errors.push(...findDocumentErrors(step, name));
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);
-  if (step.roles !== undefined && step.type !== 'seance' && step.type !== 'rooms') errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
+  if (step.roles !== undefined && !['seance', 'rooms', 'piano'].includes(String(step.type))) errors.push(...findRoleErrors(step.roles, name, minPlayers, places));
   return errors;
 }
 

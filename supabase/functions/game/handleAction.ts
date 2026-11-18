@@ -9,7 +9,7 @@
 import { type Action, type ActionResult, type Context, type GameScope, applyChange, buildOwnView, fail, readAction, sendViews, succeed, withOwnPlayer, withParticipant } from './actionKit.ts';
 import { readGameMinutes } from './clock.ts';
 import { type StateChange, advanceStep, choosePlace, giveHint, markReady, setPaused, showSolution, startGame, submitAnswer } from './game.ts';
-import { chooseMemoryRoom, fadeMemory, moveInCellar, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
+import { chooseMemoryRoom, fadeMemory, moveInCellar, playKey, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
 import { readCellarMove } from './cellar.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts';
@@ -220,6 +220,14 @@ async function moveInCellarAction(action: Action, context: Context): Promise<Act
   });
 }
 
+/** Alla ser hur långt gruppen har kommit i melodin, så alla får en ny vy. */
+async function playKeyAction(action: Action, context: Context): Promise<ActionResult> {
+  return withParticipant(action, context, async (scope) => {
+    const change = playKey({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, key: action.key });
+    return applyChange(scope, change, { action: { type: 'playKey', key: action.key } });
+  });
+}
+
 async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
     const change = giveHint({ state: scope.game.state, mission: scope.mission, player: scope.player });
@@ -269,6 +277,7 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   chooseMemoryRoom: chooseMemoryRoomAction,
   fadeMemory: fadeMemoryAction,
   moveInCellar: moveInCellarAction,
+  playKey: playKeyAction,
   walk: walkAction,
   searchRoom: searchRoomAction,
   giveHint: giveHintAction,

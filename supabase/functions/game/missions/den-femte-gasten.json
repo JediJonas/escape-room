@@ -51,6 +51,16 @@
         ],
         "things": [
           {
+            "id": "pianot",
+            "name": "Pianot",
+            "text": "Ett svart piano. Locket är stängt, och det ligger damm på det.",
+            "opensSteps": [
+              "pianot"
+            ],
+            "callingText": "Från hallen hörs en ensam ton från pianot.",
+            "isFoundFromStart": true
+          },
+          {
             "id": "gastboken",
             "name": "Gästboken",
             "text": "De sista sidorna i gästboken. Efter den sista raden är sidorna tomma.\n14 juni 1958. Ingrid Lindahl, Tore Lindahl, Birgitta Nyberg, Lennart Nyberg, Ulla Forsén.\n26 december 1959. Gunnar Ahl, Karin Ahl, Olof Nyman, Maj Sundin, Bertil Sundin.\n15 april 1961. Astrid Lindqvist, Rut Malm, Harald Malm, Signe Ström, Nils Ström.\n27 oktober 1962. Arvid Lund, Elsa Rydén, Margit Holm, Sven Dahl, Vera Sjö.",
@@ -183,7 +193,8 @@
           "pieces": [
             "En ung kvinna i röd sjal står vid ytterdörren och tittar ut i rummet.",
             "Gästboken ligger uppslagen på bordet. Bläcket på den sista raden är fortfarande blankt.",
-            "Väggklockan har stannat på kvart över nio."
+            "Väggklockan har stannat på kvart över nio.",
+            "Pianot står öppet med noter på. Pallen är utdragen, som om någon just har rest sig."
           ]
         },
         {
@@ -243,8 +254,71 @@
     {
       "id": "det-ar-vera",
       "type": "scene",
-      "text": "Planchetten glider till JA och stannar. Hon heter Vera. Hon skrev sitt namn sist i gästboken den kvällen, och hon gick aldrig ut ur huset.",
-      "readyLabel": "Vi förstår"
+      "text": "Planchetten glider till JA och stannar. Hon heter Vera. Hon skrev sitt namn sist i gästboken den kvällen, och hon gick aldrig ut ur huset. Då slår pianot i hallen an en ensam ton.",
+      "readyLabel": "Vi förstår",
+      "asksFor": [
+        "sound"
+      ]
+    },
+    {
+      "id": "pianot",
+      "type": "piano",
+      "text": "Locket är uppfällt och noterna står uppslagna, men bladen är tomma. Melodin som spelades när ljuset slocknade 1962 finns i en av era mobiler. Spela den för varandra, och spela den sedan ton för ton på era tangenter. En fel ton och ni får börja om från början.",
+      "callsFromHouse": true,
+      "keys": [
+        "C4",
+        "D4",
+        "E4",
+        "F4",
+        "G4",
+        "A4",
+        "B4",
+        "C5"
+      ],
+      "beatMs": 550,
+      "hints": [
+        "Spela melodin så många gånger ni vill. Ta en ton i taget och låt alla prova sina tangenter tills ni hittar den.",
+        "Melodin börjar lågt, klättrar till den högsta tonen, sjunker och slutar på en lång ton.",
+        "Melodin är E A H C H G A."
+      ],
+      "solution": {
+        "melody": [
+          {
+            "note": "E4",
+            "beats": 1
+          },
+          {
+            "note": "A4",
+            "beats": 1
+          },
+          {
+            "note": "B4",
+            "beats": 1
+          },
+          {
+            "note": "C5",
+            "beats": 2
+          },
+          {
+            "note": "B4",
+            "beats": 1
+          },
+          {
+            "note": "G4",
+            "beats": 1
+          },
+          {
+            "note": "A4",
+            "beats": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "vera-ar-nara",
+      "type": "scene",
+      "text": "Den sista tonen klingar ut. Det blir kallt i hallen, och lågan i lampan böjer sig som för ett andetag. Vera är alldeles nära nu.",
+      "readyLabel": "Vi känner henne"
     },
     {
       "id": "kallaren",

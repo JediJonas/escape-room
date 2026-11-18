@@ -32,6 +32,8 @@ const MESSAGES: Record<ActionError, string> = {
   alreadyChosen: 'Du har redan valt rum. Du stannar där tills minnet bleknar.',
   roomFull: 'Det rummet är fullt. Välj ett rum där färre står.',
   noMoreHints: 'Uppgiften har inga fler ledtrådar.',
+  notYourKey: 'Den tangenten har någon annan.',
+  unknownKey: 'Den tangenten finns inte på pianot.',
   unknownMission: 'Uppdraget finns inte längre. Starta ett nytt spel.',
 };
 

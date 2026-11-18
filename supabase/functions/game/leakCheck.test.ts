@@ -7,7 +7,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
-import { chooseMemoryRoom, moveInCellar, touchBoard, turnClock } from './taskActions.ts';
+import { chooseMemoryRoom, moveInCellar, playKey, touchBoard, turnClock } from './taskActions.ts';
+import { dealKeys } from './piano.ts';
+import { sortByJoinOrder } from './lobby.ts';
 import { MAX_PLAYERS } from './lobby.ts';
 import { readDialTime } from './rooms.ts';
 import { listParticipants } from './participants.ts';
@@ -83,6 +85,8 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     for (const secret of secrets) {
       if (text.includes(secret)) assert.ok(allowed.has(secret), `${mission.id} steg ${state.stepIndex + 1}, ${viewer.name} ser någon annans: ${secret}`);
     }
+    // Melodin finns bara i mobilen som spelar den.
+    if (view.step.piano?.melody) assert.equal(state.piano?.melodyPlayerId, viewer.id, `${viewer.name} får melodin fast den spelas från en annan mobil`);
     // Ingen vy berättar något om de andra spelarna.
     for (const other of players.filter((player) => player.id !== viewer.id)) assert.ok(!text.includes(other.id), `${viewer.name} ser ${other.id}`);
     for (const piece of [...(view.step.role?.pieces ?? []), ...listMemoryPieces(view)]) {
@@ -158,6 +162,34 @@ function findCellarDoor(mission: Mission, state: GameState, players: PlayerRecor
   return found;
 }
 
+/**
+ * Alla går till pianot och spelar melodin. Först slår någon an en fel ton,
+ * så att gruppen får börja om, och vyerna kontrolleras efter varje ton.
+ */
+function playWholeMelody(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
+  const step = mission.steps[state.stepIndex];
+  if (step.type !== 'piano' || !state.piano) return state;
+  const pianoPlace = mission.house?.rooms.find((room) => room.things.some((thing) => thing.opensSteps?.includes(step.id)))?.place;
+  const placeByPlayer = { ...state.placeByPlayer };
+  if (pianoPlace) for (const player of participants) placeByPlayer[player.id] = pianoPlace;
+  let played: GameState = { ...state, placeByPlayer };
+  const melodyPlayerId = state.piano.melodyPlayerId;
+  const keysByPlayer = dealKeys(step.keys, sortByJoinOrder(participants).map((player) => player.id).filter((id) => id !== melodyPlayerId));
+  const ownerOf = (key: string) => participants.find((player) => keysByPlayer[player.id]?.includes(key));
+  const wrongKey = step.keys.find((key) => key !== step.solution.melody[0].note);
+  assert.ok(wrongKey && ownerOf(wrongKey), `${mission.id}: ingen har en fel tangent med ${participants.length} spelare`);
+  played = readState(playKey({ state: played, mission, players: participants, player: ownerOf(wrongKey)!, key: wrongKey }));
+  assert.equal(played.piano?.wrongNotes, 1);
+  for (const tone of step.solution.melody) {
+    checkStep(mission, played, players);
+    const owner = ownerOf(tone.note);
+    assert.ok(owner, `${mission.id}: ingen har tangenten ${tone.note} med ${participants.length} spelare`);
+    played = readState(playKey({ state: played, mission, players: participants, player: owner, key: tone.note }));
+  }
+  assert.notEqual(played.stepIndex, state.stepIndex, `${mission.id}: melodin förde inte gruppen vidare`);
+  return played;
+}
+
 /** Lång nog för att skenet ska hinna fram till vilken bokstav som helst. */
 const GLIDE_WAIT_MS = 60_000;
 
@@ -195,6 +227,14 @@ for (const mission of MISSIONS) {
         if (mission.steps[state.stepIndex].type === 'seance') state = followWholeSeance(mission, state, players, participants);
         state = visitAllRooms(mission, state, players, participants);
         state = findCellarDoor(mission, state, players, participants);
+        // Pianot kontrolleras med ledtrådarna och facit framme innan melodin spelas, eftersom den för gruppen vidare.
+        if (mission.steps[state.stepIndex].type === 'piano') {
+          while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));
+          state = readState(showSolution({ state, mission, player: leader }));
+          checkStep(mission, state, players);
+          state = playWholeMelody(mission, state, players, participants);
+          continue;
+        }
         // I en uppgift kontrolleras vyerna igen med alla ledtrådar och facit framme.
         if (mission.steps[state.stepIndex].type !== 'scene') {
           while (state.hintsGiven < (mission.steps[state.stepIndex].hints?.length ?? 0)) state = readState(giveHint({ state, mission, player: leader }));

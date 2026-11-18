@@ -121,8 +121,9 @@ export type HouseView = {
   canSearch: boolean;
 };
 
-/** En seans som kallar på gruppen gör det tills meddelandet är klart. */
+/** En seans som kallar på gruppen gör det tills meddelandet är klart, och pianot tills melodin är spelad. */
 function isStepCalling(step: MissionStep, state: GameState): boolean {
+  if (step.type === 'piano') return step.callsFromHouse === true && state.piano !== null;
   return step.type === 'seance' && step.callsFromHouse === true && state.seance !== null && !isSeanceComplete(state.seance, step.solution.message);
 }
 

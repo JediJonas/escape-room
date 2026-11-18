@@ -1,7 +1,7 @@
 /**
  * Huset i mobilen: rummen, dörrarna mellan dem och sakerna som gruppen
- * hittar. Spelaren går mellan rummen genom dörrarna, och en sak går bara att
- * hitta när berättelsen har kommit dit. Det som har hittats står i rummets
+ * hittar. Spelaren går mellan rummen genom dörrarna, och en sak går alltid
+ * att hitta och undersöka (Jonas 2026-11-18). Det som har hittats står i rummets
  * lista för hela gruppen. Se docs/koncept.md, Rundbilder, textvyn och rumsvyn.
  *
  * Rena funktioner. Platsen där spelaren är sparas i placeByPlayer, så att
@@ -33,8 +33,6 @@ export type HouseThing = {
   blankPages?: number;
   /** Stegen som saken öppnar, till exempel båda seanserna vid ouijabrädet. */
   opensSteps?: string[];
-  /** Saken går att hitta först när gruppen har kommit till det här steget. */
-  fromStep?: string;
   /** Saken står i listan från början, som ouijabrädet. */
   isFoundFromStart?: boolean;
   /**
@@ -79,11 +77,6 @@ function stepIndexOf(mission: Mission, stepId: string | undefined): number {
   return index === -1 ? Number.POSITIVE_INFINITY : index;
 }
 
-/** Om berättelsen har kommit så långt att saken går att hitta. */
-function isFindable(thing: HouseThing, mission: Mission, state: GameState): boolean {
-  return state.stepIndex >= stepIndexOf(mission, thing.fromStep);
-}
-
 function isFound(thing: HouseThing, state: GameState): boolean {
   return thing.isFoundFromStart === true || state.foundThings.includes(thing.id);
 }
@@ -113,18 +106,17 @@ export function walk({ state, house, playerId, placeId, mayEnterLocked = false }
 }
 
 /**
- * Spelaren letar i rummet där hon står och hittar det som berättelsen har
- * kommit till. I rundbilden hittar hon i stället en sak i taget, men tills
- * rundbilderna finns är det här reserven.
+ * Spelaren letar i rummet där hon står och hittar allt som finns där. I
+ * rundbilden hittar hon i stället en sak i taget, men tills rundbilderna
+ * finns är det här reserven.
  */
-export function searchRoom({ state, mission, house, playerId }: {
+export function searchRoom({ state, house, playerId }: {
   state: GameState;
-  mission: Mission;
   house: House;
   playerId: string;
 }): GameState {
   const room = findRoom(house, state.placeByPlayer[playerId]);
-  const newlyFound = (room?.things ?? []).filter((thing) => isFindable(thing, mission, state) && !isFound(thing, state)).map((thing) => thing.id);
+  const newlyFound = (room?.things ?? []).filter((thing) => !isFound(thing, state)).map((thing) => thing.id);
   return newlyFound.length === 0 ? state : { ...state, foundThings: [...state.foundThings, ...newlyFound] };
 }
 
@@ -183,7 +175,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     return step ? [{ step, index: stepIndexOf(mission, stepId) }] : [];
   });
   const current = opened.find(({ index }) => index === state.stepIndex);
-  const found = opened.filter(({ step, index }) => step.type === 'scene' && step.foundTitle !== undefined && index < state.stepIndex).at(-1);
+  const found = opened.filter(({ step, index }) => step.type === 'scene' && step.foundTitle !== undefined && index !== state.stepIndex && state.found[step.id] !== undefined).at(-1);
   const opensFound = found?.step.type === 'scene' ? found.step.foundTitle ?? null : null;
   return {
     id: thing.id,
@@ -210,7 +202,7 @@ export function describeHouse({ state, mission, house, places, viewerId, partici
   const room = findRoom(house, state.placeByPlayer[viewerId]);
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
   if (!room) return null;
-  const visible = room.things.filter((thing) => isFound(thing, state) && isFindable(thing, mission, state));
+  const visible = room.things.filter((thing) => isFound(thing, state));
   const callingRoom = house.rooms.find((other) => other !== room && other.things.some((thing) => describeThing(thing, mission, state).isCalling));
   const callingThing = callingRoom?.things.find((thing) => describeThing(thing, mission, state).isCalling);
   const callingPlace = callingRoom ? findPlace(callingRoom.place).name.toLocaleLowerCase('sv') : '';
@@ -219,7 +211,7 @@ export function describeHouse({ state, mission, house, places, viewerId, partici
     doors: room.doors.map(findPlace),
     things: visible.map((thing) => describeThing(thing, mission, state, { id: viewerId, participantIds })),
     callingFrom: callingThing ? callingThing.callingText ?? `Något rör sig vid ${callingThing.name.toLocaleLowerCase('sv')} i ${callingPlace}.` : null,
-    canSearch: room.things.some((thing) => isFindable(thing, mission, state) && !isFound(thing, state)),
+    canSearch: room.things.some((thing) => !isFound(thing, state)),
   };
 }
 
@@ -244,7 +236,8 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   if (pages !== undefined && !(Array.isArray(pages) && pages.length > 0 && pages.every(isFilledText))) errors.push(`${name} har sidor som är tomma eller inte är en lista`);
   const { blankPages } = thing;
   if (blankPages !== undefined && !(pages !== undefined && Number.isInteger(blankPages) && (blankPages as number) > 0)) errors.push(`${name} har tomma sidor men inga sidor med text, eller ett antal som inte är ett heltal över noll`);
-  if (thing.fromStep !== undefined && !stepIds.includes(thing.fromStep)) errors.push(`${name} pekar på ett steg som inte finns: ${String(thing.fromStep)}`);
+  // Saker går alltid att hitta och undersöka. Det som inte ska nås för tidigt låses i stället (Jonas 2026-11-18).
+  if (thing.fromStep !== undefined) errors.push(`${name} har fromStep, men saker går alltid att hitta. Lås det som inte ska nås för tidigt`);
   const opens = thing.opensSteps;
   if (opens !== undefined && !(Array.isArray(opens) && opens.length > 0)) errors.push(`${name} ska öppna en lista med steg`);
   for (const stepId of Array.isArray(opens) ? opens : []) {

@@ -10,7 +10,7 @@ const HOUSE: House = {
   rooms: [
     { place: 'F', doors: ['B'], things: [{ id: 'bordet', name: 'Ouijabrädet', opensSteps: ['seansen'], isFoundFromStart: true }] },
     { place: 'B', doors: ['F', 'D'], things: [{ id: 'dorren', name: 'Källardörren', text: 'Låst.' }] },
-    { place: 'D', doors: ['B'], things: [{ id: 'byran', name: 'Byrån', opensSteps: ['urklippen'], fromStep: 'urklippen' }] },
+    { place: 'D', doors: ['B'], things: [{ id: 'byran', name: 'Byrån', text: 'En gammal byrå.', opensSteps: ['urklippen'] }] },
   ],
 };
 const MISSION: Mission = {
@@ -78,17 +78,19 @@ test('spelaren går bara genom dörrar till rummen intill', () => {
   assert.equal(viewFor(state, PLAYERS[2]).house?.room.name, 'Salongen');
 });
 
-test('en sak hittas först när berättelsen har kommit dit, och syns sedan för alla', () => {
+test('en sak går att hitta från början, öppnar sitt steg när gruppen är där och syns sedan för alla', () => {
   let state = start();
   state = readState(walk({ state, house: HOUSE, playerId: 'p1', placeId: 'B' }));
   state = readState(walk({ state, house: HOUSE, playerId: 'p1', placeId: 'D' }));
-  assert.equal(viewFor(state).house?.canSearch, false);
-  assert.equal(searchRoom({ state, mission: MISSION, house: HOUSE, playerId: 'p1' }), state);
-
-  state = moveOn(state, MISSION, PLAYERS);
   assert.equal(viewFor(state).house?.canSearch, true);
-  state = searchRoom({ state, mission: MISSION, house: HOUSE, playerId: 'p1' });
+  state = searchRoom({ state, house: HOUSE, playerId: 'p1' });
   assert.deepEqual(state.foundThings, ['byran']);
+  assert.equal(viewFor(state).house?.canSearch, false);
+  assert.equal(searchRoom({ state, house: HOUSE, playerId: 'p1' }), state);
+  // Före steget visar byrån sin text, och i steget öppnar den urklippen.
+  assert.equal(viewFor(state).house?.things[0].text, 'En gammal byrå.');
+  assert.equal(viewFor(state).house?.things[0].opensCurrentStep, false);
+  state = moveOn(state, MISSION, PLAYERS);
   assert.equal(viewFor(state).house?.things[0].opensCurrentStep, true);
   // Den som står i biblioteket senare ser byrån utan att leta.
   state = readState(walk({ state, house: HOUSE, playerId: 'p2', placeId: 'B' }));
@@ -96,7 +98,7 @@ test('en sak hittas först när berättelsen har kommit dit, och syns sedan för
   assert.equal(viewFor(state, PLAYERS[2]).house?.things[0].name, 'Byrån');
 
   state = moveOn(state, MISSION, PLAYERS);
-  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: null, pages: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null });
+  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: 'En gammal byrå.', pages: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null });
 });
 
 test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns', () => {

@@ -48,6 +48,9 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
   }
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
+  // Urklippen delades ut när spelet startade, så att de går att läsa direkt (Jonas 2026-11-18).
+  const dealtAtStart = state.found[step.id];
+  if (dealtAtStart && players.every((player) => dealtAtStart[player.id] !== undefined)) return { ...cleared, roleByPlayer: dealtAtStart };
   const deal = dealRoles({ roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory, lotSeed });
   return { ...cleared, roleByPlayer: deal.roleByPlayer, prominentHistory: deal.prominentHistory };
 }
@@ -152,6 +155,8 @@ function isWaitingForTask(step: MissionStep, state: GameState): boolean {
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {
+  // Urklippen går att läsa när som helst, så berättelsen väntar bara på uppgiften (Jonas 2026-11-18).
+  if (step.type === 'scene' && step.endsWithStep !== undefined) return true;
   // Rummen minns och pianot är klara för alla samtidigt. Se taskActions.ts.
   if (step.type === 'flashback' || step.type === 'piano') return false;
   if (step.type === 'scene' && isDoneWhenArrived(step)) return isAtGoal(step, state, playerId);
@@ -181,7 +186,23 @@ export function startGame({ state, mission, players, starter, leaderPlays, minut
   const participants = listParticipants(started, players);
   if (participants.length < mission.minPlayers) return { refusal: 'tooFewPlayers' };
   const placed = mission.house ? placeInHouse(started, mission.house, participants.map((player) => player.id)) : started;
-  return { state: enterStep(placed, mission, participants, 0) };
+  return { state: enterStep(dealFoundAtStart(placed, mission, participants), mission, participants, 0) };
+}
+
+/**
+ * Det som går att läsa igen, som urklippen i byrån, delas ut redan när spelet
+ * startar, så att det går att läsa direkt (Jonas 2026-11-18). Saker går
+ * alltid att undersöka. Det som inte ska nås för tidigt låses i stället.
+ */
+function dealFoundAtStart(state: GameState, mission: Mission, players: readonly PlayerRecord[]): GameState {
+  if (!mission.house) return state;
+  const found = { ...state.found };
+  for (const step of mission.steps) {
+    if (step.type !== 'scene' || step.foundTitle === undefined || !step.roles) continue;
+    const lotSeed = `${state.clock?.startedAtMs ?? 0}:${step.id}`;
+    found[step.id] = dealRoles({ roles: step.roles, players: sortByJoinOrder(players), prominentHistory: state.prominentHistory, lotSeed }).roleByPlayer;
+  }
+  return { ...state, found };
 }
 
 /** Spelledaren går vidare utan att vänta på alla, till exempel när någon har gått iväg. */

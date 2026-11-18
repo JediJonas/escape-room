@@ -66,3 +66,16 @@ test('i källaren tänder de andra lampan, den instängda hittar dörren och all
   assert.equal(view.step.cellar, null);
   assert.deepEqual(memory.games[0].state.marks, []);
 });
+
+test('urklippen går att läsa från start, och i steget har var och en samma urklipp som förut', async () => {
+  const memory = await createGameWithPlayers(['Bo', 'Cia']);
+  const gameId = memory.games[0].id;
+  await send(memory.store, 'user-leader', { type: 'startGame', gameId, missionId: 'den-femte-gasten' });
+  const atStart = readGameView((await send(memory.store, 'user-Bo', { type: 'getView', gameId })).body);
+  const clippings = atStart.found.find((item) => item.title === 'Tidningsurklippen');
+  assert.ok(clippings && clippings.pieces.length > 0);
+  let view = atStart;
+  while (view.step.number < 5) view = readGameView((await send(memory.store, 'user-leader', { type: 'nextStep', gameId })).body);
+  const inStep = readGameView((await send(memory.store, 'user-Bo', { type: 'getView', gameId })).body);
+  assert.deepEqual(inStep.step.role?.pieces, clippings.pieces);
+});

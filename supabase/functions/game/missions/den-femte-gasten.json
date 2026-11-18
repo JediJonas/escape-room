@@ -111,8 +111,7 @@
             "name": "Byrån",
             "opensSteps": [
               "tidningsurklippen"
-            ],
-            "fromStep": "tidningsurklippen"
+            ]
           }
         ]
       },

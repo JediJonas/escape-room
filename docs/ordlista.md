@@ -69,7 +69,7 @@ sist under Namn som är bestämda.
 | Dörr | En väg från ett rum till ett annat. I Den femte gästen går alla dörrar via hallen. | `doors`, `walk` |
 | Sak | Något i ett rum som går att trycka på, som ouijabrädet, golvuret, byrån eller tavlan. Öppnar alltid en sakvy. Också det man undersöker i en rundbild, som tidigare kallades föremål. | `HouseThing`, `ThingView` |
 | Hitta | En sak syns i rummets lista först när någon har hittat den. Det räcker att en spelare gör det. | `foundThings`, `searchRoom` |
-| Leta i rummet | Knappen som hittar det berättelsen har kommit till, tills rundbilderna finns. | `searchRoom` |
+| Leta i rummet | Knappen som hittar det som finns i rummet, tills rundbilderna finns. | `searchRoom` |
 | Kallar | En sak drar till sig gruppen: den skimrar i rummets lista, och i de andra rummen visas en berättartext. | `callsFromHouse`, `isCalling`, `callingText` |
 | Instrument | Golvuret och pianot, som går att använda hela tiden och inte bara när berättelsen har kommit dit. | `Instrument`, `instrument` |
 | Instängd | En spelare som isoleras med en egen vy, som i källaren. | `trapped` |

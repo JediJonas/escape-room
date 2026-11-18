@@ -228,11 +228,10 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   (Jonas 2026-11-18). Det gäller scener utan sak, dokument, plats och roller.
   Utan huset kan en scen ha en egen text på knappen med `readyLabel`, och
   annars står det Klar (Jonas 2026-11-18). En scen med `endsWithStep`
-  har ingen knapp. Spelaren blir klar av att lämna saken med Tillbaka
-  (`isDoneByLeaving` i vyn), och scenen slutar när alla är klara och gruppen
-  har klarat uppgiften i nästa steg, i vilken ordning som helst. Urklippen
-  slutar alltså när alla har läst dem och minnet har bleknat
-  (Jonas 2026-11-18). Brädet fungerar på samma sätt när meddelandet är klart.
+  har ingen knapp och slutar när gruppen har klarat uppgiften i nästa steg.
+  Urklippen går att läsa när som helst, så scenen väntar inte på att alla har
+  läst dem (Jonas 2026-11-18). Brädet blir klart på samma sätt, genom att
+  spelaren lämnar det med Tillbaka när meddelandet är klart (`isDoneByLeaving`).
 - **Följder.** Ett misslyckande kan kosta minuter eller sätta en markering som
   senare steg och slut läser.
 - **Språk.** Texterna står direkt på svenska. Fler språk blir en fil per språk
@@ -360,10 +359,14 @@ kvar i koden (Jonas 2026-11-18). Se `found.ts`.
 **Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
 rum dörrarna och sakerna. En sak har en text att visa, sidor att bläddra i
 (`pages`, som gästboken) eller ett steg som den
-öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna), och kan hittas först från ett visst steg (`fromStep`).
+öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna).
+Saker går alltid att hitta och undersöka, och `fromStep` på en sak ger fel. Det
+som inte ska nås för tidigt låses i stället (Jonas 2026-11-18). Ett steg med
+`foundTitle`, som urklippen, delas ut redan när spelet startar och går att
+läsa från saken direkt. Scenen väntar bara på uppgiften i `endsWithStep`.
 Var spelaren är sparas i `placeByPlayer`, som platskorten använder, och det
 gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr,
-och `searchRoom` hittar det som berättelsen har kommit till i rummet. Ett
+och `searchRoom` hittar allt som finns i rummet. Ett
 steg som öppnas från en sak syns i mobilen först när spelaren har öppnat
 saken. Dörrarna kontrolleras så att de går åt båda hållen. Se `house.ts`.
 

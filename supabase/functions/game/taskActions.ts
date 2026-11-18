@@ -231,5 +231,5 @@ export function walkThroughDoor({ state, mission, player, placeId, nowMs }: {
 export function searchHere({ state, mission, player }: { state: GameState; mission: Mission; player: PlayerRecord }): StateChange {
   if (state.status !== 'running') return { refusal: 'notRunning' };
   if (!mission.house) return { refusal: 'unknownPlace' };
-  return { state: searchRoom({ state, mission, house: mission.house, playerId: player.id }) };
+  return { state: searchRoom({ state, house: mission.house, playerId: player.id }) };
 }

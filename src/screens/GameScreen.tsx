@@ -124,7 +124,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
   // Väntar på att alla ska bli klara, och bara hos spelledaren hur många som är klara och vilka
   // (Jonas 2026-11-18). Står hon utanför spelet ser hon raden så länge någon kan bli klar.
-  const countsReady = step.type === 'scene' || step.usesReadyButton;
+  // Urklippen räknas inte: de går att läsa när som helst, och berättelsen väntar bara på uppgiften (Jonas 2026-11-18).
+  const countsReady = (step.type === 'scene' || step.usesReadyButton) && !(step.type === 'scene' && step.isDoneByLeaving);
   const showsDone = view.me.isLeader && view.progress !== null && countsReady && (step.isMeDone || !view.me.isPlaying) && !view.isFinished;
   const doneLine = showsDone && view.progress ? <span className="leader-done">{describeDone(view.progress)}</span> : null;
   const waitingLine = step.isMeDone || doneLine ? <p className="hint">{step.isMeDone && 'Väntar på att alla ska bli klara.'}{doneLine}</p> : null;

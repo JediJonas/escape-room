@@ -1,6 +1,7 @@
 import { type PointerEvent, useEffect, useState } from 'react';
 import { DIAL_HOURS, snapDial } from '../../supabase/functions/game/rooms.ts';
 import { angleFromCenter, dragMinuteHand, findHandAngles, formatDialTime } from './clockDial.ts';
+import { Pendulum } from './Pendulum.tsx';
 import './rooms.css';
 
 const DIAL_SIZE = 200;
@@ -105,8 +106,8 @@ export function GrandfatherClock({ dialMinutes, canTurn, onTurn }: {
         </svg>
       </div>
       {/* Skåpet under urtavlan, så att man ser att det är ett golvur. Designen kommer senare (Jonas 2026-11-18). */}
-      <div className="clock-trunk" aria-hidden="true">
-        <div className="clock-window"><div className="clock-pendulum" /></div>
+      <div className="clock-trunk">
+        <Pendulum />
       </div>
       <div className="clock-base" aria-hidden="true" />
     </div>

@@ -38,13 +38,28 @@
 }
 
 .clock-window {
-  width: 55%;
-  overflow: hidden;
+  position: relative;
+  width: 68%;
   display: flex;
   justify-content: center;
   background: rgb(10 6 3 / 0.6);
   border: 2px solid #8a6a3f;
   border-radius: 999px 999px 0.3rem 0.3rem;
+  perspective: 600px;
+  /* Fingret gungar pendeln och ska inte rulla sidan. */
+  touch-action: none;
+  user-select: none;
+}
+
+.clock-window.is-open { cursor: grab; }
+
+.clock-glass {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  border-radius: inherit;
 }
 
 .clock-pendulum {
@@ -52,7 +67,27 @@
   height: 75%;
   background: #b8954f;
   position: relative;
-  /* Pendeln står still, eftersom uret stannade kvart över nio. */
+  transform-origin: top center;
+}
+
+/* Glasluckan framför pendeln. Den svänger upp åt vänster när den öppnas. */
+.clock-door {
+  position: absolute;
+  inset: -2px;
+  min-height: 0;
+  padding: 0;
+  border: 3px solid #8a6a3f;
+  border-radius: inherit;
+  background: linear-gradient(115deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.04) 40%, rgb(255 255 255 / 0.12) 60%, rgb(255 255 255 / 0.02));
+  transform-origin: left center;
+  transition: transform 0.5s ease;
+  cursor: pointer;
+}
+
+.clock-window.is-open .clock-door { transform: rotateY(-70deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .clock-door { transition: none; }
 }
 
 .clock-pendulum::after {

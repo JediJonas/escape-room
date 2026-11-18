@@ -59,6 +59,8 @@ export type SceneStep = {
   text: string;
   /** Platsen som spelarna ska gå till i scenen. */
   goTo?: PlaceId;
+  /** Texten på knappen som spelaren trycker på, till exempel "Jag har läst". Utan text står det Klar (Jonas 2026-11-18). */
+  readyLabel?: string;
   /** Det som bara den som har kommit fram till platsen ser. */
   textAtPlace?: string;
   /** Utan roller ser alla samma sak. */
@@ -315,6 +317,7 @@ function findStepErrors(step: Record<string, unknown>, places: Record<string, un
   if (step.type === 'scene' && (step.hints !== undefined || step.solution !== undefined)) errors.push(`${name} är en scen men har ledtrådar eller facit`);
   if (step.asksFor !== undefined && !(step.type === 'scene' && Array.isArray(step.asksFor) && step.asksFor.every((item) => (PERMISSIONS as readonly unknown[]).includes(item)))) errors.push(`${name} ber om tillstånd som inte finns, eller är ingen scen`);
   if (!isFilledText(step.text)) errors.push(`${name} saknar text`);
+  if (step.readyLabel !== undefined && !(step.type === 'scene' && isFilledText(step.readyLabel))) errors.push(`${name} har en tom knapptext, eller är ingen scen`);
   errors.push(...findDocumentErrors(step, name));
   if (step.goTo !== undefined && !(isPlaceId(step.goTo) && step.goTo in places)) errors.push(`${name} går till en plats som uppdraget saknar: ${String(step.goTo)}`);
   if (step.textAtPlace !== undefined && (!isFilledText(step.textAtPlace) || step.goTo === undefined)) errors.push(`${name} har text på platsen utan plats att gå till`);

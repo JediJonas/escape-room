@@ -110,7 +110,8 @@
     {
       "id": "runt-bordet",
       "type": "scene",
-      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Tryck Klar när du sitter. Frågar mobilen om rörelse, tryck Tillåt.",
+      "text": "Släck lampan om ni vågar. Sätt er runt bordet med mobilerna framför er. Frågar mobilen om rörelse, tryck Tillåt.",
+      "readyLabel": "Jag sitter",
       "asksFor": [
         "sound",
         "motion"
@@ -132,12 +133,14 @@
     {
       "id": "vera-svarar",
       "type": "scene",
-      "text": "Skenet slocknar. Någon har svarat er, och hon vill ha hjälp. Ni vet inte vem hon är. Gå runt i huset och leta efter vad som hände här. Tryck Klar när ni är redo att leta."
+      "text": "Skenet slocknar. Någon har svarat er, och hon vill ha hjälp. Ni vet inte vem hon är. Gå runt i huset och leta efter vad som hände här.",
+      "readyLabel": "Vi är redo att leta"
     },
     {
       "id": "tidningsurklippen",
       "type": "scene",
-      "text": "I byrån ligger en bunt gamla tidningsurklipp. Var och en har fått några. Läs dem för varandra och ta reda på vilka gästerna var och hur man känner igen dem. Tryck Klar när ni har läst.",
+      "text": "I byrån ligger en bunt gamla tidningsurklipp. Var och en har fått några. Läs dem för varandra och ta reda på vilka gästerna var och hur man känner igen dem.",
+      "readyLabel": "Jag har läst",
       "documents": [
         {
           "title": "Ung kvinna försvunnen efter seans",
@@ -239,7 +242,8 @@
     {
       "id": "det-ar-vera",
       "type": "scene",
-      "text": "Planchetten glider till JA och stannar. Hon heter Vera. Hon skrev sitt namn sist i gästboken den kvällen, och hon gick aldrig ut ur huset. Tryck Klar."
+      "text": "Planchetten glider till JA och stannar. Hon heter Vera. Hon skrev sitt namn sist i gästboken den kvällen, och hon gick aldrig ut ur huset.",
+      "readyLabel": "Vi förstår"
     },
     {
       "id": "kallaren",
@@ -297,7 +301,8 @@
     {
       "id": "vera-vill-byta",
       "type": "scene",
-      "text": "Nu vet ni vad huset gör. Det behåller alltid en gäst, och Vera vill byta plats med en av er. Tryck Klar när ni har pratat färdigt."
+      "text": "Nu vet ni vad huset gör. Det behåller alltid en gäst, och Vera vill byta plats med en av er.",
+      "readyLabel": "Vi har pratat färdigt"
     },
     {
       "id": "slut",

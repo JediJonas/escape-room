@@ -218,7 +218,9 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
 - **Framträdande roller roterar.** En roll märkt `isProminent` går i första
   hand till den som har väntat längst sedan sin senaste framträdande roll.
   Ordningen sparas i tillståndet som `prominentHistory`.
-- **Berättelsen mellan uppgifterna** är steg av typen `scene`.
+- **Berättelsen mellan uppgifterna** är steg av typen `scene`. En scen kan
+  ha en egen text på knappen med `readyLabel`, till exempel "Jag har läst".
+  Utan den står det Klar (Jonas 2026-11-18).
 - **Följder.** Ett misslyckande kan kosta minuter eller sätta en markering som
   senare steg och slut läser.
 - **Språk.** Texterna står direkt på svenska. Fler språk blir en fil per språk

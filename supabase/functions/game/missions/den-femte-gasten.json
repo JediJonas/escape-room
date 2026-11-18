@@ -156,7 +156,7 @@
       "id": "tidningsurklippen",
       "type": "scene",
       "text": "I byrån ligger en bunt gamla tidningsurklipp. Var och en har fått några. Läs dem för varandra och ta reda på vilka gästerna var och hur man känner igen dem.",
-      "readyLabel": "Jag har läst",
+      "endsWithStep": "rummen-minns",
       "documents": [
         {
           "title": "Ung kvinna försvunnen efter seans",

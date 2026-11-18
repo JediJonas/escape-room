@@ -55,11 +55,15 @@ function isTaskDone(state: GameState, step: MissionStep, index: number): boolean
 /**
  * En uppgift som är klar. Är det steget gruppen är på går den vidare. Annars
  * sparas den, och gruppen går förbi den när berättelsen kommer dit
- * (Jonas 2026-11-18).
+ * (Jonas 2026-11-18). Väntar scenen före på just den här uppgiften, som
+ * urklippen på golvuret, går gruppen vidare förbi båda.
  */
 function solveTask(state: GameState, mission: Mission, players: readonly PlayerRecord[], index: number): GameState {
   if (index === state.stepIndex) return moveOn(state, mission, players);
-  return { ...state, solvedSteps: [...state.solvedSteps, mission.steps[index].id] };
+  const saved = { ...state, solvedSteps: [...state.solvedSteps, mission.steps[index].id] };
+  const current = mission.steps[state.stepIndex];
+  const endsCurrent = current.type === 'scene' && current.endsWithStep === mission.steps[index].id;
+  return endsCurrent ? moveOn(saved, mission, players) : saved;
 }
 
 /**

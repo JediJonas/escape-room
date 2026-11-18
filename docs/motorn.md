@@ -224,7 +224,11 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   Ordningen sparas i tillståndet som `prominentHistory`.
 - **Berättelsen mellan uppgifterna** är steg av typen `scene`. En scen kan
   ha en egen text på knappen med `readyLabel`, till exempel "Jag har läst".
-  Utan den står det Klar (Jonas 2026-11-18).
+  Utan den står det Klar (Jonas 2026-11-18). En scen med `endsWithStep`
+  har ingen knapp och slutar när gruppen klarar uppgiften i nästa steg, som
+  urklippen som slutar när golvuret är rätt ställt och minnet har bleknat.
+  Har gruppen redan klarat uppgiften när scenen börjar får scenen en vanlig
+  Klar-knapp (Jonas 2026-11-18).
 - **Följder.** Ett misslyckande kan kosta minuter eller sätta en markering som
   senare steg och slut läser.
 - **Språk.** Texterna står direkt på svenska. Fler språk blir en fil per språk

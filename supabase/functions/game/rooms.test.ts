@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { advanceStep, buildGameView, startGame } from './game.ts';
+import { advanceStep, buildGameView, markReady, startGame } from './game.ts';
 import { chooseMemoryRoom, fadeMemory, turnClock, walkThroughDoor } from './taskActions.ts';
 import type { Mission, RoomsStep } from './mission.ts';
 import { getMission } from './missions/index.ts';
@@ -184,4 +184,38 @@ test('golvuret går att vrida innan berättelsen har kommit dit, och då hoppar 
   assert.equal(state.rooms?.remembersUntilMs, null);
   state = readState(advanceStep({ state, mission: later, players: PLAYERS, player: anna }));
   assert.equal(later.steps[state.stepIndex].id, 'slut');
+});
+
+test('urklippen slutar när golvuret är rätt ställt och minnet har bleknat, utan någon knapp (Jonas 2026-11-18)', () => {
+  const later: Mission = { ...FULL, steps: [{ id: 'urklippen', type: 'scene', text: 'Läs.', endsWithStep: STEP.id }, STEP, { id: 'sedan', type: 'scene', text: 'Sedan.' }, { id: 'slut', type: 'scene', text: 'Slut.' }] };
+  const [anna, bo, cia] = PLAYERS;
+  let state = readState(startGame({ state: createInitialState(), mission: later, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  const viewOf = (viewer: PlayerRecord) => buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: later.id, state }, mission: later, players: PLAYERS, viewer });
+  assert.equal(viewOf(bo).step.usesReadyButton, false);
+  state = readState(walkThroughDoor({ state, mission: later, player: anna, placeId: 'F', nowMs: 0 }));
+  state = readState(turnClock({ state, mission: later, players: PLAYERS, player: anna, minutes: NINE_FIFTEEN, nowMs: 0 }));
+  assert.equal(state.stepIndex, 0);
+  for (const [player, placeId] of [[anna, 'B'], [bo, 'C'], [cia, 'D'], [anna, 'E']] as const) {
+    state = readState(chooseMemoryRoom({ state, mission: later, players: PLAYERS, player, placeId, nowMs: 0 }));
+  }
+  state = readState(fadeMemory({ state, mission: later, players: PLAYERS, nowMs: 3 * MINUTE_MS }));
+  assert.equal(later.steps[state.stepIndex].id, 'sedan');
+});
+
+test('har gruppen redan sett minnet när urklippen kommer, får urklippen en vanlig Klar-knapp', () => {
+  const early: Mission = { ...FULL, steps: [{ id: 'forst', type: 'scene', text: 'Först.' }, { id: 'urklippen', type: 'scene', text: 'Läs.', endsWithStep: STEP.id }, STEP, { id: 'sedan', type: 'scene', text: 'Sedan.' }, { id: 'slut', type: 'scene', text: 'Slut.' }] };
+  const [anna, bo, cia] = PLAYERS;
+  let state = readState(startGame({ state: createInitialState(), mission: early, players: PLAYERS, starter: anna, leaderPlays: true, minutes: 60, nowMs: 0 }));
+  state = readState(walkThroughDoor({ state, mission: early, player: anna, placeId: 'F', nowMs: 0 }));
+  state = readState(turnClock({ state, mission: early, players: PLAYERS, player: anna, minutes: NINE_FIFTEEN, nowMs: 0 }));
+  for (const [player, placeId] of [[anna, 'B'], [bo, 'C'], [cia, 'D'], [anna, 'E']] as const) {
+    state = readState(chooseMemoryRoom({ state, mission: early, players: PLAYERS, player, placeId, nowMs: 0 }));
+  }
+  state = readState(fadeMemory({ state, mission: early, players: PLAYERS, nowMs: 3 * MINUTE_MS }));
+  for (const player of PLAYERS) state = readState(markReady({ state, mission: early, players: PLAYERS, player }));
+  assert.equal(early.steps[state.stepIndex].id, 'urklippen');
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: early.id, state }, mission: early, players: PLAYERS, viewer: bo });
+  assert.equal(view.step.usesReadyButton, true);
+  for (const player of PLAYERS) state = readState(markReady({ state, mission: early, players: PLAYERS, player }));
+  assert.equal(early.steps[state.stepIndex].id, 'sedan');
 });

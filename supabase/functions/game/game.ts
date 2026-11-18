@@ -129,7 +129,9 @@ function acceptsAnswer(step: MissionStep, state: GameState): boolean {
 function usesReadyButton(step: MissionStep, state: GameState): boolean {
   if (step.type === 'seance') return step.solution.answers === undefined && isSeanceDone(step, state);
   if (step.type === 'cellar') return state.cellar !== null && state.cellar.outcome !== null;
-  return step.type === 'scene' && !isDoneWhenArrived(step);
+  // En scen som slutar med nästa uppgift behöver knappen bara om gruppen redan har klarat uppgiften.
+  const isWaitingForTask = step.type === 'scene' && step.endsWithStep !== undefined && !state.solvedSteps.includes(step.endsWithStep);
+  return step.type === 'scene' && !isDoneWhenArrived(step) && !isWaitingForTask;
 }
 
 function isPlayerDone(step: MissionStep, state: GameState, playerId: string): boolean {

@@ -125,6 +125,8 @@ Spelledaren väljer uppdrag och speltid, skriver ut ett ark med QR-koder, sätte
 
 **Under spelet** kan spelledaren pausa, ge nästa ledtråd, hoppa över en uppgift och se hur långt gruppen har kommit. Spelledaren spelar med som standard och kan välja att stå utanför. Då blir hennes mobil en ren administrationsvy med samma funktioner, och hon får ingen roll i uppgifterna. Facit visas bara om hon ber om det.
 
+**Varje uppdrag har rum.** Spelarna går mellan rum, vare sig det är ett hus, en ubåt eller en rymdraket. Det man hittar ligger i sitt rum, och vill man se det igen går man tillbaka dit. Det finns ingen lista över det man har hittat (Jonas 2026-11-18). Provhuset, som bara används för att prova motorn, har inga rum än.
+
 **Allt man går in på visas i fullskärm.** Det gäller i alla uppdrag. Ett tryck på en sak, som ett bräde, ett instrument, ett papper eller en bok, öppnar en vy som fyller skärmen, utan rubrik och text. Överst står klockan och en knapp, och underst en eventuell huvudhandling nära tummen (Jonas 2026-11-18).
 
 - **Spelarna har Tillbaka.** Knappen uppe till höger heter Tillbaka och tar spelaren ut ur vyn till det hon kom från. Spelarna har ingen meny (Jonas 2026-11-18).

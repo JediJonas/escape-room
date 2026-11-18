@@ -4,7 +4,7 @@
  */
 
 .piano { display: grid; gap: 0.75rem; margin: 1rem 0; }
-.piano-listener button { width: 100%; }
+.piano-melody button { width: 100%; }
 
 .piano-progress { display: grid; gap: 0.35rem; }
 .piano-progress .hint { margin: 0; }

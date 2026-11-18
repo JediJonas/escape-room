@@ -263,7 +263,7 @@
     {
       "id": "pianot",
       "type": "piano",
-      "text": "Locket är uppfällt och noterna står uppslagna, men bladen är tomma. En av er hör melodin som spelades när ljuset slocknade 1962 och nynnar den. Ni andra spelar den ton för ton på era tangenter. En fel ton och ni får börja om från början.",
+      "text": "Locket är uppfällt och noterna står uppslagna, men bladen är tomma. Melodin som spelades när ljuset slocknade 1962 finns i en av era mobiler. Spela den för varandra, och spela den sedan ton för ton på era tangenter. En fel ton och ni får börja om från början.",
       "callsFromHouse": true,
       "keys": [
         "C4",
@@ -277,7 +277,7 @@
       ],
       "beatMs": 550,
       "hints": [
-        "Den som hör melodin kan spela den hur många gånger som helst. Nynna en ton i taget och låt de andra prova sina tangenter tills ni hittar den.",
+        "Spela melodin så många gånger ni vill. Ta en ton i taget och låt alla prova sina tangenter tills ni hittar den.",
         "Melodin börjar lågt, klättrar till den högsta tonen, sjunker och slutar på en lång ton.",
         "Melodin är E A H C H G A."
       ],

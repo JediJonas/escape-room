@@ -9,7 +9,8 @@ import { noteFrequency, scheduleMelody } from './pianoNotes.ts';
 
 /** Övertonerna och hur starka de är mot grundtonen. */
 const OVERTONES = [{ multiple: 1, gain: 1 }, { multiple: 2, gain: 0.35 }, { multiple: 3, gain: 0.12 }];
-const VOLUME = 0.3;
+/** Starkt, eftersom melodin spelas för hela gruppen ur en mobil. */
+const VOLUME = 0.6;
 const ATTACK_S = 0.008;
 /** En ton klingar av så här länge efter sin längd, som när pedalen är nere en stund. */
 const RING_S = 0.6;
@@ -52,7 +53,7 @@ export function playNote(engine: AudioEngine, note: string, lengthS: number): Pr
   return withContext(engine, (context) => playTone(context, { note, startS: context.currentTime, lengthS }));
 }
 
-/** Hela melodin, för lyssnaren. */
+/** Hela melodin, högt för hela gruppen. */
 export function playMelody(engine: AudioEngine, melody: readonly { note: string; beats: number }[], beatMs: number): Promise<void> {
   return withContext(engine, (context) => {
     const now = context.currentTime;

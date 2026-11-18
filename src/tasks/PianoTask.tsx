@@ -8,7 +8,7 @@ import './piano.css';
 const KEY_LENGTH_S = 0.5;
 /** Hur länge det står att gruppen spelade fel. */
 const WRONG_SHOWN_MS = 3000;
-/** Lite tid efter melodin innan lyssnaren kan spela den igen, så att den hinner klinga ut. */
+/** Lite tid efter melodin innan den kan spelas igen, så att den hinner klinga ut. */
 const AFTER_MELODY_MS = 600;
 
 /** Säger till när gruppen har spelat fel, med en falsk ton i alla mobiler. */
@@ -37,8 +37,8 @@ function Progress({ piano }: { piano: PianoView }) {
   );
 }
 
-/** Lyssnaren hör melodin, så många gånger hon vill, och nynnar den för de andra. */
-function ListenerPanel({ piano }: { piano: PianoView }) {
+/** Melodin spelas högt från en mobil, så att alla hör den, så många gånger gruppen vill (Jonas 2026-11-18). */
+function MelodyPanel({ piano }: { piano: PianoView }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const { melody } = piano;
   if (!melody) return null;
@@ -52,16 +52,16 @@ function ListenerPanel({ piano }: { piano: PianoView }) {
   }
 
   return (
-    <section className="role-card piano-listener" aria-label="Bara du hör melodin">
-      <h2>Du hör melodin</h2>
-      <p>Bara din mobil spelar den. Håll mobilen mot örat, lyssna och nynna den för de andra, en ton i taget. Du kan höra den hur många gånger som helst.</p>
-      <button type="button" onClick={listen} disabled={isPlaying}>{isPlaying ? 'Melodin spelas…' : 'Hör melodin'}</button>
+    <section className="role-card piano-melody" aria-label="Melodin finns i din mobil">
+      <h2>Melodin finns i din mobil</h2>
+      <p>Höj volymen och spela den för de andra. Ni kan höra den hur många gånger som helst.</p>
+      <button type="button" onClick={listen} disabled={isPlaying}>{isPlaying ? 'Melodin spelas…' : 'Spela melodin'}</button>
     </section>
   );
 }
 
 /**
- * Pianot. Lyssnaren hör melodin, och de andra har några tangenter var. En
+ * Pianot. En mobil spelar melodin högt, och alla har några tangenter var. En
  * tangent låter i den egna mobilen när den slås an, och servern avgör om
  * det var nästa ton. Se docs/koncept.md, Pianot.
  */
@@ -93,8 +93,8 @@ export function PianoTask({ piano, canPlay, onPlayKey }: {
 
   return (
     <div className="piano">
-      {piano.isListener && <ListenerPanel piano={piano} />}
-      {!piano.isListener && <p className="hint">{piano.listenerName} hör melodin och nynnar den. Lyssna och spela den ton för ton.</p>}
+      {piano.hasMelody && <MelodyPanel piano={piano} />}
+      {!piano.hasMelody && <p className="hint">Melodin spelas från mobilen hos {piano.melodyPlayerName}. Lyssna och spela den ton för ton.</p>}
       <Progress piano={piano} />
       <p className={isWrongShown ? 'status piano-wrong is-shown' : 'status piano-wrong'} role="status">{isWrongShown ? 'En falsk ton. Börja om från första tonen.' : ''}</p>
       {canPlay && piano.myKeys.length > 0 && (

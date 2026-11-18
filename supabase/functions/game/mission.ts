@@ -210,14 +210,14 @@ export type PianoStep = {
   goTo?: undefined;
   textAtPlace?: undefined;
   roles?: undefined;
-  /** Pianots tangenter, lägst först, som "C4" eller "F#4". De delas mellan spelarna utom lyssnaren. */
+  /** Pianots tangenter, lägst först, som "C4" eller "F#4". De delas mellan spelarna utom den som spelar melodin. */
   keys: string[];
-  /** Hur länge ett slag varar när melodin spelas för lyssnaren. */
+  /** Hur länge ett slag varar när melodin spelas. */
   beatMs: number;
   /** Pianot kallar på gruppen från huset tills melodin är spelad, som brädet (Jonas 2026-11-18). */
   callsFromHouse?: boolean;
   hints: string[];
-  /** Melodin. Lämnar aldrig servern, utom till lyssnaren och till spelledaren som ber om facit. */
+  /** Melodin. Lämnar aldrig servern, utom till mobilen som spelar den och till spelledaren som ber om facit. */
   solution: { melody: MelodyNote[] };
 };
 

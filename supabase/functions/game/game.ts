@@ -37,11 +37,11 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     cellar: step.type === 'cellar' ? startCellar() : null,
     piano: null,
   };
-  // Lyssnaren vid pianot är en framträdande roll, så den roterar som de andra.
+  // Den vars mobil spelar melodin har en framträdande roll, så den roterar som de andra.
   if (step.type === 'piano') {
-    const [listener] = sortByLastTurn(sortByJoinOrder(players), state.prominentHistory);
-    const prominentHistory = listener ? [...state.prominentHistory, listener.id] : state.prominentHistory;
-    return { ...cleared, roleByPlayer: {}, prominentHistory, piano: startPiano(listener?.id ?? null) };
+    const [melodyPlayer] = sortByLastTurn(sortByJoinOrder(players), state.prominentHistory);
+    const prominentHistory = melodyPlayer ? [...state.prominentHistory, melodyPlayer.id] : state.prominentHistory;
+    return { ...cleared, roleByPlayer: {}, prominentHistory, piano: startPiano(melodyPlayer?.id ?? null) };
   }
   const { roles } = step;
   if (!roles) return { ...cleared, roleByPlayer: {} };
@@ -325,7 +325,7 @@ export type GameView = {
     rooms: RoomsView | null;
     /** Källaren, med bilden bara hos den instängda. */
     cellar: CellarView | null;
-    /** Pianot, med melodin bara hos lyssnaren och tangenterna bara hos den som har dem. */
+    /** Pianot, med melodin bara hos den vars mobil spelar den och tangenterna bara hos den som har dem. */
     piano: PianoView | null;
   };
   /** Det gruppen har hittat och kan läsa igen, med bara spelarens egna bitar. */
@@ -427,7 +427,7 @@ export function buildGameView({ game, mission, players, viewer }: {
           step,
           viewerId: viewer.id,
           participantIds: sortByJoinOrder(participants).map((player) => player.id),
-          listenerName: players.find((player) => player.id === state.piano?.listenerId)?.name ?? '',
+          melodyPlayerName: players.find((player) => player.id === state.piano?.melodyPlayerId)?.name ?? '',
         })
         : null,
     },

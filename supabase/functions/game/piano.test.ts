@@ -63,7 +63,7 @@ test('tonerna heter som på svenska, där B är H', () => {
 });
 
 test('rätt ton för gruppen framåt och en fel ton gör att den börjar om', () => {
-  // Anna lyssnar. Bo har C4 och E4, Cia har D4 och F4.
+  // Annas mobil spelar melodin. Bo har C4 och E4, Cia har D4 och F4.
   const piano = startPiano('p0');
   const press = (state: typeof piano, playerId: string, key: string) => {
     const result = pressKey({ piano: state, step: STEP, playerId, participantIds: IDS, key });
@@ -75,30 +75,30 @@ test('rätt ton för gruppen framåt och en fel ton gör att den börjar om', ()
   const second = press(first, 'p1', 'C4');
   assert.equal(second.playedCount, 2);
   const wrong = press(second, 'p2', 'D4');
-  assert.deepEqual(wrong, { listenerId: 'p0', playedCount: 0, wrongNotes: 1 });
+  assert.deepEqual(wrong, { melodyPlayerId: 'p0', playedCount: 0, wrongNotes: 1 });
   assert.deepEqual(pressKey({ piano, step: STEP, playerId: 'p2', participantIds: IDS, key: 'E4' }), { refusal: 'notYourKey' });
   assert.deepEqual(pressKey({ piano, step: STEP, playerId: 'p0', participantIds: IDS, key: 'E4' }), { refusal: 'notYourKey' });
   assert.deepEqual(pressKey({ piano, step: STEP, playerId: 'p1', participantIds: IDS, key: 'A4' }), { refusal: 'unknownKey' });
 });
 
-test('bara lyssnaren får melodin, och var och en ser bara sina tangenter', () => {
+test('bara mobilen som spelar melodin får den, och var och en ser bara sina tangenter', () => {
   const piano = startPiano('p0');
-  const listener = describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: IDS, listenerName: 'Anna' });
+  const listener = describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna' });
   assert.deepEqual(listener.melody, STEP.solution.melody);
   assert.deepEqual(listener.myKeys, []);
-  const player = describePiano({ piano, step: STEP, viewerId: 'p1', participantIds: IDS, listenerName: 'Anna' });
+  const player = describePiano({ piano, step: STEP, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna' });
   assert.equal(player.melody, null);
   assert.deepEqual(player.myKeys, [{ note: 'C4', name: 'C' }, { note: 'E4', name: 'E' }]);
   assert.equal(player.noteCount, 4);
 });
 
-test('lyssnaren väljs som en framträdande roll, alla måste stå vid pianot och hela melodin för gruppen vidare', () => {
+test('den som spelar melodin väljs som en framträdande roll, alla måste stå vid pianot och hela melodin för gruppen vidare', () => {
   const started = start();
-  assert.equal(started.piano?.listenerId, 'p0');
+  assert.equal(started.piano?.melodyPlayerId, 'p0');
   assert.deepEqual(started.prominentHistory, ['p0']);
   const [listener, bo, cia] = PLAYERS;
-  assert.equal(viewOf(started, listener).step.piano?.isListener, true);
-  assert.equal(viewOf(started, bo).step.piano?.listenerName, 'Anna');
+  assert.equal(viewOf(started, listener).step.piano?.hasMelody, true);
+  assert.equal(viewOf(started, bo).step.piano?.melodyPlayerName, 'Anna');
   assert.equal(viewOf(started, bo).house?.things[0].isCalling, true);
   const away = { ...started, placeByPlayer: { ...started.placeByPlayer, [bo.id]: 'C' as const } };
   assert.equal(viewOf(away, bo).house?.callingFrom, 'Något rör sig vid pianot i hallen.');
@@ -109,9 +109,9 @@ test('lyssnaren väljs som en framträdande roll, alla måste stå vid pianot oc
   assert.equal(state.piano, null);
 });
 
-test('nästa gång lyssnar någon som inte har haft en framträdande roll', () => {
+test('nästa gång spelar någon melodin som inte har haft en framträdande roll', () => {
   const started = readState(startGame({ state: { ...createInitialState(), prominentHistory: ['p0'] }, mission: MISSION, players: PLAYERS, starter: PLAYERS[0], usesPlaceCards: false, leaderPlays: true, minutes: 60, nowMs: 0 }));
-  assert.equal(started.piano?.listenerId, 'p1');
+  assert.equal(started.piano?.melodyPlayerId, 'p1');
 });
 
 test('uppdragsfilen säger till när pianot är fel', () => {
@@ -124,6 +124,6 @@ test('uppdragsfilen säger till när pianot är fel', () => {
 });
 
 test('ett sparat piano läses, och ett trasigt blir null', () => {
-  assert.deepEqual(readPianoState({ listenerId: 'p0', playedCount: 2, wrongNotes: 1 }), { listenerId: 'p0', playedCount: 2, wrongNotes: 1 });
+  assert.deepEqual(readPianoState({ melodyPlayerId: 'p0', playedCount: 2, wrongNotes: 1 }), { melodyPlayerId: 'p0', playedCount: 2, wrongNotes: 1 });
   assert.equal(readPianoState({ playedCount: -1, wrongNotes: 0 }), null);
 });

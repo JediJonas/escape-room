@@ -85,8 +85,8 @@ function checkStep(mission: Mission, state: GameState, players: PlayerRecord[]) 
     for (const secret of secrets) {
       if (text.includes(secret)) assert.ok(allowed.has(secret), `${mission.id} steg ${state.stepIndex + 1}, ${viewer.name} ser någon annans: ${secret}`);
     }
-    // Melodin finns bara hos den som lyssnar.
-    if (view.step.piano?.melody) assert.equal(state.piano?.listenerId, viewer.id, `${viewer.name} får melodin utan att lyssna`);
+    // Melodin finns bara i mobilen som spelar den.
+    if (view.step.piano?.melody) assert.equal(state.piano?.melodyPlayerId, viewer.id, `${viewer.name} får melodin fast den spelas från en annan mobil`);
     // Ingen vy berättar något om de andra spelarna.
     for (const other of players.filter((player) => player.id !== viewer.id)) assert.ok(!text.includes(other.id), `${viewer.name} ser ${other.id}`);
     for (const piece of [...(view.step.role?.pieces ?? []), ...listMemoryPieces(view)]) {
@@ -173,8 +173,8 @@ function playWholeMelody(mission: Mission, state: GameState, players: PlayerReco
   const placeByPlayer = { ...state.placeByPlayer };
   if (pianoPlace) for (const player of participants) placeByPlayer[player.id] = pianoPlace;
   let played: GameState = { ...state, placeByPlayer };
-  const listenerId = state.piano.listenerId;
-  const keysByPlayer = dealKeys(step.keys, sortByJoinOrder(participants).map((player) => player.id).filter((id) => id !== listenerId));
+  const melodyPlayerId = state.piano.melodyPlayerId;
+  const keysByPlayer = dealKeys(step.keys, sortByJoinOrder(participants).map((player) => player.id).filter((id) => id !== melodyPlayerId));
   const ownerOf = (key: string) => participants.find((player) => keysByPlayer[player.id]?.includes(key));
   const wrongKey = step.keys.find((key) => key !== step.solution.melody[0].note);
   assert.ok(wrongKey && ownerOf(wrongKey), `${mission.id}: ingen har en fel tangent med ${participants.length} spelare`);

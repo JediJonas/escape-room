@@ -86,18 +86,31 @@ test('Alla är klara räknar först alla som lästa, och nästa tryck hoppar öv
   assert.equal(stepId(state), 'vem-ar-jag');
 });
 
-test('vid byrån ger spelledaren ledtrådar om urklippen, och vid golvuret om Rummen minns', () => {
+test('vid byrån säger första ledtråden att alla inte har läst, och vid golvuret får gruppen Rummen minns ledtrådar', () => {
   let state = skipUntil(start(), 'tidningsurklippen');
-  state = readState(giveReadingHint({ state, mission: MISSION, player: ANNA }));
+  state = readState(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
+  state = readState(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
   state = readState(giveHint({ state, mission: MISSION, player: ANNA }));
   const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: BO });
   const reading = MISSION.steps[state.stepIndex];
+  const written = reading.type === 'scene' ? reading.readingHints ?? [] : [];
   const clock = MISSION.steps.find((step) => step.id === 'rummen-minns');
-  assert.deepEqual(view.step.readingHints, reading.type === 'scene' ? reading.readingHints?.slice(0, 1) : []);
+  assert.deepEqual(view.step.readingHints, ['Alla har inte läst tidningsurklippen.', written[0]]);
+  assert.equal(view.step.readingHintCount, 4);
   assert.deepEqual(view.step.hints, clock?.hints?.slice(0, 1));
-  assert.equal(view.step.readingHintCount, 3);
   assert.equal(view.step.hintCount, 3);
-  for (let given = 1; given < 3; given += 1) state = readState(giveReadingHint({ state, mission: MISSION, player: ANNA }));
-  assert.deepEqual(giveReadingHint({ state, mission: MISSION, player: ANNA }), { refusal: 'noMoreHints' });
-  assert.deepEqual(giveReadingHint({ state, mission: MISSION, player: BO }), { refusal: 'notLeader' });
+  for (let given = 1; given < 3; given += 1) state = readState(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
+  assert.deepEqual(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }), { refusal: 'noMoreHints' });
+  assert.deepEqual(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: BO }), { refusal: 'notLeader' });
+});
+
+test('har alla läst ger byrån bara de skrivna ledtrådarna', () => {
+  let state = start();
+  for (const player of PLAYERS) state = readState(markRead({ state, mission: MISSION, players: PLAYERS, player, thingId: 'byran' }));
+  state = skipUntil(state, 'tidningsurklippen');
+  state = readState(giveReadingHint({ state, mission: MISSION, players: PLAYERS, player: ANNA }));
+  const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: BO });
+  const reading = MISSION.steps[state.stepIndex];
+  assert.deepEqual(view.step.readingHints, reading.type === 'scene' ? reading.readingHints?.slice(0, 1) : []);
+  assert.equal(view.step.readingHintCount, 3);
 });

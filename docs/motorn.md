@@ -236,7 +236,8 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   den direkt. Spelledarens Alla är klara räknar först alla som lästa, och
   nästa tryck hoppar över uppgiften (`skipReading`). Medan scenen väntar ger
   spelledaren uppgiftens ledtrådar vid golvuret och scenens `readingHints`
-  vid byrån. Se `reading.ts`. Brädet blir klart på samma sätt, genom att
+  vid byrån. Har någon inte läst är byråns första ledtråd i stället att alla inte
+  har läst (`isUnreadHintGiven`). Se `reading.ts`. Brädet blir klart på samma sätt, genom att
   spelaren lämnar det med Tillbaka när meddelandet är klart (`isDoneByLeaving`).
 - **Följder.** Ett misslyckande kan kosta minuter eller sätta en markering som
   senare steg och slut läser.

@@ -11,6 +11,7 @@
 
 import type { Mission, MissionDocument, MissionStep } from './mission.ts';
 import type { RoleAssignment } from './roles.ts';
+import type { GameState } from './state.ts';
 
 /** Rollerna i de steg som har sparats, efter stegets id och sedan spelarens id. */
 export type FoundState = Record<string, Record<string, RoleAssignment>>;
@@ -55,4 +56,24 @@ export function findReadSteps(mission: Mission, thingId: unknown): string[] {
     const step = mission.steps.find((candidate) => candidate.id === stepId);
     return step?.type === 'scene' && step.foundTitle !== undefined;
   });
+}
+
+/** Byråns första ledtråd när någon inte har läst, som "Alla har inte läst tidningsurklippen." (Jonas 2026-11-18). */
+function describeUnreadHint(foundTitle: string): string {
+  return `Alla har inte läst ${foundTitle.toLocaleLowerCase('sv')}.`;
+}
+
+/** Om byråns nästa ledtråd ska säga att alla inte har läst: den kommer först, och bara så länge någon inte har läst. */
+export function givesUnreadHint(step: MissionStep, state: GameState, participantIds: readonly string[]): boolean {
+  if (step.type !== 'scene' || state.isUnreadHintGiven || state.readingHintsGiven > 0) return false;
+  return participantIds.some((playerId) => !hasRead(state.foundReaders, step.id, playerId));
+}
+
+/** Ledtrådarna om urklippen som gruppen har fått vid byrån, och hur många det finns. */
+export function describeReadingHints(step: MissionStep, state: GameState, participantIds: readonly string[]): { readingHints: string[]; readingHintCount: number } {
+  const written = step.type === 'scene' ? step.readingHints ?? [] : [];
+  if (step.type !== 'scene' || written.length === 0 || step.foundTitle === undefined) return { readingHints: [], readingHintCount: 0 };
+  const unread = state.isUnreadHintGiven ? [describeUnreadHint(step.foundTitle)] : [];
+  const extra = state.isUnreadHintGiven || givesUnreadHint(step, state, participantIds) ? 1 : 0;
+  return { readingHints: [...unread, ...written.slice(0, state.readingHintsGiven)], readingHintCount: written.length + extra };
 }

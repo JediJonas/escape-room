@@ -241,7 +241,8 @@ async function playKeyAction(action: Action, context: Context): Promise<ActionRe
 async function giveHintAction(action: Action, context: Context): Promise<ActionResult> {
   return withOwnPlayer(action, context, async (scope) => {
     const isAboutReading = action.isAboutReading === true;
-    const change = (isAboutReading ? giveReadingHint : giveHint)({ state: scope.game.state, mission: scope.mission, player: scope.player });
+    const input = { state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player };
+    const change = isAboutReading ? giveReadingHint(input) : giveHint(input);
     return applyChange(scope, change, { action: { type: 'giveHint', stepIndex: scope.game.state.stepIndex, isAboutReading } });
   });
 }

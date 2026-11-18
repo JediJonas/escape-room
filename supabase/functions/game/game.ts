@@ -14,7 +14,7 @@ import { type PianoRefusal, type PianoView, describePiano, startPiano } from './
 import { type CellarView, describeCellar, markArrived, startCellar } from './cellar.ts';
 import { type FlashbackRefusal, type FlashbackView, describeFlashback, endFlashbackNow, isRemembering, startFlashback } from './flashback.ts';
 import { type SeanceView, describeSeance, isSeanceComplete, startSeance } from './seance.ts';
-import { type FoundItem, describeFound, hasRead, keepFound } from './found.ts';
+import { type FoundItem, describeFound, describeReadingHints, hasRead, keepFound } from './found.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
 
@@ -32,6 +32,7 @@ function enterStep(state: GameState, mission: Mission, players: readonly PlayerR
     wrongAnswers: 0,
     hintsGiven: 0,
     readingHintsGiven: 0,
+    isUnreadHintGiven: false,
     isSolutionShown: false,
     seance: step.type === 'seance' ? startSeance() : null,
     // Golvuret och pianot går att använda hela tiden, så deras läge följer med mellan stegen (Jonas 2026-11-18).
@@ -541,8 +542,7 @@ export function buildGameView({ game, mission, players, viewer }: {
       isMeDone: isPlayerDone(step, state, viewer.id),
       hints: helpStep.hints?.slice(0, state.hintsGiven) ?? [],
       hintCount: helpStep.hints?.length ?? 0,
-      readingHints: step.type === 'scene' ? step.readingHints?.slice(0, state.readingHintsGiven) ?? [] : [],
-      readingHintCount: step.type === 'scene' ? step.readingHints?.length ?? 0 : 0,
+      ...describeReadingHints(step, state, participants.map((player) => player.id)),
       solution: viewer.isLeader && state.isSolutionShown && helpStep.type !== 'scene' ? describeSolution(helpStep, places) : null,
       seance: step.type === 'seance' && state.seance && isRunning
         ? describeSeance({ seance: state.seance, message: step.solution.message, players, participantIds: participants.map((player) => player.id), viewerId: viewer.id })

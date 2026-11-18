@@ -240,6 +240,16 @@ Två gånger går en spelare iväg på riktigt, till ett annat rum i bostaden me
 
 Det är de enda tillfällena då gruppen splittras på riktigt, och de blir starkare av det.
 
+### Planlösning
+
+![Planlösning av huset](planlosning.svg)
+
+Huset är en rektangel med två våningar och källare (Jonas 2026-11-18). Ytterdörren leder in i hallen, mitt på husets framsida. Rakt fram ligger salongen, till vänster biblioteket och till höger köket. Sovrummet ligger på övervåningen. Källaren ligger under huset, med det dolda rummet bakom.
+
+- **Hallen.** Dörren till salongen sitter längst till höger i hallens bortre vägg, med pianot till vänster om den. Dörren till köket sitter strax till höger om salongsdörren. Dörren till biblioteket sitter långt ner på vänstra väggen. I högra hörnet vid ytterväggen ligger två trappor på tvären: överst källartrappan, bakom den låsta källardörren, och under den trappan upp till sovrummet (Jonas 2026-11-18).
+- **Bara via hallen.** Det finns inga dörrar mellan de andra rummen, så alla rum nås från hallen (Jonas 2026-11-18).
+- **Dörrarna i rundbilderna.** I rundbilderna är alla rum kvadratiska, så att varje vägg blir en fjärdedel av varvet (Jonas 2026-11-18). Dörrarna ska sitta på rätt ställe i rummen enligt planlösningen, och i beskrivningen till Gemini anges varje dörr med vägg och läge, till exempel vänstra väggen nära hörnet mot ytterväggen (Jonas 2026-11-18). Gemini följer inte alltid beskrivningen exakt, så de tryckbara dörrarna placeras där de hamnade i bilden, och en bild med en dörr på fel vägg tas fram på nytt.
+
 ### Nu och 1962
 
 Varje plats finns i två tider: som den är nu och som den var kvällen 1962 (Jonas 2026-11-17).

@@ -248,7 +248,7 @@ Huset är en rektangel med två våningar och källare (Jonas 2026-11-18). Ytter
 
 - **Hallen.** Dörren till salongen sitter längst till höger i hallens bortre vägg, med pianot till vänster om den. Dörren till köket sitter strax till höger om salongsdörren. Dörren till biblioteket sitter långt ner på vänstra väggen. I högra hörnet vid ytterväggen ligger två trappor på tvären: överst trappan upp till sovrummet och under den källartrappan, bakom den låsta källardörren (Jonas 2026-11-18).
 - **Bara via hallen.** Det finns inga dörrar mellan de andra rummen, så alla rum nås från hallen (Jonas 2026-11-18).
-- **Dörrarna i rundbilderna.** Rummen behöver inte vara rektangulära i rundbilderna, men dörrarna ska sitta på rätt ställe i rummen enligt planlösningen (Jonas 2026-11-18).
+- **Dörrarna i rundbilderna.** I rundbilderna är alla rum kvadratiska, så att varje vägg blir en fjärdedel av varvet (Jonas 2026-11-18). Dörrarna ska sitta på rätt ställe i rummen enligt planlösningen, och i beskrivningen till Gemini anges varje dörr med vägg och läge, till exempel vänstra väggen nära hörnet mot ytterväggen (Jonas 2026-11-18). Gemini följer inte alltid beskrivningen exakt, så de tryckbara dörrarna placeras där de hamnade i bilden, och en bild med en dörr på fel vägg tas fram på nytt.
 
 ### Nu och 1962
 

@@ -123,6 +123,7 @@ export function PianoTask({ piano, canPlay, onPlayKey }: {
     <div className="piano">
       {piano.hasMelody && <MelodyPanel piano={piano} />}
       {!piano.hasMelody && <p className="hint">{piano.melodyPlayerName} har melodin i sin mobil. Lyssna när den spelas, och spela den sedan på era tangenter. Varje tangent hörs bara i din egen mobil.</p>}
+      {piano.hasMelody && piano.myKeys.length > 0 && <p className="hint">Spela den sedan tillsammans på era tangenter.</p>}
       {canPlay && <PianoKeys keys={piano.myKeys} onPlayKey={onPlayKey} />}
     </div>
   );

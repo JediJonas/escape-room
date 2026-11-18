@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { advanceStep, buildGameView, choosePlace, giveHint, showSolution, startGame } from './game.ts';
 import { chooseMemoryRoom, moveInCellar, playKey, touchBoard, turnClock } from './taskActions.ts';
-import { dealKeys } from './piano.ts';
+import { dealKeys, listKeyPlayers } from './piano.ts';
 import { sortByJoinOrder } from './lobby.ts';
 import { MAX_PLAYERS } from './lobby.ts';
 import { readDialTime } from './rooms.ts';
@@ -174,7 +174,7 @@ function playWholeMelody(mission: Mission, state: GameState, players: PlayerReco
   if (pianoPlace) for (const player of participants) placeByPlayer[player.id] = pianoPlace;
   let played: GameState = { ...state, placeByPlayer };
   const melodyPlayerId = state.piano.melodyPlayerId;
-  const keysByPlayer = dealKeys(step.keys, sortByJoinOrder(participants).map((player) => player.id).filter((id) => id !== melodyPlayerId));
+  const keysByPlayer = dealKeys(step.keys, listKeyPlayers(melodyPlayerId, sortByJoinOrder(participants).map((player) => player.id)));
   const ownerOf = (key: string) => participants.find((player) => keysByPlayer[player.id]?.includes(key));
   const wrongKey = step.keys.find((key) => key !== step.solution.melody[0].note);
   assert.ok(wrongKey && ownerOf(wrongKey), `${mission.id}: ingen har en fel tangent med ${participants.length} spelare`);

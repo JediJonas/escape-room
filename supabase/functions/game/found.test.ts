@@ -40,9 +40,15 @@ test('dokumenten syns för alla, och urklippen ligger kvar i Hittat med bara spe
   assert.deepEqual(viewFor(state, PLAYERS[1]).found, []);
   for (const player of PLAYERS) state = readState(markReady({ state, mission: MISSION, players: PLAYERS, player }));
   assert.equal(state.stepIndex, 1);
-  assert.deepEqual(viewFor(state, PLAYERS[0]).found, [{ title: 'Tidningsurklippen', documents: [{ title: 'Artikeln', text: 'Fem gick in.' }], pieces: ['ett', 'fyra'] }]);
-  assert.deepEqual(viewFor(state, PLAYERS[1]).found[0].pieces, ['två']);
+  const [first] = viewFor(state, PLAYERS[0]).found;
+  assert.equal(first.title, 'Tidningsurklippen');
+  assert.deepEqual(first.documents, [{ title: 'Artikeln', text: 'Fem gick in.' }]);
+  // Bitarna lottas, men var och en har sina egna och alla finns hos någon.
+  const piecesOf = (player: PlayerRecord) => viewFor(state, player).found[0].pieces;
+  const before = PLAYERS.map(piecesOf);
+  assert.ok(before.every((pieces) => pieces.length > 0));
+  assert.deepEqual(before.flat().sort(), ['ett', 'fyra', 'tre', 'två']);
   // Fynden finns kvar när spelledaren hoppar vidare.
   state = readState(advanceStep({ state, mission: MISSION, players: PLAYERS, player: PLAYERS[0] }));
-  assert.deepEqual(viewFor(state, PLAYERS[2]).found[0].pieces, ['tre']);
+  assert.deepEqual(PLAYERS.map(piecesOf), before);
 });

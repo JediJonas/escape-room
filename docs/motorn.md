@@ -219,6 +219,8 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   hand till den som har väntat längst sedan sin senaste framträdande roll. Lika fall
   lottas med ett tal ur spelets starttid, stegets id och spelarens id, så att
   lotten blir densamma varje gång servern räknar (Jonas 2026-11-18).
+  Också vem som får vilken roll och vilka bitar lottas, i stället för att
+  gå på ordningen spelarna gick med i (Jonas 2026-11-18).
   Ordningen sparas i tillståndet som `prominentHistory`.
 - **Berättelsen mellan uppgifterna** är steg av typen `scene`. En scen kan
   ha en egen text på knappen med `readyLabel`, till exempel "Jag har läst".
@@ -313,7 +315,8 @@ Melodin står i `solution.melody` som toner med antal slag. När gruppen
 kommer till steget väljer servern vems mobil som spelar melodin, som en
 framträdande roll, så att den roterar. Bara den mobilens vy har melodin, och
 den spelas högt så att alla hör (Jonas 2026-11-18). Tangenterna delas mellan
-de andra i den ordning de gick med. Var och en får fyra intilliggande
+de andra i lottad ordning, eller mellan båda när de bara är två
+(Jonas 2026-11-18). Var och en får fyra intilliggande
 tangenter, och fönstren sprids jämnt så att varje tangent finns hos någon
 (Jonas 2026-11-18). De svarta tangenterna ritas och låter i mobilen, men
 skickas inte till servern. Innan någon spelar melodin delas de mellan alla.

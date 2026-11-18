@@ -11,7 +11,7 @@
 import type { Mission, MissionStep, Place } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import { isSeanceComplete } from './seance.ts';
-import { type PianoKey, listMyKeys } from './piano.ts';
+import { type PianoKey, listKeyPlayers, listMyKeys } from './piano.ts';
 import { readDialTime } from './rooms.ts';
 import type { GameState } from './state.ts';
 
@@ -127,8 +127,7 @@ function describeInstrument(opened: readonly MissionStep[], state: GameState, vi
   const piano = opened.find((step) => step.type === 'piano');
   if (piano?.type !== 'piano') return null;
   // Utanför steget spelar ingen melodin, så tangenterna delas mellan alla.
-  const keyPlayers = participantIds.filter((id) => id !== state.piano?.melodyPlayerId);
-  return { type: 'piano', keys: listMyKeys(piano.keys, keyPlayers, viewerId) };
+  return { type: 'piano', keys: listMyKeys(piano.keys, listKeyPlayers(state.piano?.melodyPlayerId ?? null, participantIds), viewerId) };
 }
 
 export type HouseView = {

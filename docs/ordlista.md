@@ -84,13 +84,15 @@ sist under Namn som är bestämda.
 | Sakvy | Det som öppnas när spelaren trycker på en sak: saken i fullskärm, utan rubrik och text, med klockan och Tillbaka överst. | `ThingScreen` |
 | Berättartext | En text i fullskärm som dyker upp av sig själv, visas en gång och bekräftas med Fortsätt eller Ok. | `narration`, `melodyText`, `callingFrom` |
 | Fullskärm | En vy som fyller skärmen. Inte helskärm. Bakgrunden går kant i kant, men innehållet har en största bredd och höjd. | `ThingScreen` |
-| Tillbaka | Knappen uppe till höger som tar spelaren ut ur en sakvy till textvyn eller rumsvyn, den hon kom från. Alla har den. | `leaveThing` |
+| Fyra hörn | Varje skärm har samma fyra hörn: uppdraget uppe till vänster, tiden uppe till höger, statusraden nere till vänster och spelledarens meny nere till höger. I fullskärm står Tillbaka i uppdragets hörn. Hörnen följer innehållets kanter, inte skärmens. | |
+| Statusrad | Den korta raden text nere till vänster, som Väntar på att alla ska bli klara, Gå runt i huset och leta eller vem skenet väntar på. Hette tidigare notis. | |
+| Tillbaka | Knappen uppe till vänster som tar spelaren ut ur en sakvy till textvyn eller rumsvyn, den hon kom från. Alla har den. | `leaveThing` |
 | Meny | Spelledarens hamburgare i nedre högra hörnet. Spelarna har ingen meny, utom den instängda i källaren. | `LeaderMenu` |
-| Inforuta | Rutan längst ner som visar en ny ledtråd hos alla en stund. Går att trycka bort. | `InfoBox` |
+| Inforuta | Den tillfälliga rutan längst ner som visar en ny ledtråd hos alla en stund. Går att trycka bort. Inte samma sak som statusraden, som står kvar. | `InfoBox` |
 | Huvudhandling | Skärmens viktigaste knapp. Ligger underst, närmast tummen. | `actions` i `ScreenLayout` |
 | Hög med papper | Flera papper ovanpå varandra, som urklippen eller gästbokens sidor. Spelaren bläddrar med svajp eller pilar. | `PaperStack`, `Paper` |
 | Dokument | Ett papper som alla ser, som huvudartikeln. Inte samma sak som uppgiftstypen Dokumentet. | `MissionDocument`, `documents` |
-| Nedräkning | Gruppens gemensamma tid, som visas överst. Spelet fortsätter när den är slut, men slutet blir sämre. | `Countdown`, `clock` |
+| Nedräkning | Gruppens gemensamma tid, som visas uppe till höger. Spelet fortsätter när den är slut, men slutet blir sämre. | `Countdown`, `clock` |
 | Pausat | Spelledaren har pausat spelet, och nedräkningen står still. | `isPaused` |
 | Rundbild | En bild av hela rummet runt spelaren, som hon ser sig omkring i genom att vrida mobilen. | `RoundImageView` |
 | Visaren | Koden som visar en rundbild, med en bred bild som reserv. Kallas också rundvisaren. | `roundImageViewer.ts` |

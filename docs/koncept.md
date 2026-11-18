@@ -392,9 +392,10 @@ Tre saker prövas när arbetet börjar.
 - Låter genererade svenska röster och viskningar tillräckligt bra, och vilken tjänst ger bäst resultat?
 - Räcker Supabases gratisnivå för realtid med tio mobiler i samma session?
 
-En fråga om berättelsen är öppen.
+Två frågor om berättelsen är öppna.
 
 - Varför behövs pianots melodi för att nå Vera, när hon redan har svarat på brädet? Ett förslag är att melodin får henne att minnas, inte att komma närmare.
+- Hur når berättelsetexterna spelarna, nu när sakerna öppnas utan text? Uppgifternas text ser bara spelledaren, och en del av den är berättelse, som pianots tomma notblad. Ett förslag är att texterna dyker upp av sig själva när gruppen har nått vissa mål (Jonas 2026-11-18).
 
 ## Föreslagen byggordning
 

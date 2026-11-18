@@ -28,3 +28,20 @@ export const readSavedGameId = () => read(GAME_ID_KEY);
 export const saveGameId = (gameId: string | null) => write(GAME_ID_KEY, gameId);
 export const readSavedPlayerName = () => read(PLAYER_NAME_KEY);
 export const savePlayerName = (name: string) => write(PLAYER_NAME_KEY, name);
+
+const READ_STORIES_KEY = 'escape-room.readStories';
+
+/**
+ * Berättartexter som spelaren redan har läst i helskärm, så att de bara
+ * visas en gång, också efter en omladdning (Jonas 2026-11-18).
+ */
+export function readReadStories(): string[] {
+  try {
+    const saved: unknown = JSON.parse(read(READ_STORIES_KEY) || '[]');
+    return Array.isArray(saved) ? saved.filter((item): item is string => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export const saveReadStories = (storyIds: readonly string[]) => write(READ_STORIES_KEY, JSON.stringify(storyIds));

@@ -18,6 +18,7 @@ import { RoomList } from './HouseView.tsx';
 import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { InfoBox } from './InfoBox.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
+import { readReadStories, saveReadStories } from '../start/savedGame.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
 /** Allt mobilen kan be servern om under spelet. */
@@ -82,6 +83,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const [openThingId, setOpenThingId] = useState<string | null>(null);
+  const [readStories, setReadStories] = useState(readReadStories);
   const { step } = view;
   const memory = useMemoryTime(step.rooms?.remembersUntilMs ?? null, clockOffsetMs, game.fadeMemory);
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
@@ -128,6 +130,29 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         : <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>}
     </>
   );
+  // Den som har melodin får en berättartext i helskärm direkt när pianosteget börjar, efter
+  // ouijabrädet. Hon trycker Fortsätt när hon har läst, och den visas bara en gång (Jonas 2026-11-18).
+  const storyText = view.isFinished ? null : step.piano?.melodyText ?? null;
+  const storyId = `${view.gameId}:${step.number}:melodi`;
+  if (storyText && !isMenuOpen && !readStories.includes(storyId)) {
+    const markStoryRead = () => {
+      const read = [...readStories, storyId];
+      setReadStories(read);
+      saveReadStories(read);
+    };
+    const storyHeader = (
+      <>
+        {view.clock ? <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} /> : <span />}
+        {view.clock?.isPaused && <span className="paused">Pausat</span>}
+        {view.me.isLeader && <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>}
+      </>
+    );
+    return (
+      <ThingScreen header={storyHeader} actions={<button type="button" onClick={markStoryRead}>Fortsätt</button>}>
+        <p className="story-text">{storyText}</p>
+      </ThingScreen>
+    );
+  }
   // En sak vars steg gruppen inte är på visas i fullskärm, och Tillbaka går till rummet (Jonas 2026-11-18).
   if (openThing && !openThing.opensCurrentStep) {
     // Golvuret och pianot går att använda hela tiden, också innan berättelsen har kommit dit (Jonas 2026-11-18).

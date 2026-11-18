@@ -217,10 +217,15 @@ export type PianoStep = {
   goTo?: undefined;
   textAtPlace?: undefined;
   roles?: undefined;
-  /** Pianots tangenter, lägst först, som "C4" eller "F#4". De delas mellan spelarna utom den som spelar melodin. */
+  /** Pianots tangenter, lägst först, som "C4" eller "F#4". De delas mellan alla spelare. */
   keys: string[];
   /** Hur länge ett slag varar när melodin spelas. */
   beatMs: number;
+  /**
+   * Berättartexten som bara den som får melodin ser, i rutan längst ner när
+   * pianot börjar, till exempel att hon hör en melodi i huvudet (Jonas 2026-11-18).
+   */
+  melodyText?: string;
   /** Pianot kallar på gruppen från huset tills melodin är spelad, som brädet (Jonas 2026-11-18). */
   callsFromHouse?: boolean;
   hints: string[];

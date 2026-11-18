@@ -319,7 +319,7 @@ tangenter som "C4" eller "F#4", och `beatMs`, hur långt ett slag är.
 Melodin står i `solution.melody` som toner med antal slag. När gruppen
 kommer till steget väljer servern vems mobil som spelar melodin, som en
 framträdande roll, så att den roterar. Bara den mobilens vy har melodin, och
-den spelas högt så att alla hör (Jonas 2026-11-18). Tangenterna delas mellan
+den spelas högt så att alla hör (Jonas 2026-11-18). Hennes vy har också stegets `melodyText`, en berättartext som hennes mobil visar i helskärm när steget börjar, en gång (Jonas 2026-11-18). Tangenterna delas mellan
 alla i lottad ordning, också den som spelar melodin (Jonas 2026-11-18). Var och en får fyra intilliggande
 tangenter, och fönstren sprids jämnt så att varje tangent finns hos någon
 (Jonas 2026-11-18). De svarta tangenterna ritas och låter i mobilen, men

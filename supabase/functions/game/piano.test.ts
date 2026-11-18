@@ -119,6 +119,16 @@ test('bara mobilen som spelar melodin får den, och var och en ser bara sina tan
   assert.deepEqual(player.myKeys.map((key) => key.note), keysOf('p0').p1);
 });
 
+test('bara den som spelar melodin får berättartexten om melodin', () => {
+  const piano = startPiano('p0');
+  const step = { ...STEP, melodyText: 'Du hör en melodi i ditt huvud.' };
+  assert.equal(describePiano({ piano, step, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna' }).melodyText, 'Du hör en melodi i ditt huvud.');
+  assert.equal(describePiano({ piano, step, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna' }).melodyText, null);
+  assert.equal(describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna' }).melodyText, null);
+  const broken = { ...MISSION, steps: [{ ...step, melodyText: ' ' }, ...MISSION.steps.slice(1)] };
+  assert.ok(findMissionErrors(broken).some((error) => error.includes('tom text')));
+});
+
 test('den som spelar melodin väljs som en framträdande roll, alla måste stå vid pianot och hela melodin för gruppen vidare', () => {
   const started = start();
   assert.equal(started.piano?.melodyPlayerId, 'p0');

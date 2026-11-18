@@ -110,8 +110,10 @@ export function pressKey({ piano, step, playerId, participantIds, key }: {
 export type MelodyNote = { note: string; beats: number };
 
 export type PianoView = {
-  /** Om melodin spelas från spelarens mobil. Då har hon inga tangenter, utom när de bara är två. */
+  /** Om melodin spelas från spelarens mobil. Hon har tangenter som alla andra. */
   hasMelody: boolean;
+  /** Berättartexten för den som har melodin, annars null. */
+  melodyText: string | null;
   melodyPlayerName: string;
   /** Melodin, bara hos den vars mobil spelar den. */
   melody: MelodyNote[] | null;
@@ -139,6 +141,7 @@ export function describePiano({ piano, step, viewerId, participantIds, melodyPla
   const hasMelody = piano.melodyPlayerId === viewerId;
   return {
     hasMelody,
+    melodyText: hasMelody ? step.melodyText ?? null : null,
     melodyPlayerName,
     melody: hasMelody ? step.solution.melody : null,
     beatMs: step.beatMs,
@@ -167,6 +170,7 @@ export function findPianoErrors(step: Record<string, unknown>, name: string): st
   const melody = (step.solution as { melody?: unknown } | undefined)?.melody;
   const isMelody = Array.isArray(melody) && melody.length >= MIN_MELODY_NOTES && melody.every((tone) => isMelodyNote(tone, hasKeys ? keys : []));
   if (!isMelody) errors.push(`${name} ska ha en melodi på minst ${MIN_MELODY_NOTES} toner, alla bland tangenterna och högst ${MAX_BEATS} slag långa`);
+  if (step.melodyText !== undefined && !(typeof step.melodyText === 'string' && step.melodyText.trim().length > 0)) errors.push(`${name} har en tom text för den som får melodin`);
   if (step.callsFromHouse !== undefined && typeof step.callsFromHouse !== 'boolean') errors.push(`${name} har callsFromHouse som inte är sant eller falskt`);
   if (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined) errors.push(`${name} är ett piano och kan inte ha plats eller roller`);
   return errors;

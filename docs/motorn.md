@@ -266,7 +266,7 @@ frågan står kvar tills gruppen vet. Med `wrongAnswerMinutes` dras tid från
 nedräkningen för varje fel svar, och alla ser hur många fel det har blivit.
 Med `callsFromHouse` kallar brädet på gruppen tills meddelandet är klart:
 saken som öppnar seansen skimrar i rummets lista, och i de andra rummen
-visas sakens `callingText` som en berättartext i helskärm, en gång, med
+visas sakens `callingText` som en berättartext i fullskärm, en gång, med
 knappen Ok, till exempel att det hörs något från salongen (Jonas 2026-11-18).
 Knackningar togs bort,
 eftersom de var svåra att förstå (Jonas 2026-11-18). En sak i huset kan öppna flera steg med
@@ -320,7 +320,7 @@ tangenter som "C4" eller "F#4", och `beatMs`, hur långt ett slag är.
 Melodin står i `solution.melody` som toner med antal slag. När gruppen
 kommer till steget väljer servern vems mobil som spelar melodin, som en
 framträdande roll, så att den roterar. Bara den mobilens vy har melodin, och
-den spelas högt så att alla hör (Jonas 2026-11-18). Hennes vy har också stegets `melodyText`, en berättartext som hennes mobil visar i helskärm när steget börjar, en gång (Jonas 2026-11-18). Tangenterna delas mellan
+den spelas högt så att alla hör (Jonas 2026-11-18). Hennes vy har också stegets `melodyText`, en berättartext som hennes mobil visar i fullskärm när steget börjar, en gång (Jonas 2026-11-18). Tangenterna delas mellan
 alla i lottad ordning, också den som spelar melodin (Jonas 2026-11-18). Var och en får fyra intilliggande
 tangenter, och fönstren sprids jämnt så att varje tangent finns hos någon
 (Jonas 2026-11-18). De svarta tangenterna ritas och låter i mobilen, men
@@ -335,9 +335,11 @@ Tonerna görs i ljudmotorn, så att inget klipp behöver hämtas. Se `piano.ts`.
 **Tidningsurklippen** är en scen med roller. Urklippen är bitarna i en roll
 för alla, så att de delas ut och ingen har alla. Det som alla ser, som
 huvudartikeln och gästboken, står i scenens `documents`. Med `foundTitle`
-hamnar steget i Hittat när gruppen lämnar det: servern sparar vem som hade
-vilka bitar i tillståndets `found`, och varje spelare ser sedan dokumenten
-och bara sina egna bitar. Se `found.ts`.
+går steget att läsa igen från saken som öppnade det, som urklippen i byrån.
+Servern sparar vem som hade vilka bitar i tillståndets `found` när gruppen
+lämnar steget, och varje spelare ser sedan dokumenten och bara sina egna
+bitar. Listan Hittat är borttagen, men namnen `found` och `foundTitle` finns
+kvar i koden (Jonas 2026-11-18). Se `found.ts`.
 
 **Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
 rum dörrarna och sakerna. En sak har en text att visa, sidor att bläddra i

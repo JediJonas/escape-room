@@ -15,11 +15,11 @@ import { LeaderMenu } from './LeaderMenu.tsx';
 import { canHelpWithTask, describeDone } from './leaderMenu.ts';
 import { canLeaderSkip } from './leaderSkip.ts';
 import { DocumentList } from './FoundDocuments.tsx';
-import { RoomList } from './HouseView.tsx';
+import { TextView } from './TextView.tsx';
 import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { InfoBox } from './InfoBox.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
-import { readReadStories, saveReadStories } from '../start/savedGame.ts';
+import { readReadNarrations, saveReadNarrations } from '../start/savedGame.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
 /** Allt mobilen kan be servern om under spelet. */
@@ -84,7 +84,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const [openThingId, setOpenThingId] = useState<string | null>(null);
-  const [readStories, setReadStories] = useState(readReadStories);
+  const [readNarrations, setReadNarrations] = useState(readReadNarrations);
   const { step } = view;
   const memory = useMemoryTime(step.rooms?.remembersUntilMs ?? null, clockOffsetMs, game.fadeMemory);
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
@@ -156,21 +156,21 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
     </>
   );
-  // Berättartexter i helskärm, som var och en visas en gång och bekräftas med en knapp (Jonas 2026-11-18).
+  // Berättartexter i fullskärm, som var och en visas en gång och bekräftas med en knapp (Jonas 2026-11-18).
   // Först det som hörs från ett annat rum när något kallar på gruppen, som planchetten, eller pianots
   // ensamma ton när gruppen lämnar ouijabrädet. Sedan melodin, för den som har den.
-  const stories = view.isFinished ? [] : [
+  const narrations = view.isFinished ? [] : [
     { id: `${view.gameId}:${step.number}:kallar`, text: house?.callingFrom ?? null, button: 'Ok' },
     { id: `${view.gameId}:${step.number}:melodi`, text: step.piano?.melodyText ?? null, button: 'Fortsätt' },
   ];
-  const story = stories.find(({ id, text }) => text !== null && !readStories.includes(id));
-  if (story?.text) {
-    const markStoryRead = () => {
-      const read = [...readStories, story.id];
-      setReadStories(read);
-      saveReadStories(read);
+  const narration = narrations.find(({ id, text }) => text !== null && !readNarrations.includes(id));
+  if (narration?.text) {
+    const markNarrationRead = () => {
+      const read = [...readNarrations, narration.id];
+      setReadNarrations(read);
+      saveReadNarrations(read);
     };
-    const storyHeader = (
+    const narrationHeader = (
       <>
         <span />
         {view.clock?.isPaused && <span className="paused">Pausat</span>}
@@ -178,8 +178,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       </>
     );
     return withLeaderMenu(
-      <ThingScreen header={storyHeader} actions={<button type="button" onClick={markStoryRead}>{story.button}</button>}>
-        <p className="story-text">{story.text}</p>
+      <ThingScreen header={narrationHeader} actions={<button type="button" onClick={markNarrationRead}>{narration.button}</button>}>
+        <p className="narration-text">{narration.text}</p>
       </ThingScreen>,
     );
   }
@@ -211,7 +211,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
         {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
-        <RoomList house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
+        <TextView house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
         {step.hints.length > 0 && (
           <section className="hint-card" aria-label="Ledtrådar">
             {step.hints.map((hint, index) => <p key={hint}><strong>Ledtråd {index + 1}.</strong> {hint}</p>)}

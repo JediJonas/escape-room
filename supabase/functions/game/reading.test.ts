@@ -11,7 +11,8 @@ const MISSION = getMission('den-femte-gasten')!;
 const PLAYERS: PlayerRecord[] = ['Anna', 'Bo', 'Cia'].map((name, index) => ({ id: `p${index}`, gameId: 'g', userId: `u${index}`, name, isLeader: index === 0, joinedAtMs: index }));
 const [ANNA, BO, CIA] = PLAYERS;
 const MINUTE_MS = 60_000;
-const NINE_FIFTEEN = 555;
+// Golvuret ska stå på kvart över tio (Jonas 2026-11-20).
+const QUARTER_PAST_TEN = 615;
 
 function readState(change: { state: GameState } | { refusal: string }): GameState {
   assert.ok('state' in change, JSON.stringify(change));
@@ -29,7 +30,7 @@ function start(): GameState {
 /** Gruppen ställer golvuret, ser alla fyra rummen och låter minnet blekna. Anna tar salongen som fjärde rum. */
 function seeTheMemory(state: GameState): GameState {
   let next = readState(walkThroughDoor({ state, mission: MISSION, player: ANNA, placeId: 'F', nowMs: 0 }));
-  next = readState(turnClock({ state: next, mission: MISSION, players: PLAYERS, player: ANNA, minutes: NINE_FIFTEEN, nowMs: 0 }));
+  next = readState(turnClock({ state: next, mission: MISSION, players: PLAYERS, player: ANNA, minutes: QUARTER_PAST_TEN, nowMs: 0 }));
   for (const [player, placeId] of [[ANNA, 'B'], [BO, 'C'], [CIA, 'D'], [ANNA, 'F']] as const) {
     next = readState(chooseFlashbackRoom({ state: next, mission: MISSION, players: PLAYERS, player, placeId, nowMs: 0 }));
   }

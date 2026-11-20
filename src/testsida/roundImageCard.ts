@@ -17,9 +17,10 @@ import type { Log, Report } from './report.ts';
 const ROUND_IMAGES = [
   { name: 'Hallen, tusch, första versionen (Gemini)', file: 'rundbilder/hallen-tusch.webp' },
   { name: 'Hallen, målad (Gemini)', file: 'rundbilder/hallen-malad.webp' },
-  { name: 'Hallen, målad, minnet 1962 (Gemini)', file: 'rundbilder/hallen-malad-1962.webp' },
+  { name: 'Salongen, målad (Gemini)', file: 'rundbilder/salongen-malad.webp' },
+  { name: 'Köket, målad (Gemini)', file: 'rundbilder/koket-malad.webp' },
+  { name: 'Sovrummet, målad (Gemini)', file: 'rundbilder/sovrummet-malad.webp' },
   { name: 'Hallen, foto (Gemini)', file: 'rundbilder/hallen-foto.webp' },
-  { name: 'Hallen, foto, minnet 1962 (Gemini)', file: 'rundbilder/hallen-foto-1962.webp' },
   { name: 'Rutnät, 8 rutor per sida', file: 'rundbilder/provbild-rutnat.webp' },
   { name: 'Rutnät, 16 rutor per sida', file: 'rundbilder/provbild-rutnat-stor.webp' },
 ];

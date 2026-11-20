@@ -128,7 +128,7 @@ test('i Den femte gästen minns fyra rum, så två spelare ser alla och tio dela
   const places = listPlaces(FULL);
   assert.deepEqual(step.rooms.map((room) => room.place), ['B', 'F', 'C', 'D']);
   const playAll = (participantIds: string[], order: [string, string][]) => {
-    const started = turnHands({ flashback: startFlashback(step), step, minutes: NINE_FIFTEEN, nowMs: 0 });
+    const started = turnHands({ flashback: startFlashback(step), step, minutes: readDialTime(step.solution.time)!, nowMs: 0 });
     assert.ok('flashback' in started);
     let flashback = started.flashback;
     for (const [playerId, placeId] of order) {

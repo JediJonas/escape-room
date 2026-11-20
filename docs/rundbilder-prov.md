@@ -256,3 +256,10 @@ en sådan knyck nästan alltid är ett hörn i vanliga foton.
   pianot, pallen kvar, locket stängt, damm, fuktfläckar, avflagnade tapeter,
   löv innanför pardörren, lampan släckt och månsken genom dörrens rutor. Ett
   försök räckte, och hörnen, dörrarna och skarven blev rätt.
+- **Modernare tecknat.** Ägaren gillar tuschbilden och bad om ett förslag
+  som är modernare tecknat (Jonas 2026-11-20). Fotot från i dag gjordes om
+  till två tecknade stilar, med tuschbilden som förebild bara för
+  stämningen: rena konturer med platta färgytor och skarpa skuggor, och en
+  målad variant med penseldrag över tuschlinjer och kallt månsken. Båda
+  behöll rummet. I den målade blev källardörren åter en tung dörr med
+  järnbeslag.

@@ -67,7 +67,7 @@ sist under Namn som är bestämda.
 | Platskort | Ett utskrivet kort med en QR-kod för en plats. Används inte i spelet just nu. | |
 | Huset | Uppdragets rum i mobilen, med dörrar och saker. Spelarna går mellan rummen på skärmen. | `House`, `house` |
 | Rum | En plats i huset, som hallen eller salongen. Ett rum har dörrar och saker. | `HouseRoom` |
-| Dörr | En väg från ett rum till ett annat. I Den femte gästen går alla dörrar via hallen. | `doors`, `walk` |
+| Dörr | En väg från ett rum till ett annat. I Den femte gästen nås alla rum från hallen, och salongen har också dörrar till sovrummet och köket. | `doors`, `walk` |
 | Sak | Något i ett rum som går att trycka på, som ouijabrädet, golvuret, byrån eller tavlan. Öppnar alltid en sakvy. Också det man undersöker i en rundbild, som tidigare kallades föremål. | `HouseThing`, `ThingView` |
 | Hitta | En sak syns i rummets lista först när någon har hittat den. Det räcker att en spelare gör det. | `foundThings`, `searchRoom` |
 | Leta i rummet | Knappen som hittar det som finns i rummet, tills rundbilderna finns. | `searchRoom` |

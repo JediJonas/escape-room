@@ -16,7 +16,9 @@
       {
         "place": "F",
         "doors": [
-          "B"
+          "B",
+          "D",
+          "C"
         ],
         "things": [
           {
@@ -86,7 +88,8 @@
       {
         "place": "C",
         "doors": [
-          "B"
+          "B",
+          "F"
         ],
         "things": [
           {
@@ -99,7 +102,8 @@
       {
         "place": "D",
         "doors": [
-          "B"
+          "B",
+          "F"
         ],
         "things": [
           {

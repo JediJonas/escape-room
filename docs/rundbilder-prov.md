@@ -226,3 +226,28 @@ och att skavanker från dagens bild syntes i bilden från 1962 (Jonas
   dag, och då blev dörrarna rätt.
 - Skarven syns inte i någon av de fyra bilderna, och plankorna är raka när
   man tittar nedåt.
+
+## Fyra hörn med en skuggad mall, och bara foto
+
+Ägaren såg att alla fyra bilderna ovan har ett falskt hörn mitt på
+sidoväggarna, så att rummet ser ut att ha sex hörn (Jonas 2026-11-20).
+Gissningen är att Gemini läser väggarnas bågar i rundbilden som hörn, eftersom
+en sådan knyck nästan alltid är ett hörn i vanliga foton.
+
+- **Vägg för vägg valdes bort.** Varje vägg målad som en rak bild och
+  ihopsatt till en rundbild gav raka väggar, men ägaren vill att Gemini gör
+  hela bilden (Jonas 2026-11-20).
+- **Skuggad mall.** `tools/rundbildsmall.py` ritar nu rummet som en grå låda
+  med ljus från taklampan: väggarna är ljusast mitt för lampan och mörkast i
+  hörnen, och hörnen är skarpa linjer. Prompten säger att bågarna är raka
+  väggkanter och att rummet har exakt fyra hörn. Mallen ritas direkt i 16:9.
+  Fyra försök av fyra, två i tusch och två foton, fick exakt fyra hörn.
+- **Två lägen.** En bild mitt i rummet och en en bit in från ytterdörren
+  (`CZ=-1.3`). Ägaren väljer på testsidan.
+- **Bara foto.** Tuschbilderna är borttagna, utom den första tuschbilden med den mindre mattan, som har rätt planlösning och ligger först på testsidan (Jonas 2026-11-20). Ytterdörren är
+  en pardörr och källardörren en vanlig dörr med hänglås (Jonas 2026-11-20).
+- **Rättningar.** Källardörren blev en tung mörk dörr och gjordes om med en
+  redigering. Bilden från ingången fick en extra spegel, som togs bort. När
+  mattan skulle flyttas in under betraktaren i bilden från mitten blev den
+  tre ihopsydda mattor, så den redigeringen kastades. Där ligger mattan
+  framför betraktaren, och plankorna under är ändå raka.

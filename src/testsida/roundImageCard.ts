@@ -15,10 +15,9 @@ import type { Log, Report } from './report.ts';
 
 /** Rundbilderna som går att välja. Skarven ligger alltid rakt bakom startriktningen. */
 const ROUND_IMAGES = [
-  { name: 'Hallen, tusch (Gemini)', file: 'rundbilder/hallen-tusch.webp' },
-  { name: 'Hallen, tusch, minnet 1962 (Gemini)', file: 'rundbilder/hallen-tusch-1962.webp' },
-  { name: 'Hallen, foto (Gemini)', file: 'rundbilder/hallen-foto.webp' },
-  { name: 'Hallen, foto, minnet 1962 (Gemini)', file: 'rundbilder/hallen-foto-1962.webp' },
+  { name: 'Hallen, tusch, första versionen (Gemini)', file: 'rundbilder/hallen-tusch.webp' },
+  { name: 'Hallen, foto, minnet 1962, mitt i rummet (Gemini)', file: 'rundbilder/hallen-foto-1962-mitt.webp' },
+  { name: 'Hallen, foto, minnet 1962, vid ingången (Gemini)', file: 'rundbilder/hallen-foto-1962-ingang.webp' },
   { name: 'Rutnät, 8 rutor per sida', file: 'rundbilder/provbild-rutnat.webp' },
   { name: 'Rutnät, 16 rutor per sida', file: 'rundbilder/provbild-rutnat-stor.webp' },
 ];

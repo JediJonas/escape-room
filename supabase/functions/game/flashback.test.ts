@@ -123,10 +123,10 @@ test('sparade rum läses, och det gamla formatet med gäster ersätts', () => {
 
 const FULL = getMission('den-femte-gasten')!;
 
-test('i Den femte gästen minns tre rum, så två spelare ser alla och tio delar dem fyra, tre och tre (Jonas 2026-11-20)', () => {
+test('i Den femte gästen minns fyra rum, så två spelare ser alla och tio delar dem tre, tre, två och två (Jonas 2026-11-20)', () => {
   const step = FULL.steps.find((candidate) => candidate.id === 'rummen-minns') as FlashbackStep;
   const places = listPlaces(FULL);
-  assert.deepEqual(step.rooms.map((room) => room.place), ['B', 'C', 'D']);
+  assert.deepEqual(step.rooms.map((room) => room.place), ['B', 'F', 'C', 'D']);
   const playAll = (participantIds: string[], order: [string, string][]) => {
     const started = turnHands({ flashback: startFlashback(step), step, minutes: NINE_FIFTEEN, nowMs: 0 });
     assert.ok('flashback' in started);
@@ -138,15 +138,15 @@ test('i Den femte gästen minns tre rum, så två spelare ser alla och tio delar
     }
     return flashback;
   };
-  const two = playAll(['p0', 'p1'], [['p0', 'B'], ['p1', 'D'], ['p0', 'C']]);
-  assert.deepEqual(two.seenPlaces, ['B', 'D', 'C']);
+  const two = playAll(['p0', 'p1'], [['p0', 'B'], ['p1', 'D'], ['p0', 'C'], ['p1', 'F']]);
+  assert.deepEqual(two.seenPlaces, ['B', 'D', 'C', 'F']);
   assert.equal(describeFlashback({ flashback: two, step, places, viewerId: 'p1', participantIds: ['p0', 'p1'] }).choice, 'done');
   const ten = Array.from({ length: 10 }, (_, index) => `p${index}`);
-  const full = playAll(ten, ten.map((playerId, index) => [playerId, (['B', 'C', 'D'] as const)[index % 3]]));
+  const full = playAll(ten, ten.map((playerId, index) => [playerId, (['B', 'F', 'C', 'D'] as const)[index % 4]]));
   const hall = describeFlashback({ flashback: full, step, places, viewerId: 'p0', participantIds: ten });
-  // Fyra i hallen ser en bit var, så att kvinnan vid dörren och kvinnan vid pianot hamnar hos olika spelare.
+  // Tre i hallen ser en bit var av hallens tre.
   assert.deepEqual(hall.myRooms.map((room) => [room.place.name, room.pieces.length]), [['Hallen', 1]]);
-  assert.equal(full.choices.filter((choice) => choice.place === 'B').length, 4);
+  assert.equal(full.choices.filter((choice) => choice.place === 'B').length, 3);
 });
 const MISSION: Mission = { ...FULL, steps: [STEP, { id: 'slut', type: 'scene', text: 'Slut.' }] };
 const PLAYERS: PlayerRecord[] = ['Anna', 'Bo', 'Cia'].map((name, index) => ({ id: `p${index}`, gameId: 'g', userId: `u${index}`, name, isLeader: index === 0, joinedAtMs: index }));

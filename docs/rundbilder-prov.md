@@ -181,3 +181,23 @@ känslan håller (Jonas 2026-11-20).
   stället för siffror, och en överflödig visare målades bort för hand i
   efterhand, så att klockan visar kvart över nio. Ansiktena blir lite
   grövre för varje redigering.
+
+## En gäst per rum, utan klockor, och hallen som foto igen
+
+Salongen blev ett fjärde rum i minnet, med en gäst i varje rum. Kvinnan i röd
+sjal spelar piano i hallen. Klockorna togs bort ur alla rum utom salongen,
+eftersom Gemini inte kan rita klockor, och hallen fick en hallsoffa mellan
+köksdörren och källardörren (Jonas 2026-11-20). Ägaren ville också pröva
+fotot igen, med mattan som i tuschbilden (Jonas 2026-11-20).
+
+- **Tusch.** Hallsoffan lades till genom att redigera tuschbilden. Minnet
+  togs fram genom att redigera den nya tuschbilden, så att allt ligger på
+  samma ställen. Det gick på första försöket.
+- **Foto.** Tre försök med bara text, med samma prompt som nattbilden och
+  mattan beskriven som i tuschbilden, gav fel dörrar: källardörren på bortre
+  väggen, en dörr för mycket eller sovrumsdörren vid fel hörn. I stället fick
+  Gemini tuschbilden och prompten att göra den till ett nattfoto av samma rum.
+  Då hamnade allt rätt. Fotot av minnet är en redigering av det fotot.
+- Kvinnan vid pianot ser äldre ut än en ung gäst i fotot av minnet.
+- Bilderna från de tidigare stilproven är borttagna ur testsidan. De finns
+  kvar i git-historiken.

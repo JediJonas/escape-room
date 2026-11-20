@@ -17,11 +17,8 @@ import type { Log, Report } from './report.ts';
 const ROUND_IMAGES = [
   { name: 'Hallen, tusch (Gemini)', file: 'rundbilder/hallen-tusch.webp' },
   { name: 'Hallen, tusch, minnet 1962 (Gemini)', file: 'rundbilder/hallen-tusch-1962.webp' },
-  { name: 'Hallen, målad illustration (Gemini)', file: 'rundbilder/hallen-malad.webp' },
-  { name: 'Hallen, foto i natt (Gemini)', file: 'rundbilder/hallen-natt.webp' },
-  { name: 'Hallen, målning (Gemini)', file: 'rundbilder/hallen-malning.webp' },
-  { name: 'Hallen, 60-talsfoto (Gemini)', file: 'rundbilder/hallen-sextiotal.webp' },
-  { name: 'Hallen, foto i dagsljus (Gemini)', file: 'rundbilder/hallen-foto.webp' },
+  { name: 'Hallen, foto (Gemini)', file: 'rundbilder/hallen-foto.webp' },
+  { name: 'Hallen, foto, minnet 1962 (Gemini)', file: 'rundbilder/hallen-foto-1962.webp' },
   { name: 'Största källaren (Gemini)', file: 'rundbilder/kallare-storst.webp' },
   { name: 'Stora källaren (Gemini)', file: 'rundbilder/kallare-stor.webp' },
   { name: 'Lilla källaren (Gemini)', file: 'rundbilder/kallare.webp' },

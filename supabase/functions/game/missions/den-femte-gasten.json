@@ -208,10 +208,17 @@
         {
           "place": "B",
           "pieces": [
-            "En ung kvinna i röd sjal står vid ytterdörren och tittar ut i rummet.",
-            "En ung kvinna med pärlhalsband sitter vid pianot. Locket är uppfällt och noterna står uppslagna.",
+            "En ung kvinna i röd sjal sitter vid pianot. Locket är uppfällt och noterna står uppslagna.",
             "Gästboken ligger uppslagen på bordet. Bläcket på den sista raden är fortfarande blankt.",
-            "Väggklockan har stannat på kvart över nio."
+            "Rockar och en hatt hänger vid ytterdörren. Fem par skor står på golvet under dem."
+          ]
+        },
+        {
+          "place": "F",
+          "pieces": [
+            "En ung kvinna med pärlhalsband sitter vid bordet. Framför henne ligger ouijabrädet.",
+            "Golvuret har stannat på kvart över nio.",
+            "Fem stolar står runt bordet. En av dem är utdragen, som om någon just har rest sig."
           ]
         },
         {
@@ -220,7 +227,7 @@
             "En ung man med runda glasögon står vid spisen och häller upp kaffe.",
             "Fem kaffekoppar står på bänken. Fyra är urdruckna, och den femte är full och kall.",
             "Proppskåpet på väggen står öppet, men alla säkringar sitter kvar.",
-            "Kranen droppar. Köksklockan har stannat på kvart över nio."
+            "Kranen droppar i diskhon."
           ]
         },
         {
@@ -228,15 +235,14 @@
           "pieces": [
             "En ung man står vid byrån och stoppar sin pipa.",
             "Ett stearinljus på fönsterbrädan har brunnit ner och slocknat.",
-            "En bok ligger uppslagen på golvet, som om någon har tappat den i mörkret.",
-            "Väckarklockan på nattduksbordet har stannat på kvart över nio."
+            "En bok ligger uppslagen på golvet, som om någon har tappat den i mörkret."
           ]
         }
       ],
       "hints": [
         "Läs huvudartikeln i urklippen igen. Den säger när golvuret stannade.",
         "Vrid golvuret till kvart över nio. När huset minns väljer var och en ett rum och berättar för de andra vad hon ser.",
-        "Ni behöver se alla tre rummen i minnet: hallen, köket och sovrummet. Är ni få får ni minnas mer än en gång."
+        "Ni behöver se alla fyra rummen i minnet: hallen, salongen, köket och sovrummet. Är ni få får ni minnas mer än en gång."
       ],
       "solution": {
         "time": "21.15"

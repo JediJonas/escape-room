@@ -26,11 +26,11 @@ function start(): GameState {
   return readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: ANNA, leaderPlays: true, minutes: 60, nowMs: 0 }));
 }
 
-/** Gruppen ställer golvuret, ser alla tre rummen och låter minnet blekna. */
+/** Gruppen ställer golvuret, ser alla fyra rummen och låter minnet blekna. Anna tar salongen som fjärde rum. */
 function seeTheMemory(state: GameState): GameState {
   let next = readState(walkThroughDoor({ state, mission: MISSION, player: ANNA, placeId: 'F', nowMs: 0 }));
   next = readState(turnClock({ state: next, mission: MISSION, players: PLAYERS, player: ANNA, minutes: NINE_FIFTEEN, nowMs: 0 }));
-  for (const [player, placeId] of [[ANNA, 'B'], [BO, 'C'], [CIA, 'D']] as const) {
+  for (const [player, placeId] of [[ANNA, 'B'], [BO, 'C'], [CIA, 'D'], [ANNA, 'F']] as const) {
     next = readState(chooseFlashbackRoom({ state: next, mission: MISSION, players: PLAYERS, player, placeId, nowMs: 0 }));
   }
   return readState(fadeFlashback({ state: next, mission: MISSION, players: PLAYERS, nowMs: 3 * MINUTE_MS }));

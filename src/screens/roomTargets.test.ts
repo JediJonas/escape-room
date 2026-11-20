@@ -8,7 +8,7 @@ const BOOK_SPOT = { yawDeg: -76, pitchDeg: -19, radiusDeg: 10 };
 const DOOR_SPOT = { yawDeg: 22, pitchDeg: -2, radiusDeg: 10 };
 
 function createThing(id: string, name: string, spot: ThingView['spot'], isCalling = false): ThingView {
-  return { id, name, text: null, pages: null, cover: null, opensCurrentStep: false, opensFound: null, isCalling, instrument: null, echo: null, marksRead: false, opensAwaitedTask: false, spot };
+  return { id, name, text: null, image: null, pages: null, cover: null, opensCurrentStep: false, opensFound: null, isCalling, instrument: null, echo: null, marksRead: false, opensAwaitedTask: false, spot };
 }
 
 const HOUSE: HouseView = {

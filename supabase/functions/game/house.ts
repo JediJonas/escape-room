@@ -24,6 +24,11 @@ export type HouseThing = {
   /** Texten i vyn, till exempel det som står på tavlan. */
   text?: string;
   /**
+   * En närbild av saken, räknat från webbsidans början. Visas ovanför texten
+   * (Jonas 2026-11-20).
+   */
+  image?: string;
+  /**
    * Sidor att bläddra i, som gästboken. Spelaren börjar på första sidan
    * (Jonas 2026-11-18). Varje rad på en sida blir ett stycke.
    */
@@ -178,6 +183,8 @@ export type ThingView = {
   id: string;
   name: string;
   text: string | null;
+  /** Närbilden av saken, eller null. */
+  image: string | null;
   pages: string[] | null;
   /** Bokens första sida, eller null. */
   cover: string | null;
@@ -258,6 +265,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     id: thing.id,
     name: thing.name,
     text: thing.text ?? null,
+    image: thing.image ?? null,
     pages: thing.pages ? [...thing.pages, ...Array.from({ length: thing.blankPages ?? 0 }, () => '')] : null,
     cover: thing.cover ?? null,
     opensCurrentStep: current !== undefined,
@@ -322,6 +330,7 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   thingIds.add(thing.id);
   if (!isFilledText(thing.name)) errors.push(`${name} saknar namn`);
   if (thing.text !== undefined && !isFilledText(thing.text)) errors.push(`${name} har en tom text`);
+  if (thing.image !== undefined && !(isFilledText(thing.image) && thing.text !== undefined)) errors.push(`${name} har en tom bild eller en bild utan text`);
   const { pages } = thing;
   if (pages !== undefined && !(Array.isArray(pages) && pages.length > 0 && pages.every(isFilledText))) errors.push(`${name} har sidor som är tomma eller inte är en lista`);
   const { blankPages } = thing;

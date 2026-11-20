@@ -364,7 +364,7 @@ bitar. Listan Hittat är borttagen, men namnen `found` och `foundTitle` finns
 kvar i koden (Jonas 2026-11-18). Se `found.ts`.
 
 **Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
-rum dörrarna och sakerna. En sak har en text att visa, sidor att bläddra i
+rum dörrarna och sakerna. En sak har en text att visa, med en närbild i `image` om den finns, sidor att bläddra i
 (`pages`, som gästboken) eller ett steg som den
 öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna).
 Saker går alltid att hitta och undersöka, och `fromStep` på en sak ger fel. Det

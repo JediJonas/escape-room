@@ -55,6 +55,39 @@
               "pitchDeg": 3,
               "radiusDeg": 12
             }
+          },
+          {
+            "id": "vitrinskapet",
+            "name": "Vitrinskåpet",
+            "text": "Finporslinet står kvar bakom glaset, dammigt men helt. Ingen har dukat med det på länge.",
+            "image": "uppdrag/den-femte-gasten/saker/vitrinskapet.webp",
+            "spot": {
+              "yawDeg": -150,
+              "pitchDeg": -8,
+              "radiusDeg": 16
+            }
+          },
+          {
+            "id": "salongstavlan",
+            "name": "Tavlan",
+            "text": "Ett mörkt landskap med ett hus vid en sjö, bland höga träd. Huset liknar det här.",
+            "image": "uppdrag/den-femte-gasten/saker/salongstavlan.webp",
+            "spot": {
+              "yawDeg": -80,
+              "pitchDeg": 9,
+              "radiusDeg": 12
+            }
+          },
+          {
+            "id": "skanken",
+            "name": "Skänken",
+            "text": "I lådorna ligger servetter, ljusstumpar och en kortlek där hjärter dam saknas.",
+            "image": "uppdrag/den-femte-gasten/saker/skanken.webp",
+            "spot": {
+              "yawDeg": 76,
+              "pitchDeg": -17,
+              "radiusDeg": 13
+            }
           }
         ],
         "doorSpots": {
@@ -121,10 +154,44 @@
             "name": "Källardörren",
             "doorTo": "A",
             "text": "Dörren är låst. Någon har vridit om nyckeln och tagit den med sig.",
+            "image": "uppdrag/den-femte-gasten/saker/kallardorren.webp",
             "spot": {
-              "yawDeg": 112,
+              "yawDeg": 116,
               "pitchDeg": -2,
               "radiusDeg": 14
+            }
+          },
+          {
+            "id": "spegeln",
+            "name": "Spegeln",
+            "text": "En spegel med flagnande silver. Du ser bara dig själv, och bakom dig den tomma hallen.",
+            "image": "uppdrag/den-femte-gasten/saker/spegeln.webp",
+            "spot": {
+              "yawDeg": -79,
+              "pitchDeg": 1,
+              "radiusDeg": 9
+            }
+          },
+          {
+            "id": "rocken",
+            "name": "Rocken",
+            "text": "En sliten rock på en krok. Fickorna är tomma, så när som på en biobiljett till Röda Kvarn.",
+            "image": "uppdrag/den-femte-gasten/saker/rocken.webp",
+            "spot": {
+              "yawDeg": -150,
+              "pitchDeg": -5,
+              "radiusDeg": 10
+            }
+          },
+          {
+            "id": "paraplyet",
+            "name": "Paraplyet",
+            "text": "Ett svart paraply på en krok vid ytterdörren. Det är fortfarande fuktigt.",
+            "image": "uppdrag/den-femte-gasten/saker/paraplyet.webp",
+            "spot": {
+              "yawDeg": 152,
+              "pitchDeg": -8,
+              "radiusDeg": 8
             }
           }
         ],
@@ -158,10 +225,44 @@
             "id": "tavlan",
             "name": "Tavlan",
             "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Min kära systerdotter, sommaren 1961.",
+            "image": "uppdrag/den-femte-gasten/saker/tavlan.webp",
             "spot": {
               "yawDeg": -68,
               "pitchDeg": 6,
               "radiusDeg": 12
+            }
+          },
+          {
+            "id": "spisen",
+            "name": "Spisen",
+            "text": "En gammal spis med en kaffepanna på plattan. Pannan är kall, och sumpen i botten har torkat för länge sedan.",
+            "image": "uppdrag/den-femte-gasten/saker/spisen.webp",
+            "spot": {
+              "yawDeg": 155,
+              "pitchDeg": -20,
+              "radiusDeg": 12
+            }
+          },
+          {
+            "id": "kopparna",
+            "name": "Kopparna",
+            "text": "Kaffekoppar på rad längs bänken, med intorkade ringar i botten.",
+            "image": "uppdrag/den-femte-gasten/saker/kopparna.webp",
+            "spot": {
+              "yawDeg": 63,
+              "pitchDeg": -17,
+              "radiusDeg": 12
+            }
+          },
+          {
+            "id": "skafferiet",
+            "name": "Skafferiet",
+            "text": "Hyllorna är nästan tomma. Längst in står några burkar sill och en påse mjöl som mössen har hittat.",
+            "image": "uppdrag/den-femte-gasten/saker/skafferiet.webp",
+            "spot": {
+              "yawDeg": -128,
+              "pitchDeg": 0,
+              "radiusDeg": 11
             }
           }
         ],
@@ -197,6 +298,50 @@
               "yawDeg": 73,
               "pitchDeg": -20,
               "radiusDeg": 16
+            }
+          },
+          {
+            "id": "boken",
+            "name": "Boken",
+            "text": "En uppslagen roman på golvet. Någon har strukit under en mening: Allt som göms i snö kommer fram vid tö.",
+            "image": "uppdrag/den-femte-gasten/saker/boken.webp",
+            "spot": {
+              "yawDeg": 30,
+              "pitchDeg": -60,
+              "radiusDeg": 12
+            }
+          },
+          {
+            "id": "stearinljuset",
+            "name": "Stearinljuset",
+            "text": "Ett stearinljus i fönstret. Veken är svart, som om någon nyss blåste ut det.",
+            "image": "uppdrag/den-femte-gasten/saker/stearinljuset.webp",
+            "spot": {
+              "yawDeg": -7,
+              "pitchDeg": -16,
+              "radiusDeg": 8
+            }
+          },
+          {
+            "id": "bokhyllorna",
+            "name": "Bokhyllorna",
+            "text": "Uppslagsverk, resehandböcker och gamla årgångar av Allers. Ingen bok står upp och ner.",
+            "image": "uppdrag/den-femte-gasten/saker/bokhyllorna.webp",
+            "spot": {
+              "yawDeg": -160,
+              "pitchDeg": 5,
+              "radiusDeg": 18
+            }
+          },
+          {
+            "id": "fatoljen",
+            "name": "Fåtöljen",
+            "text": "En nedsutten fåtölj i skinn. Sitsen är kall.",
+            "image": "uppdrag/den-femte-gasten/saker/fatoljen.webp",
+            "spot": {
+              "yawDeg": 150,
+              "pitchDeg": -17,
+              "radiusDeg": 12
             }
           }
         ],

@@ -232,7 +232,13 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         {instrument?.type === 'piano' && view.me.isPlaying && <PianoKeys keys={instrument.keys} onPlayKey={game.playKey} />}
         {instrument?.type === 'clock' && <GrandfatherClock dialMinutes={instrument.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
         {papers.length > 0 && <PaperStack papers={papers} />}
-        {!instrument && papers.length === 0 && openThing.text && <article className="document-card thing-paper">{openThing.text.split('\n').map((line) => <p key={line}>{line}</p>)}</article>}
+        {!instrument && papers.length === 0 && openThing.text && (
+          // En sak att titta på, som tavlan: närbilden överst och texten under (Jonas 2026-11-20).
+          <div className={openThing.image ? 'thing-look has-image' : 'thing-look'}>
+            {openThing.image && <img className="thing-image" src={`${import.meta.env.BASE_URL}${openThing.image}`} alt={openThing.name} />}
+            <article className="document-card thing-paper">{openThing.text.split('\n').map((line) => <p key={line}>{line}</p>)}</article>
+          </div>
+        )}
         {!instrument && papers.length === 0 && !openThing.text && <p className="thing-empty">{openThing.name}</p>}
       </ThingScreen>,
     );

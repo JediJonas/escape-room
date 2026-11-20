@@ -287,3 +287,8 @@ och 1962 står det fem par skor vid ytterdörren.
   kläder och skor borta, eftersom de tog dem när de flydde. Kvar hänger en
   sliten gammal rock och ett trasigt paraply. Rödbruna fläckar på ytterdörren
   togs bort.
+- **Minnet borta från testsidan** (Jonas 2026-11-20). Bilderna från 1962
+  togs bort från testsidan, och filerna också, så att de inte avslöjar något
+  för den som provar testsidan. De finns kvar i git-historiken
+  (`hallen-malad-1962.webp` och `hallen-foto-1962.webp`) och läggs tillbaka
+  när minnet får bilder i spelet.

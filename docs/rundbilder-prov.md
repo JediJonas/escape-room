@@ -263,3 +263,22 @@ en sådan knyck nästan alltid är ett hörn i vanliga foton.
   målad variant med penseldrag över tuschlinjer och kallt månsken. Båda
   behöll rummet. I den målade blev källardörren åter en tung dörr med
   järnbeslag.
+
+## Målad stil, kvadratisk matta
+
+Ägaren valde den målade tecknade stilen och pausade fotona (Jonas
+2026-11-20). Mattan blev kvadratisk mitt i rummet, med sidan lika lång som
+den gamla mattans längd, ungefär tre meter. Två tavlor hänger över soffan,
+och 1962 står det fem par skor vid ytterdörren.
+
+- **1962.** Att redigera fotot till målning med en större matta gick inte:
+  Gemini lät mattan ligga kvar. I stället gjordes bilden från mallen, med
+  fotot som förebild för hur saker ser ut och den målade bilden som förebild
+  för stilen. Då hamnade mattan mitt under betraktaren. Två försök gjordes,
+  och det ena följde mallen. En redigering minskade skorna till fem par och
+  gjorde källardörren till en vanlig dörr med hänglås igen.
+- **I dag.** Med den gamla målade bilden som förebild för förfallet tog Gemini
+  även dess lilla matta och tunga källardörr. Utan förebild, bara med
+  beskrivningen av förfallet, behölls rummet.
+- Rena konturer är borttagen från testsidan, liksom det första målade
+  förslaget.

@@ -328,3 +328,6 @@ har funktionerna `koket` och `sovrummet`, med betraktaren mitt i rummet.
   kopp, och den extra kannan på spisen är borta. Mannen i sovrummet röker
   pipa och ser sig om i rummet, eftersom det inte syntes att han stoppade
   den. Minnestexten ändrades på samma sätt.
+- **Kaffestrålen och låset** (Jonas 2026-11-20). Strålen såg ut att rinna
+  utanför koppen, så den togs bort och pipen hålls nu över koppen. Dörren i
+  sovrummet hade lås och fick ett vanligt dörrhandtag, i båda bilderna.

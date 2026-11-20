@@ -152,3 +152,32 @@ väggarna, men den ligger nära horisonten där bilden håller.
 - Målad illustration (`hallen-malad.webp`): *a hand-painted illustration, not a photograph: a dark, serious digital painting with visible brush strokes and painterly textures, realistic proportions, like the illustrations in an adult gothic horror novel.*
 - Tusch (`hallen-tusch.webp`): *an illustration, not a photograph: ink line drawing with heavy black ink shadows and cross-hatching, coloured with muted, dirty watercolour washes, like a dark graphic novel for adults.*
 - Gouache, bortvald: *matte gouache painting with flat, softly graded shapes and a limited palette…* Rockarna hängde på själva ytterdörren och dörren bröts av vid skarven.
+
+## Tuschhallen med mindre matta, och hallen i minnet
+
+Ägaren valde tuschillustrationen och ville ha en mindre matta (Jonas
+2026-11-20). Hallen i minnet togs fram före resten av rummen, för att se om
+känslan håller (Jonas 2026-11-20).
+
+- **Redigering i stället för ny bild.** Båda bilderna togs fram genom att
+  skicka tuschbilden med i anropet och be Gemini ändra den. Då ligger dörrar,
+  piano och bord kvar på samma ställen, så de tryckbara ytorna kan bli
+  desamma i nuet och i minnet. Bilden skickas i ett steg av typen
+  `user_input` med en text och en bild. API-versionen v1 tar inte en bild
+  direkt i `input`.
+- **Mindre matta.** Första försöket lade mattan framför betraktaren, och då
+  syntes plankorna rakt nedåt igen. Det fungerade när prompten sa att mattan
+  ligger under betraktarens fötter och fyller hela bildens nederkant, med en
+  remsa plankor mellan mattans kant och väggarna.
+- **Minnet.** Samma hall en lördagskväll i oktober 1962: hel tapet, tänd
+  lampa, mörker utanför. Kvinnan i röd sjal står vid ytterdörren, kvinnan med
+  pärlhalsband sitter vid pianot med noterna uppslagna, gästboken ligger
+  uppslagen och väggklockan står på kvart över nio. Bilden är i färg. Spelet
+  gör den sepiatonad, kornig och flimrande.
+- **Det Gemini inte klarade.** Kännetecknen hamnade fel: först syntes inte
+  pärlorna, sedan bar båda kvinnorna pärlor, sedan ingen. Det krävdes fyra
+  redigeringar. Klockan klarade Gemini inte alls. Siffrorna blev fel och
+  visarna visade nio eller kvart i tolv. Till sist fick urtavlan streck i
+  stället för siffror, och en överflödig visare målades bort för hand i
+  efterhand, så att klockan visar kvart över nio. Ansiktena blir lite
+  grövre för varje redigering.

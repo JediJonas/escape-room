@@ -15,8 +15,8 @@
   <line x1="220" y1="447" x2="220" y2="497"/>
   <line x1="430" y1="372" x2="480" y2="372"/>
   <line x1="490" y1="455" x2="490" y2="505"/>
-  <line x1="220" y1="260" x2="220" y2="310"/>
-  <line x1="420" y1="260" x2="420" y2="310"/>
+  <line x1="220" y1="98" x2="220" y2="148"/>
+  <line x1="420" y1="98" x2="420" y2="148"/>
   <line x1="290" y1="510" x2="350" y2="510"/>
 </g>
 <g stroke="#2b2118" stroke-width="2" fill="none">
@@ -50,8 +50,8 @@
 <g font-size="10" fill="#2b2118" text-anchor="middle"><text x="522" y="430">källar-</text><text x="522" y="443">trappan ned</text></g>
 <!-- dörrarna från salongen till sovrummet och köket (Jonas 2026-11-20) -->
 <g stroke="#2b2118" stroke-width="2" fill="none">
-  <path d="M220 260 A50 50 0 0 1 270 310"/><line x1="220" y1="310" x2="270" y2="310"/>
-  <path d="M420 260 A50 50 0 0 0 370 310"/><line x1="420" y1="310" x2="370" y2="310"/>
+  <path d="M220 98 A50 50 0 0 1 270 148"/><line x1="220" y1="148" x2="270" y2="148"/>
+  <path d="M420 98 A50 50 0 0 0 370 148"/><line x1="420" y1="148" x2="370" y2="148"/>
 </g>
 <g font-size="22" fill="#2b2118" text-anchor="middle">
   <text x="130" y="290">Sovrummet</text>

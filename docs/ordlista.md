@@ -119,7 +119,7 @@ sist under Namn som är bestämda.
 | Meddelandet | Det skenet bokstaverar, som HJÄLP MIG eller VEM ÄR JAG. | `solution.message` |
 | Tidningsurklippen | Urklippen i byrån. Varje spelare har bara några av dem. | scen med `documents` och bitar |
 | Gästboken | Boken i hallen med namn grupperade per datum. | `pages` |
-| Golvuret | Klockan i salongen. Ställs visarna på 21.15 minns huset. | `GrandfatherClock`, `turnClock` |
+| Golvuret | Klockan i salongen. Ställs visarna på 22.15 minns huset. | `GrandfatherClock`, `turnClock` |
 | Pendeln | Pendeln bakom glasluckan i golvuret. Ett villospår som inte påverkar spelet. | `Pendulum` |
 | Rummen minns | Uppgiften där huset minns 1962 och varje spelare väljer ett rum att se. | `flashback` |
 | Minnet | Huset som det var 1962: sepiatonat, med dörrarna stängda. Bleknar efter några minuter. | `FlashbackScreen`, `remembersUntilMs` |

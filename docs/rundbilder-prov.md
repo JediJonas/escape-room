@@ -308,3 +308,6 @@ argument och `CZ=-1.0`, eftersom bordet med ouijabrädet står mitt i rummet.
 - **I dag** är en redigering av 1962-bilden. Golvuret står på tolv, så att
   den som har läst urklippet ser att något inte stämmer.
 - Bara bilden från i dag ligger på testsidan, så att minnet inte avslöjas.
+- **Tiden blev kvart över tio** (Jonas 2026-11-20). Ägaren läste golvuret i
+  salongen 1962 som kvart över tio, så tiden i spelet flyttades en timme i
+  stället för att göra om bilden.

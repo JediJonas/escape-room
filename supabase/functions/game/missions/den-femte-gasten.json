@@ -168,7 +168,7 @@
         {
           "title": "Gäst spårlöst försvunnen efter seans",
           "dateline": "Måndagen den 29 oktober 1962",
-          "text": "I lördags kväll samlades fem unga gäster i villan på Ekbacken för att hålla en seans. Strax efter nio slocknade ljuset i hela huset. Golvuret i salongen stannade på kvart över nio och har inte gått sedan dess. När ljuset kom tillbaka var bara fyra av gästerna kvar. Ingen av dem kan säga var de var när det blev mörkt. Polisen söker fortfarande den femte."
+          "text": "I lördags kväll samlades fem unga gäster i villan på Ekbacken för att hålla en seans. Strax efter tio slocknade ljuset i hela huset. Golvuret i salongen stannade på kvart över tio och har inte gått sedan dess. När ljuset kom tillbaka var bara fyra av gästerna kvar. Ingen av dem kan säga var de var när det blev mörkt. Polisen söker fortfarande den femte."
         }
       ],
       "foundTitle": "Tidningsurklippen",
@@ -203,7 +203,7 @@
       "text": "Golvuret har stått stilla länge. Vrid visarna med fingret. De hakar i var femte minut.",
       "clockStart": "4.40",
       "flashbackMinutes": 3,
-      "flashbackLabel": "kvart över nio, 1962",
+      "flashbackLabel": "kvart över tio, 1962",
       "rooms": [
         {
           "place": "B",
@@ -217,7 +217,7 @@
           "place": "F",
           "pieces": [
             "En ung kvinna med pärlhalsband sitter vid bordet. Framför henne ligger ouijabrädet.",
-            "Golvuret har stannat på kvart över nio.",
+            "Golvuret har stannat på kvart över tio.",
             "Fem stolar står runt bordet. En av dem är utdragen, som om någon just har rest sig."
           ]
         },
@@ -241,11 +241,11 @@
       ],
       "hints": [
         "Läs huvudartikeln i urklippen igen. Den säger när golvuret stannade.",
-        "Vrid golvuret till kvart över nio. När huset minns väljer var och en ett rum och berättar för de andra vad hon ser.",
+        "Vrid golvuret till kvart över tio. När huset minns väljer var och en ett rum och berättar för de andra vad hon ser.",
         "Ni behöver se alla fyra rummen i minnet: hallen, salongen, köket och sovrummet. Är ni få får ni minnas mer än en gång."
       ],
       "solution": {
-        "time": "21.15"
+        "time": "22.15"
       }
     },
     {

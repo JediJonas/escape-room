@@ -26,7 +26,7 @@ test('golvuret och minnet syns hos alla, och en mobil som säger att minnet har 
   const turned = readGameView((await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 600 })).body);
   assert.deepEqual(turned.house?.things.find((thing) => thing.id === 'golvuret')?.instrument, { type: 'clock', dialMinutes: 600 });
   assert.equal(memory.sentViews.length, 3);
-  const remembering = readGameView((await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 555 })).body);
+  const remembering = readGameView((await send(memory.store, 'user-Bo', { type: 'turnClock', gameId, minutes: 615 })).body);
   assert.ok(remembering.step.flashback?.remembersUntilMs);
   const chosen = readGameView((await send(memory.store, 'user-Cia', { type: 'chooseFlashbackRoom', gameId, placeId: 'D' })).body);
   assert.equal(chosen.step.flashback?.myRooms[0]?.place.name, 'Sovrummet');

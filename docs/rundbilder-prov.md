@@ -251,3 +251,8 @@ en sådan knyck nästan alltid är ett hörn i vanliga foton.
   mattan skulle flyttas in under betraktaren i bilden från mitten blev den
   tre ihopsydda mattor, så den redigeringen kastades. Där ligger mattan
   framför betraktaren, och plankorna under är ändå raka.
+- **Mitt i rummet valdes** (Jonas 2026-11-20). Bilden från ingången är
+  borttagen. Bilden från i dag är en redigering av fotot från 1962: ingen vid
+  pianot, pallen kvar, locket stängt, damm, fuktfläckar, avflagnade tapeter,
+  löv innanför pardörren, lampan släckt och månsken genom dörrens rutor. Ett
+  försök räckte, och hörnen, dörrarna och skarven blev rätt.

@@ -324,3 +324,7 @@ har funktionerna `koket` och `sovrummet`, med betraktaren mitt i rummet.
   diskhon blodröd och togs bort med en redigering till.
 - **Salongen.** En extra dörr på högra väggen, nära hörnet mot hallen, togs
   bort i båda bilderna.
+- **Rättningar 1962** (Jonas 2026-11-20). Mannen i köket häller nu kaffe i en
+  kopp, och den extra kannan på spisen är borta. Mannen i sovrummet röker
+  pipa och ser sig om i rummet, eftersom det inte syntes att han stoppade
+  den. Minnestexten ändrades på samma sätt.

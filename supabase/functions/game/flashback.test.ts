@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { advanceStep, buildGameView, markReady, startGame } from './game.ts';
 import { chooseFlashbackRoom, fadeFlashback, searchHere, turnClock, walkThroughDoor } from './taskActions.ts';
-import type { Mission, FlashbackStep } from './mission.ts';
+import { type Mission, type FlashbackStep, listPlaces } from './mission.ts';
 import { getMission } from './missions/index.ts';
 import { advanceFlashback, chooseFlashbackRoom as chooseRoom, describeFlashback, isFlashbackSolved, listChoosablePlaces, readDialTime, readFlashbackState, snapDial, startFlashback, turnClock as turnHands } from './flashback.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
@@ -20,7 +20,7 @@ const STEP: FlashbackStep = {
   hints: ['a', 'b', 'c'],
   solution: { time: '21.15' },
 };
-const PLACES = [{ id: 'B', name: 'Hallen' }, { id: 'C', name: 'Köket' }, { id: 'D', name: 'Biblioteket' }, { id: 'E', name: 'Sovrummet' }] as const;
+const PLACES = [{ id: 'B', name: 'Hallen' }, { id: 'C', name: 'Köket' }, { id: 'D', name: 'Sovrummet' }, { id: 'E', name: 'Vinden' }] as const;
 const NINE_FIFTEEN = 555;
 const SEVEN = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6'];
 
@@ -97,7 +97,7 @@ test('är spelarna färre än rummen tar de ett tomt rum till när alla har valt
   take('p1', 'E');
   assert.equal(choiceOf('p1'), 'done');
   const anna = describeFlashback({ flashback, step: STEP, places: PLACES, viewerId: 'p0', participantIds: two });
-  assert.deepEqual(anna.myRooms.map((room) => [room.place.name, room.pieces.length]), [['Hallen', 3], ['Biblioteket', 3]]);
+  assert.deepEqual(anna.myRooms.map((room) => [room.place.name, room.pieces.length]), [['Hallen', 3], ['Sovrummet', 3]]);
   assert.deepEqual(flashback.seenPlaces, ['B', 'C', 'D', 'E']);
 });
 
@@ -122,6 +122,32 @@ test('sparade rum läses, och det gamla formatet med gäster ersätts', () => {
 });
 
 const FULL = getMission('den-femte-gasten')!;
+
+test('i Den femte gästen minns tre rum, så två spelare ser alla och tio delar dem fyra, tre och tre (Jonas 2026-11-20)', () => {
+  const step = FULL.steps.find((candidate) => candidate.id === 'rummen-minns') as FlashbackStep;
+  const places = listPlaces(FULL);
+  assert.deepEqual(step.rooms.map((room) => room.place), ['B', 'C', 'D']);
+  const playAll = (participantIds: string[], order: [string, string][]) => {
+    const started = turnHands({ flashback: startFlashback(step), step, minutes: NINE_FIFTEEN, nowMs: 0 });
+    assert.ok('flashback' in started);
+    let flashback = started.flashback;
+    for (const [playerId, placeId] of order) {
+      const chosen = chooseRoom({ flashback, step, playerId, participantIds, placeId, nowMs: 1 });
+      assert.ok('flashback' in chosen, JSON.stringify(chosen));
+      flashback = chosen.flashback;
+    }
+    return flashback;
+  };
+  const two = playAll(['p0', 'p1'], [['p0', 'B'], ['p1', 'D'], ['p0', 'C']]);
+  assert.deepEqual(two.seenPlaces, ['B', 'D', 'C']);
+  assert.equal(describeFlashback({ flashback: two, step, places, viewerId: 'p1', participantIds: ['p0', 'p1'] }).choice, 'done');
+  const ten = Array.from({ length: 10 }, (_, index) => `p${index}`);
+  const full = playAll(ten, ten.map((playerId, index) => [playerId, (['B', 'C', 'D'] as const)[index % 3]]));
+  const hall = describeFlashback({ flashback: full, step, places, viewerId: 'p0', participantIds: ten });
+  // Fyra i hallen ser en bit var, så att kvinnan vid dörren och mannen vid pianot hamnar hos olika spelare.
+  assert.deepEqual(hall.myRooms.map((room) => [room.place.name, room.pieces.length]), [['Hallen', 1]]);
+  assert.equal(full.choices.filter((choice) => choice.place === 'B').length, 4);
+});
 const MISSION: Mission = { ...FULL, steps: [STEP, { id: 'slut', type: 'scene', text: 'Slut.' }] };
 const PLAYERS: PlayerRecord[] = ['Anna', 'Bo', 'Cia'].map((name, index) => ({ id: `p${index}`, gameId: 'g', userId: `u${index}`, name, isLeader: index === 0, joinedAtMs: index }));
 
@@ -152,8 +178,8 @@ test('med tre spelare ser gruppen alla rum i ett minne, dörrarna är stängda u
   // Den som väljer ett rum står sedan där.
   assert.equal(state.placeByPlayer[cia.id], 'D');
   const view = buildGameView({ game: { id: 'g', joinCode: 'BCDF', missionId: MISSION.id, state }, mission: MISSION, players: PLAYERS, viewer: cia });
-  assert.equal(view.step.flashback?.myRooms[0]?.place.name, 'Biblioteket');
-  // Sovrummet står tomt. Anna tar det också, men står kvar i hallen.
+  assert.equal(view.step.flashback?.myRooms[0]?.place.name, 'Sovrummet');
+  // Provstegets fjärde rum står tomt. Anna tar det också, men står kvar i hallen.
   choose(anna, 'E');
   assert.equal(state.placeByPlayer[anna.id], 'B');
   nowMs += 3 * MINUTE_MS;

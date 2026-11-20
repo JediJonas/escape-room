@@ -292,3 +292,19 @@ och 1962 står det fem par skor vid ytterdörren.
   för den som provar testsidan. De finns kvar i git-historiken
   (`hallen-malad-1962.webp` och `hallen-foto-1962.webp`) och läggs tillbaka
   när minnet får bilder i spelet.
+
+## Salongen
+
+Ägaren bad om salongen efter hallen (Jonas 2026-11-20). `tools/rundbildsmall.py`
+har nu ett rum per funktion och ritar salongen med `salongen` som andra
+argument och `CZ=-1.0`, eftersom bordet med ouijabrädet står mitt i rummet.
+
+- **1962** gjordes från mallen med den målade hallen som förebild för stilen.
+  Två försök gjordes. Det andra fick en extra dörr på väggen mot hallen. Det
+  första följde mallen.
+- **Golvuret.** Gemini ritade först fem, sedan nio. Med en tom urtavla utan
+  siffror och en beskrivning av varje visare blev det ungefär kvart över nio,
+  men timvisaren står lite för högt. Pärlorna gjordes vita i samma omgång.
+- **I dag** är en redigering av 1962-bilden. Golvuret står på tolv, så att
+  den som har läst urklippet ser att något inte stämmer.
+- Bara bilden från i dag ligger på testsidan, så att minnet inte avslöjas.

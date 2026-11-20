@@ -131,3 +131,24 @@ De andra stilraderna:
 - Målning: *dark atmospheric painted concept art for a serious horror game, realistic proportions and textures, desaturated palette of cold grey-green and dirty ochre, deep black shadows, a thin cold moonbeam through the front door pane picking out dust hanging in the air. Grim, oppressive and eerie, not cartoonish, not storybook, not cute.*
 - 60-talsfoto: *it must look like an old colour photograph from the 1960s that has faded for sixty years, not like a modern photo. Strong overall orange-red and magenta colour cast, the blues and cyans almost gone, low contrast with milky shadows, blown-out highlights, coarse film grain, a few scratches and dust specks. Taken at night with a harsh flashbulb from the viewer's position, so the near floor and nearby objects are flat and glaring while the far corners fall off into murky darkness. It feels like an old police photo of a place where something went wrong.*
 - Foto i dagsljus: som natten, men med *cold, weak moonlight falling through the glass pane of the front door and a dim grey glow*. Gemini gjorde ändå dagsljus av det.
+
+## Hallen som illustration, med matta i stället för plankor
+
+Ägaren valde stilen i nattbilden, men som illustration i stället för foto
+(Jonas 2026-11-20). I nattbilden blev golvplankorna böjda nära skarven när man
+tittar nedåt. Betraktaren stod redan i mitten av rummet. Felet är att Gemini
+ritar plankorna som raka linjer i bilden, och raka linjer i en equirektangulär
+bild blir böjda nära rakt ner. Det är samma fel som i taket på den största
+källaren.
+
+Lösningen är att inte ge golvet några raka linjer. Raden om golvet byttes mot:
+
+> The floor: almost the whole floor is covered by one large, dark, threadbare rug, wall to wall, with only a soft, blotchy, worn pattern and grey dust; no floorboards, no tiles, no straight lines or stripes on the floor anywhere. The floor right under the viewer lies in deep shadow.
+
+Tre illustrationsstilar provades med samma nattljus. Golvet ser rätt ut i alla
+tre när man tittar nedåt. En smal remsa plankor syns fortfarande längs
+väggarna, men den ligger nära horisonten där bilden håller.
+
+- Målad illustration (`hallen-malad.webp`): *a hand-painted illustration, not a photograph: a dark, serious digital painting with visible brush strokes and painterly textures, realistic proportions, like the illustrations in an adult gothic horror novel.*
+- Tusch (`hallen-tusch.webp`): *an illustration, not a photograph: ink line drawing with heavy black ink shadows and cross-hatching, coloured with muted, dirty watercolour washes, like a dark graphic novel for adults.*
+- Gouache, bortvald: *matte gouache painting with flat, softly graded shapes and a limited palette…* Rockarna hängde på själva ytterdörren och dörren bröts av vid skarven.

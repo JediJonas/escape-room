@@ -282,3 +282,8 @@ och 1962 står det fem par skor vid ytterdörren.
   beskrivningen av förfallet, behölls rummet.
 - Rena konturer är borttagen från testsidan, liksom det första målade
   förslaget.
+- **Justeringar** (Jonas 2026-11-20). Spegeln 1962 visade en lampa som inte
+  finns på väggen mittemot och visar nu bara tapeten. I dag är gästernas
+  kläder och skor borta, eftersom de tog dem när de flydde. Kvar hänger en
+  sliten gammal rock och ett trasigt paraply. Rödbruna fläckar på ytterdörren
+  togs bort.

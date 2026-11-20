@@ -169,7 +169,7 @@ på webbsidan. Bilder och ljud ligger i webbsidans mapp för uppdraget.
   "id": "den-femte-gasten",
   "title": "Den femte gästen",
   "minAge": 16,
-  "places": { "A": "Källaren", "B": "Hallen", "C": "Köket", "D": "Biblioteket", "E": "Sovrummet" },
+  "places": { "A": "Källaren", "B": "Hallen", "C": "Köket", "D": "Sovrummet", "F": "Salongen" },
   "steps": [
     { "id": "inledning", "type": "scene", "text": "En kväll 1962 hölls en seans i det här huset." },
     {

@@ -7,8 +7,7 @@
     "A": "Källaren",
     "B": "Hallen",
     "C": "Köket",
-    "D": "Biblioteket",
-    "E": "Sovrummet",
+    "D": "Sovrummet",
     "F": "Salongen"
   },
   "house": {
@@ -17,7 +16,9 @@
       {
         "place": "F",
         "doors": [
-          "B"
+          "B",
+          "D",
+          "C"
         ],
         "things": [
           {
@@ -52,7 +53,6 @@
           "F",
           "C",
           "D",
-          "E",
           "A"
         ],
         "things": [
@@ -88,7 +88,8 @@
       {
         "place": "C",
         "doors": [
-          "B"
+          "B",
+          "F"
         ],
         "things": [
           {
@@ -101,7 +102,8 @@
       {
         "place": "D",
         "doors": [
-          "B"
+          "B",
+          "F"
         ],
         "things": [
           {
@@ -113,13 +115,6 @@
             ]
           }
         ]
-      },
-      {
-        "place": "E",
-        "doors": [
-          "B"
-        ],
-        "things": []
       },
       {
         "place": "A",
@@ -214,9 +209,9 @@
           "place": "B",
           "pieces": [
             "En ung kvinna i röd sjal står vid ytterdörren och tittar ut i rummet.",
+            "En ung kvinna med pärlhalsband sitter vid pianot. Locket är uppfällt och noterna står uppslagna.",
             "Gästboken ligger uppslagen på bordet. Bläcket på den sista raden är fortfarande blankt.",
-            "Väggklockan har stannat på kvart över nio.",
-            "Pianot står öppet med noter på. Pallen är utdragen, som om någon just har rest sig."
+            "Väggklockan har stannat på kvart över nio."
           ]
         },
         {
@@ -224,22 +219,16 @@
           "pieces": [
             "En ung man med runda glasögon står vid spisen och häller upp kaffe.",
             "Fem kaffekoppar står på bänken. Fyra är urdruckna, och den femte är full och kall.",
+            "Proppskåpet på väggen står öppet, men alla säkringar sitter kvar.",
             "Kranen droppar. Köksklockan har stannat på kvart över nio."
           ]
         },
         {
           "place": "D",
           "pieces": [
-            "En ung kvinna med pärlhalsband står vid bokhyllan och tittar ut i rummet.",
+            "En ung man står vid byrån och stoppar sin pipa.",
+            "Ett stearinljus på fönsterbrädan har brunnit ner och slocknat.",
             "En bok ligger uppslagen på golvet, som om någon har tappat den i mörkret.",
-            "Pendylen på hyllan har stannat på kvart över nio."
-          ]
-        },
-        {
-          "place": "E",
-          "pieces": [
-            "En ung man står vid fönstret och stoppar sin pipa.",
-            "Någon har suttit på sängkanten. Täcket är nedtryckt men tomt.",
             "Väckarklockan på nattduksbordet har stannat på kvart över nio."
           ]
         }
@@ -247,7 +236,7 @@
       "hints": [
         "Läs huvudartikeln i urklippen igen. Den säger när golvuret stannade.",
         "Vrid golvuret till kvart över nio. När huset minns väljer var och en ett rum och berättar för de andra vad hon ser.",
-        "Ni behöver se alla fyra rummen i minnet: hallen, köket, biblioteket och sovrummet. Är ni få får ni minnas mer än en gång."
+        "Ni behöver se alla tre rummen i minnet: hallen, köket och sovrummet. Är ni få får ni minnas mer än en gång."
       ],
       "solution": {
         "time": "21.15"

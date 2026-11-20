@@ -19,9 +19,6 @@ const ROUND_IMAGES = [
   { name: 'Hallen, tusch, minnet 1962 (Gemini)', file: 'rundbilder/hallen-tusch-1962.webp' },
   { name: 'Hallen, foto (Gemini)', file: 'rundbilder/hallen-foto.webp' },
   { name: 'Hallen, foto, minnet 1962 (Gemini)', file: 'rundbilder/hallen-foto-1962.webp' },
-  { name: 'Största källaren (Gemini)', file: 'rundbilder/kallare-storst.webp' },
-  { name: 'Stora källaren (Gemini)', file: 'rundbilder/kallare-stor.webp' },
-  { name: 'Lilla källaren (Gemini)', file: 'rundbilder/kallare.webp' },
   { name: 'Rutnät, 8 rutor per sida', file: 'rundbilder/provbild-rutnat.webp' },
   { name: 'Rutnät, 16 rutor per sida', file: 'rundbilder/provbild-rutnat-stor.webp' },
 ];

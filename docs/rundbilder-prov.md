@@ -199,5 +199,7 @@ fotot igen, med mattan som i tuschbilden (Jonas 2026-11-20).
   Gemini tuschbilden och prompten att göra den till ett nattfoto av samma rum.
   Då hamnade allt rätt. Fotot av minnet är en redigering av det fotot.
 - Kvinnan vid pianot ser äldre ut än en ung gäst i fotot av minnet.
-- Bilderna från de tidigare stilproven är borttagna ur testsidan. De finns
-  kvar i git-historiken.
+- Testsidan visar bara de fyra hallbilderna och de två rutnäten (Jonas
+  2026-11-20). Stilproven och källarbilderna finns kvar i git-historiken.
+  `kallare-stor.webp` ligger kvar, eftersom den vilande källaruppgiften
+  använder den.

@@ -50,8 +50,8 @@
 <g font-size="10" fill="#2b2118" text-anchor="middle"><text x="522" y="430">källar-</text><text x="522" y="443">trappan ned</text></g>
 <!-- dörrarna från salongen till sovrummet och köket (Jonas 2026-11-20) -->
 <g stroke="#2b2118" stroke-width="2" fill="none">
-  <path d="M220 98 A50 50 0 0 0 170 148"/><line x1="220" y1="148" x2="170" y2="148"/>
-  <path d="M420 98 A50 50 0 0 1 470 148"/><line x1="420" y1="148" x2="470" y2="148"/>
+  <path d="M220 148 A50 50 0 0 1 170 98"/><line x1="220" y1="98" x2="170" y2="98"/>
+  <path d="M420 148 A50 50 0 0 0 470 98"/><line x1="420" y1="98" x2="470" y2="98"/>
 </g>
 <g font-size="22" fill="#2b2118" text-anchor="middle">
   <text x="130" y="290">Sovrummet</text>

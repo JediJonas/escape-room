@@ -144,7 +144,7 @@ test('i Den femte gästen minns tre rum, så två spelare ser alla och tio delar
   const ten = Array.from({ length: 10 }, (_, index) => `p${index}`);
   const full = playAll(ten, ten.map((playerId, index) => [playerId, (['B', 'C', 'D'] as const)[index % 3]]));
   const hall = describeFlashback({ flashback: full, step, places, viewerId: 'p0', participantIds: ten });
-  // Fyra i hallen ser en bit var, så att kvinnan vid dörren och mannen vid pianot hamnar hos olika spelare.
+  // Fyra i hallen ser en bit var, så att kvinnan vid dörren och kvinnan vid pianot hamnar hos olika spelare.
   assert.deepEqual(hall.myRooms.map((room) => [room.place.name, room.pieces.length]), [['Hallen', 1]]);
   assert.equal(full.choices.filter((choice) => choice.place === 'B').length, 4);
 });

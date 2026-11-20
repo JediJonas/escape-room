@@ -88,3 +88,46 @@ Rundbilderna håller för blickar runt horisonten. Provbilderna är inte de
 slutliga: bilderna till det första uppdraget tas fram på nytt, och ägaren vill
 att de då blir läskigare. Uppdraget är numera från 16 år, och provbilderna
 togs fram med en text som bad om bilder för tioåringar. Räkna med att en bild ibland behöver göras om.
+
+## Hallen i fyra stilar
+
+Källarbilderna var för gulliga för ett hus som har stått orört sedan 1962.
+Hallen togs därför fram i fyra stilar, så att ägaren kan välja. Bilderna ligger
+i `public/testsida/rundbilder/hallen-*.webp` och går att välja i kortet
+Rundbild på testsidan.
+
+- Modell och anrop som för källaren, men med `image_size` 4K. Det gav
+  5504×3072 bildpunkter, som skalas om till 4096×2048. Det ger drygt elva
+  bildpunkter per grad, mot knappt åtta för källaren, och 4096 är den största
+  bredd som alla mobiler säkert klarar i visaren. Ett anrop kostade cirka
+  6 300 tokens, varav 3 780 för bilden.
+- Bildens mitt är hallens bortre vägg. Ytterdörren sitter mitt på väggen bakom
+  betraktaren och hamnar alltså i skarven. Gemini ritade ändå en hel dörr över
+  skarven i alla fyra bilderna, utan synlig kant.
+- Dörrarna hamnade på rätt väggar: pianot och dörrarna till salongen och köket
+  på den bortre väggen, källardörren längst ner på högra väggen och
+  sovrumsdörren på vänstra. Var på väggen de sitter varierar, så de tryckbara
+  dörrarna får placeras efter bilden, som konceptet säger.
+- Den första 60-talsbilden såg ut som ett vanligt foto i dagsljus. Först när
+  prompten beskrev färgstick, blixt och korn tydligt blev den gammal.
+
+Prompten består av en stilrad och en gemensam beskrivning av hallen:
+
+> A seamless 360-degree equirectangular panorama (full sphere: 360 degrees horizontally, 180 degrees vertically) of the entrance hall of an old Swedish wooden villa from around 1900 that has stood abandoned and untouched since 1962. Style: a realistic photograph taken late at night inside the dark house. There is no daylight at all. The only light is pale blue moonlight through the glass panes of the front door and a faint warm glow from somewhere out of sight; the corners, the ceiling and the far ends of the walls sink into near-black shadow, and objects are only just readable. Underexposed, high ISO grain, muted cold colours. It feels neglected, cold, damp and quietly threatening, like somewhere you should not be. Unsettling, not cosy, not cute, not theatrical.
+>
+> Contents and layout. The hall is a square room, about five by five metres, ceiling about three metres high. The viewer stands in the exact middle of the room at eye height. The centre of the image faces the back wall; the left quarter and right quarter of the image show the side walls; the far left and far right edges show the front wall behind the viewer.
+>
+> - Back wall (centre of the image): an old upright piano stands against the left half of the back wall, lid closed, thick with dust. At the right end of the back wall are two closed wooden panel doors side by side: the first leads to the parlour, and the second, immediately to its right, sits right in the corner and leads to the kitchen.
+> - Right wall: a long bare wall with peeling wallpaper. At its far end, near the corner with the front wall, a heavy, dark, locked wooden door to the cellar, with a large iron lock and keyhole. There is no other door on the right wall.
+> - Left wall: a small hall table halfway along the wall with a thick old guest book lying closed on it, and a tarnished, spotted mirror above it. At the far end of the left wall, near the corner with the front wall, a closed wooden door to a bedroom.
+> - Front wall (behind the viewer, split between the far left and far right edges of the image): the closed wooden front door in the middle of the wall, with a small dirty glass pane, and old coats hanging stiff on hooks beside it.
+> - No staircase anywhere in the hall. Only these five doors.
+> - Wooden floorboards, scuffed and grey with dust, a worn rug with a faded pattern, dust sheets nowhere. Cobwebs in the corners and on the dead ceiling lamp. Wallpaper with a faded 1950s pattern, stained by damp, peeling in strips. Dead leaves blown in under the front door. Nobody has been here since 1962.
+>
+> Correct equirectangular projection: the horizon is a straight horizontal line at the exact vertical middle, the ceiling stretches across the whole top edge and the floor across the whole bottom edge, vertical lines stay vertical. The left and right edges must match perfectly so the image wraps around without a visible seam. No people, no ghosts, no monsters, no blood, no text, no letters, no clocks.
+
+De andra stilraderna:
+
+- Målning: *dark atmospheric painted concept art for a serious horror game, realistic proportions and textures, desaturated palette of cold grey-green and dirty ochre, deep black shadows, a thin cold moonbeam through the front door pane picking out dust hanging in the air. Grim, oppressive and eerie, not cartoonish, not storybook, not cute.*
+- 60-talsfoto: *it must look like an old colour photograph from the 1960s that has faded for sixty years, not like a modern photo. Strong overall orange-red and magenta colour cast, the blues and cyans almost gone, low contrast with milky shadows, blown-out highlights, coarse film grain, a few scratches and dust specks. Taken at night with a harsh flashbulb from the viewer's position, so the near floor and nearby objects are flat and glaring while the far corners fall off into murky darkness. It feels like an old police photo of a place where something went wrong.*
+- Foto i dagsljus: som natten, men med *cold, weak moonlight falling through the glass pane of the front door and a dim grey glow*. Gemini gjorde ändå dagsljus av det.

@@ -4,7 +4,7 @@
  * bilden som en bred remsa som bara går att panorera i sidled.
  */
 
-import { fieldOfViewToHalfHeight, type LookDirection, yawToStripOffsetPx } from './lookDirection.ts';
+import { fieldOfViewToHalfHeight, type LookDirection, screenPointToLook, stripPointToLook, yawToStripOffsetPx } from './lookDirection.ts';
 
 /** Remsan visar mitten av bilden, där en rundbild är minst förvrängd. */
 const STRIP_SHARE_OF_IMAGE_HEIGHT = 0.5;
@@ -131,6 +131,16 @@ export function createSphereView(canvas: HTMLCanvasElement) {
       gl.uniform2f(uniforms.pitch, Math.cos(toRadians(look.pitchDeg)), Math.sin(toRadians(look.pitchDeg)));
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     },
+
+    /**
+     * Åt vilket håll en punkt på visaren pekar.
+     * @param point i pixlar från visarens övre vänstra hörn
+     */
+    pointToLook(look: LookDirection, point: { xPx: number; yPx: number }, { fieldOfViewDeg, perspective }: { fieldOfViewDeg: number; perspective: 'straight' | 'soft' }): LookDirection {
+      const [widthPx, heightPx] = [canvas.clientWidth, canvas.clientHeight];
+      const screen = { x: (point.xPx / widthPx) * 2 - 1, y: 1 - (point.yPx / heightPx) * 2 };
+      return screenPointToLook(look, screen, { aspect: widthPx / heightPx, fieldOfViewDeg, perspective });
+    },
   };
 }
 
@@ -152,6 +162,12 @@ export function createStripView(strip: HTMLElement) {
       const imageWidthPx = (strip.clientHeight / STRIP_SHARE_OF_IMAGE_HEIGHT) * imageAspect;
       const offsetPx = yawToStripOffsetPx(look.yawDeg, { imageWidthPx, viewWidthPx: strip.clientWidth });
       strip.style.backgroundPosition = `${offsetPx}px 50%`;
+    },
+
+    /** Åt vilket håll en punkt på remsan pekar, i pixlar från dess övre vänstra hörn. */
+    pointToLook(look: LookDirection, point: { xPx: number; yPx: number }): LookDirection {
+      const imageHeightPx = strip.clientHeight / STRIP_SHARE_OF_IMAGE_HEIGHT;
+      return stripPointToLook(look.yawDeg, point, { imageWidthPx: imageHeightPx * imageAspect, imageHeightPx, viewWidthPx: strip.clientWidth, viewHeightPx: strip.clientHeight });
     },
   };
 }

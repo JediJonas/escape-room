@@ -15,6 +15,7 @@ import { type PianoKey, listKeyPlayers, listMyKeys } from './piano.ts';
 import { readDialTime } from './flashback.ts';
 import { findReadSteps, hasRead } from './found.ts';
 import type { GameState } from './state.ts';
+import { type Direction, type Spot, findSpotAt, isSpot } from './spots.ts';
 
 /** En sak i ett rum som spelaren kan trycka på. Den öppnar alltid en vy. */
 export type HouseThing = {
@@ -65,12 +66,21 @@ export type HouseThing = {
    * kommit till gäller (Jonas 2026-11-18).
    */
   echoes?: { fromStep: string; message: string }[];
+  /** Var saken sitter i rummets rundbild. Krävs när rummet har en bild. */
+  spot?: Spot;
 };
 
 export type HouseRoom = {
   place: PlaceId;
   doors: PlaceId[];
   things: HouseThing[];
+  /**
+   * Rundbilden av rummet i dag, räknat från webbsidans början. Ett rum utan
+   * bild, som källaren tills den har en, visas som en lista (Jonas 2026-11-20).
+   */
+  image?: string;
+  /** Var dörrarna sitter i rundbilden. En låst dörr som också är en sak sitter på samma ställe som saken. */
+  doorSpots?: Partial<Record<PlaceId, Spot>>;
   /**
    * Dörren till rummet är låst för alla utom den som steget skickar dit, som
    * den instängda till källaren (Jonas 2026-11-18). Dörren står ändå i listan.
@@ -139,7 +149,31 @@ export function searchRoom({ state, house, playerId }: {
   return newlyFound.length === 0 ? state : { ...state, foundThings: [...state.foundThings, ...newlyFound] };
 }
 
-/** En sak som spelaren ser i rummets lista. */
+/**
+ * Spelaren har tryckt på något i rundbilden som ingen har hittat. Det som
+ * sitter där är hittat för hela gruppen (Jonas 2026-11-17). Mobilen vet bara
+ * var det sitter, inte vad det är.
+ */
+export function findThingAt({ state, house, playerId, direction }: {
+  state: GameState;
+  house: House;
+  playerId: string;
+  direction: unknown;
+}): GameState {
+  if (!isDirection(direction)) return state;
+  const room = findRoom(house, state.placeByPlayer[playerId]);
+  const hidden = (room?.things ?? []).filter((thing) => !isFound(thing, state)).flatMap((thing) => (thing.spot ? [{ thing, spot: thing.spot }] : []));
+  const found = findSpotAt(hidden, direction);
+  return found ? { ...state, foundThings: [...state.foundThings, found.thing.id] } : state;
+}
+
+function isDirection(value: unknown): value is Direction {
+  if (!value || typeof value !== 'object') return false;
+  const { yawDeg, pitchDeg } = value as Record<string, unknown>;
+  return typeof yawDeg === 'number' && Number.isFinite(yawDeg) && typeof pitchDeg === 'number' && Number.isFinite(pitchDeg);
+}
+
+/** En sak som spelaren ser i rummet. */
 export type ThingView = {
   id: string;
   name: string;
@@ -167,6 +201,8 @@ export type ThingView = {
    * berättelsen väntar på urklippen. Där kan spelledaren ge ledtråd (Jonas 2026-11-18).
    */
   opensAwaitedTask: boolean;
+  /** Var saken sitter i rundbilden, eller null i ett rum utan bild. */
+  spot: Spot | null;
 };
 
 export type Instrument = { type: 'clock'; dialMinutes: number } | { type: 'piano'; keys: PianoKey[] };
@@ -181,10 +217,17 @@ function describeInstrument(opened: readonly MissionStep[], state: GameState, vi
   return { type: 'piano', keys: listMyKeys(piano.keys, listKeyPlayers(state.piano?.melodyPlayerId ?? null, participantIds), viewerId) };
 }
 
+/** En dörr till ett rum intill, och var den sitter i rundbilden. */
+export type DoorView = Place & { spot: Spot | null };
+
 export type HouseView = {
   room: Place;
-  doors: Place[];
+  /** Rundbilden av rummet, eller null om rummet inte har någon än. */
+  image: string | null;
+  doors: DoorView[];
   things: ThingView[];
+  /** Var det sitter saker som ingen har hittat, utan vad de är. */
+  hiddenSpots: Spot[];
   /** Det som hörs från ett annat rum där något kallar på gruppen, annars null. */
   callingFrom: string | null;
   /** Om det finns något kvar att hitta i rummet. Visas inte, men säger om knappen behövs. */
@@ -224,6 +267,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     echo: current === undefined ? (thing.echoes ?? []).filter((echo) => state.stepIndex >= stepIndexOf(mission, echo.fromStep)).at(-1)?.message ?? null : null,
     opensAwaitedTask: isAwaitedBy(mission.steps[state.stepIndex], state, thing),
     marksRead: viewer !== undefined && findReadSteps(mission, thing.id).some((stepId) => !hasRead(state.foundReaders, stepId, viewer.id)),
+    spot: thing.spot ?? null,
   };
 }
 
@@ -248,10 +292,14 @@ export function describeHouse({ state, mission, house, places, viewerId, partici
   const callingRoom = house.rooms.find((other) => other !== room && other.things.some((thing) => describeThing(thing, mission, state).isCalling));
   const callingThing = callingRoom?.things.find((thing) => describeThing(thing, mission, state).isCalling);
   const callingPlace = callingRoom ? findPlace(callingRoom.place).name.toLocaleLowerCase('sv') : '';
+  // En låst dörr som också är en sak, som källardörren, sitter där saken sitter.
+  const findDoorSpot = (place: PlaceId): Spot | null => room.doorSpots?.[place] ?? room.things.find((thing) => thing.doorTo === place)?.spot ?? null;
   return {
     room: findPlace(room.place),
-    doors: room.doors.filter(isOpenTo).map(findPlace),
+    image: room.image ?? null,
+    doors: room.doors.filter(isOpenTo).map((place) => ({ ...findPlace(place), spot: findDoorSpot(place) })),
     things: visible.map((thing) => describeThing(thing, mission, state, { id: viewerId, participantIds })),
+    hiddenSpots: room.things.flatMap((thing) => (!isFound(thing, state) && thing.spot ? [thing.spot] : [])),
     callingFrom: callingThing ? callingThing.callingText ?? `Något rör sig vid ${callingThing.name.toLocaleLowerCase('sv')} i ${callingPlace}.` : null,
     canSearch: room.things.some((thing) => !isFound(thing, state)),
   };
@@ -296,6 +344,29 @@ function findThingErrors(thing: Record<string, unknown>, stepIds: readonly unkno
   if (thing.cover !== undefined && !(isFilledText(thing.cover) && pages !== undefined)) errors.push(`${name} har en tom första sida eller inga sidor`);
   if (thing.doorTo !== undefined && !isPlaceId(thing.doorTo)) errors.push(`${name} är en dörr till en plats som inte finns`);
   if (thing.text === undefined && pages === undefined && opens === undefined) errors.push(`${name} har varken text, sidor eller steg att öppna`);
+  if (thing.spot !== undefined && !isSpot(thing.spot)) errors.push(`${name} har en plats i rundbilden som inte går att läsa`);
+  return errors;
+}
+
+/** Ett rum med rundbild har en plats i bilden för varje sak och dörr, så att allt går att nå. */
+function findImageErrors(room: Record<string, unknown>): string[] {
+  const place = String(room.place);
+  if (room.image === undefined) return room.doorSpots === undefined ? [] : [`rummet ${place} har dörrar i en rundbild men ingen bild`];
+  if (!isFilledText(room.image)) return [`rummet ${place} har en tom bild`];
+  const errors: string[] = [];
+  const doorSpots = (room.doorSpots ?? {}) as Record<string, unknown>;
+  const things = room.things as Record<string, unknown>[];
+  for (const [door, spot] of Object.entries(doorSpots)) {
+    if (!(room.doors as unknown[]).includes(door)) errors.push(`rummet ${place} har en dörr i rundbilden som inte finns bland dörrarna: ${door}`);
+    if (!isSpot(spot)) errors.push(`dörren från ${place} till ${door} har en plats i rundbilden som inte går att läsa`);
+  }
+  for (const door of room.doors as unknown[]) {
+    const hasThingSpot = things.some((thing) => thing?.doorTo === door && thing.spot !== undefined);
+    if (doorSpots[String(door)] === undefined && !hasThingSpot) errors.push(`dörren från ${place} till ${String(door)} saknar plats i rundbilden`);
+  }
+  for (const thing of things) {
+    if (thing?.spot === undefined) errors.push(`saken ${String(thing?.id)} i ${place} saknar plats i rundbilden`);
+  }
   return errors;
 }
 
@@ -321,6 +392,7 @@ export function findHouseErrors(house: unknown, places: Record<string, unknown>,
       if (!other || !Array.isArray(other.doors) || !other.doors.includes(place)) errors.push(`dörren från ${String(place)} till ${String(door)} går inte tillbaka`);
     }
     for (const thing of room.things) errors.push(...findThingErrors(thing ?? {}, stepIds, thingIds));
+    errors.push(...findImageErrors(room));
   }
   return errors;
 }

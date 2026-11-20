@@ -18,10 +18,16 @@ const MAX_TAP_MOVE_PX = 10;
  * Blicken skrivs i lookRef, så att den som visar kan läsa vart spelaren
  * tittar när hon trycker, utan att React ritar om vid varje sensorvärde.
  */
-export function RoundImageView({ src, lookRef, onTap, children }: {
+export function RoundImageView({ src, lookRef, onTap, onLook, children }: {
   src: string;
   lookRef: RefObject<LookDirection>;
-  onTap: () => void;
+  /**
+   * Ett tryck. Riktningen är den som punkten under fingret pekar åt. I den
+   * breda bilden går blicken bara i sidled, och då är isSidewaysOnly sant.
+   */
+  onTap: (tapped: LookDirection, isSidewaysOnly: boolean) => void;
+  /** Varje gång blicken har ritats, så att den som visar kan tända det som är mitt i bilden. */
+  onLook?: (look: LookDirection, isSidewaysOnly: boolean) => void;
   /** Det som ligger ovanpå bilden, som mörkret och ficklampan. */
   children?: ReactNode;
 }) {
@@ -32,9 +38,11 @@ export function RoundImageView({ src, lookRef, onTap, children }: {
   const [isSensorSteering, setIsSensorSteering] = useState(false);
   // Trycket läses ur en ref, så att visaren inte startas om när föräldern ritas om.
   const onTapRef = useRef(onTap);
+  const onLookRef = useRef(onLook);
   useEffect(() => {
     onTapRef.current = onTap;
-  }, [onTap]);
+    onLookRef.current = onLook;
+  }, [onTap, onLook]);
 
 
   useEffect(() => {
@@ -53,16 +61,20 @@ export function RoundImageView({ src, lookRef, onTap, children }: {
     let isSensing = false;
     let sensorYawOffsetDeg: number | null = null;
 
+    const lens = { fieldOfViewDeg: DEFAULT_FIELD_OF_VIEW_DEG, perspective: 'soft' } as const;
+    let isLoaded = false;
     function draw() {
       const look = lookRef.current;
-      if (isSphere && sphereView) sphereView.draw(look, { fieldOfViewDeg: DEFAULT_FIELD_OF_VIEW_DEG, perspective: 'soft' });
+      if (isSphere && sphereView) sphereView.draw(look, lens);
       else stripView.draw(look);
+      if (isLoaded) onLookRef.current?.(look, !isSphere);
     }
 
     const image = new Image();
     image.onload = () => {
       stripView.setImage(image);
       isSphere = sphereView ? sphereView.setImage(image) : false;
+      isLoaded = true;
       setMode(isSphere ? 'sphere' : 'strip');
       draw();
     };
@@ -104,7 +116,12 @@ export function RoundImageView({ src, lookRef, onTap, children }: {
       draw();
     };
     const handleUp = (event: PointerEvent) => {
-      if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) <= MAX_TAP_MOVE_PX) onTapRef.current();
+      if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) <= MAX_TAP_MOVE_PX) {
+        const box = frame.getBoundingClientRect();
+        const point = { xPx: event.clientX - box.left, yPx: event.clientY - box.top };
+        const tapped = isSphere && sphereView ? sphereView.pointToLook(lookRef.current, point, lens) : stripView.pointToLook(lookRef.current, point);
+        onTapRef.current(tapped, !isSphere);
+      }
       start = null;
       last = null;
     };

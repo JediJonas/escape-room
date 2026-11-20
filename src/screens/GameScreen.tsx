@@ -3,6 +3,7 @@ import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { BoardTouch } from '../../supabase/functions/game/seance.ts';
 import type { CellarMove } from '../../supabase/functions/game/cellar.ts';
+import type { Direction, Spot } from '../../supabase/functions/game/spots.ts';
 import { requestMotionPermission } from '../device/motion.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
@@ -13,7 +14,8 @@ import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
 import { DocumentList } from './FoundDocuments.tsx';
-import { TextView } from './TextView.tsx';
+import { RoomList, RoomView } from './RoomView.tsx';
+import { findThingAtSpot } from './roomTargets.ts';
 import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { InfoBox } from './InfoBox.tsx';
 import { PauseCover } from './PauseCover.tsx';
@@ -33,7 +35,10 @@ export type GameActions = {
   touchBoard: (touch: BoardTouch) => void;
   moveInCellar: (move: CellarMove) => void;
   walk: (placeId: PlaceId) => void;
+  /** Reserven i ett rum utan rundbild: hittar allt i rummet. */
   searchRoom: () => void;
+  /** Hittar det som sitter där spelaren tryckte i rundbilden. */
+  findThing: (direction: Direction) => void;
   turnClock: (minutes: number) => void;
   chooseFlashbackRoom: (placeId: PlaceId) => void;
   fadeFlashback: () => void;
@@ -90,6 +95,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const [openThingId, setOpenThingId] = useState<string | null>(null);
+  // Det som spelaren just tryckte på och som ingen hade hittat. Det öppnas när servern har svarat.
+  const [pendingFind, setPendingFind] = useState<Spot | null>(null);
   const [readNarrations, setReadNarrations] = useState(readReadNarrations);
   const { step } = view;
   const flashback = useFlashbackTime(step.flashback?.remembersUntilMs ?? null, clockOffsetMs, game.fadeFlashback);
@@ -103,6 +110,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     setIsMenuOpen(false);
     setHasLeftBoard(false);
     setOpenThingId(null);
+    setPendingFind(null);
   }
 
   // Har spelledaren avslutat spelet visas bara det, inte steget gruppen var på (Jonas 2026-11-18).
@@ -151,6 +159,11 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
 
   // I huset öppnar en sak alltid en vy, och Tillbaka går till rummet (Jonas 2026-11-17).
   const { house } = view;
+  const pendingThingId = pendingFind && house ? findThingAtSpot(house, pendingFind) : null;
+  if (pendingThingId) {
+    setPendingFind(null);
+    setOpenThingId(pendingThingId);
+  }
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
   const closeThing = <button key="close" type="button" className="secondary" onClick={leaveThing}>Tillbaka</button>;
   // Överst i en sak i fullskärm: Tillbaka till vänster och klockan alltid till höger, också för
@@ -229,6 +242,35 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Den som ska ner i källaren går dit genom huset, som vanligt, och statusraden säger vart (Jonas 2026-11-18).
   const isGoingDown = cellar !== null && cellar.isTrapped && cellar.catchMs === null && cellar.outcome === null && !view.isFinished;
   if ((!showsStep || isGoingDown || isNarrationScene) && house) {
+    // Rummet visas som rundbild. Textvyn är borttagen (Jonas 2026-11-20).
+    if (house.image) {
+      const findThing = (spot: Spot) => {
+        setPendingFind(spot);
+        game.findThing({ yawDeg: spot.yawDeg, pitchDeg: spot.pitchDeg });
+      };
+      const roomHeader = (
+        <>
+          {view.clock?.isPaused && <span className="paused">Pausat</span>}
+          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+        </>
+      );
+      return withLeaderMenu(
+        <RoomView
+          key={house.room.id}
+          house={house}
+          image={`${import.meta.env.BASE_URL}${house.image}`}
+          header={roomHeader}
+          note={isGoingDown ? cellar.goDownText : ''}
+          error={error}
+          canFind={view.me.isPlaying}
+          isBusy={isBusy}
+          onOpen={setOpenThingId}
+          onWalk={game.walk}
+          onFind={findThing}
+        />,
+      );
+    }
+    // Ett rum utan rundbild, som källaren, visas som en lista tills bilden finns.
     const houseActions = [];
     if (view.me.isPlaying && house.canSearch) houseActions.push(<button key="search" type="button" onClick={game.searchRoom} disabled={isBusy}>Leta i rummet</button>);
     // Ingen rad säger att mobilen väntar på de andra, och spelledaren ser inte vilka som är klara.
@@ -241,7 +283,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
         {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
-        <TextView house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
+        <RoomList house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>,
     );

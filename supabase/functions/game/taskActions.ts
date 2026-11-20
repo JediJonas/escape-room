@@ -6,7 +6,7 @@
 
 import { type CellarMove, applyCellarMove } from './cellar.ts';
 import { type GameRefusal, type StateChange, findCurrentTask, findGoal, findRole, isAtGoal, markTrappedArrival, moveOn, moveOnIfAllDone } from './game.ts';
-import { searchRoom, walk } from './house.ts';
+import { findThingAt, searchRoom, walk } from './house.ts';
 import type { Mission, MissionStep, FlashbackStep } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import { type FlashbackState, advanceFlashback, chooseFlashbackRoom as chooseRoom, isRemembering, isFlashbackSolved, snapDial, startFlashback, turnClock as turnClockHands } from './flashback.ts';
@@ -234,4 +234,11 @@ export function searchHere({ state, mission, player }: { state: GameState; missi
   if (state.status !== 'running') return { refusal: 'notRunning' };
   if (!mission.house) return { refusal: 'unknownPlace' };
   return { state: searchRoom({ state, house: mission.house, playerId: player.id }) };
+}
+
+/** Spelaren trycker på något i rundbilden. Det som sitter där står sedan i rummet för alla. */
+export function findHere({ state, mission, player, direction }: { state: GameState; mission: Mission; player: PlayerRecord; direction: unknown }): StateChange {
+  if (state.status !== 'running') return { refusal: 'notRunning' };
+  if (!mission.house) return { refusal: 'unknownPlace' };
+  return { state: findThingAt({ state, house: mission.house, playerId: player.id, direction }) };
 }

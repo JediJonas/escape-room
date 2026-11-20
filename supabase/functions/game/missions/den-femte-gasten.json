@@ -15,6 +15,7 @@
     "rooms": [
       {
         "place": "F",
+        "image": "testsida/rundbilder/salongen-malad.webp",
         "doors": [
           "B",
           "D",
@@ -35,7 +36,12 @@
                 "fromStep": "det-ar-vera",
                 "message": "VERA"
               }
-            ]
+            ],
+            "spot": {
+              "yawDeg": 15,
+              "pitchDeg": -27,
+              "radiusDeg": 14
+            }
           },
           {
             "id": "golvuret",
@@ -43,12 +49,35 @@
             "findHint": "Det finns ett golvur någonstans i huset.",
             "opensSteps": [
               "rummen-minns"
-            ]
+            ],
+            "spot": {
+              "yawDeg": 0,
+              "pitchDeg": 3,
+              "radiusDeg": 12
+            }
           }
-        ]
+        ],
+        "doorSpots": {
+          "B": {
+            "yawDeg": 152,
+            "pitchDeg": -2,
+            "radiusDeg": 14
+          },
+          "D": {
+            "yawDeg": -48,
+            "pitchDeg": -4,
+            "radiusDeg": 12
+          },
+          "C": {
+            "yawDeg": 48,
+            "pitchDeg": -4,
+            "radiusDeg": 12
+          }
+        }
       },
       {
         "place": "B",
+        "image": "testsida/rundbilder/hallen-malad.webp",
         "doors": [
           "F",
           "C",
@@ -63,7 +92,12 @@
             "opensSteps": [
               "pianot"
             ],
-            "callingText": "Från hallen hörs en ensam ton från pianot."
+            "callingText": "Från hallen hörs en ensam ton från pianot.",
+            "spot": {
+              "yawDeg": -28,
+              "pitchDeg": -12,
+              "radiusDeg": 16
+            }
           },
           {
             "id": "gastboken",
@@ -75,18 +109,46 @@
               "15 april 1961\nAstrid Lindqvist\nRut Malm\nHarald Malm\nSigne Ström\nNils Ström",
               "27 oktober 1962\nArvid Lund\nElsa Rydén\nMargit Holm\nSven Dahl\nVera Sjö"
             ],
-            "blankPages": 5
+            "blankPages": 5,
+            "spot": {
+              "yawDeg": -76,
+              "pitchDeg": -19,
+              "radiusDeg": 10
+            }
           },
           {
             "id": "kallardorren",
             "name": "Källardörren",
             "doorTo": "A",
-            "text": "Dörren är låst. Någon har vridit om nyckeln och tagit den med sig."
+            "text": "Dörren är låst. Någon har vridit om nyckeln och tagit den med sig.",
+            "spot": {
+              "yawDeg": 112,
+              "pitchDeg": -2,
+              "radiusDeg": 14
+            }
           }
-        ]
+        ],
+        "doorSpots": {
+          "F": {
+            "yawDeg": 22,
+            "pitchDeg": -2,
+            "radiusDeg": 10
+          },
+          "C": {
+            "yawDeg": 43,
+            "pitchDeg": -2,
+            "radiusDeg": 10
+          },
+          "D": {
+            "yawDeg": -112,
+            "pitchDeg": -2,
+            "radiusDeg": 14
+          }
+        }
       },
       {
         "place": "C",
+        "image": "testsida/rundbilder/koket-malad.webp",
         "doors": [
           "B",
           "F"
@@ -95,12 +157,30 @@
           {
             "id": "tavlan",
             "name": "Tavlan",
-            "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Min kära systerdotter, sommaren 1961."
+            "text": "Ett porträtt av en ung kvinna i en röd sjal. I hörnet står det med blyerts: Min kära systerdotter, sommaren 1961.",
+            "spot": {
+              "yawDeg": -68,
+              "pitchDeg": 6,
+              "radiusDeg": 12
+            }
           }
-        ]
+        ],
+        "doorSpots": {
+          "B": {
+            "yawDeg": -97,
+            "pitchDeg": -3,
+            "radiusDeg": 14
+          },
+          "F": {
+            "yawDeg": -28,
+            "pitchDeg": -3,
+            "radiusDeg": 14
+          }
+        }
       },
       {
         "place": "D",
+        "image": "testsida/rundbilder/sovrummet-malad.webp",
         "doors": [
           "B",
           "F"
@@ -112,9 +192,26 @@
             "findHint": "Det finns en byrå någonstans i huset.",
             "opensSteps": [
               "tidningsurklippen"
-            ]
+            ],
+            "spot": {
+              "yawDeg": 73,
+              "pitchDeg": -20,
+              "radiusDeg": 16
+            }
           }
-        ]
+        ],
+        "doorSpots": {
+          "B": {
+            "yawDeg": 120,
+            "pitchDeg": -3,
+            "radiusDeg": 14
+          },
+          "F": {
+            "yawDeg": 37,
+            "pitchDeg": -3,
+            "radiusDeg": 12
+          }
+        }
       },
       {
         "place": "A",

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { buildGameView, moveOn, startGame } from './game.ts';
-import { type House, describeHouse, findHouseErrors, searchRoom, walk } from './house.ts';
+import { type House, describeHouse, findHouseErrors, findThingAt, searchRoom, walk } from './house.ts';
 import type { Mission } from './mission.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
@@ -46,7 +46,7 @@ test('alla börjar i salongen, och seansbordet står i listan från början och 
   const view = viewFor(start());
   assert.equal(view.house?.room.name, 'Salongen');
   assert.deepEqual(view.house?.doors.map((door) => door.name), ['Hallen']);
-  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, cover: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null, echo: null, marksRead: false, opensAwaitedTask: false }]);
+  assert.deepEqual(view.house?.things, [{ id: 'bordet', name: 'Ouijabrädet', text: null, pages: null, cover: null, opensCurrentStep: true, opensFound: null, isCalling: false, instrument: null, echo: null, marksRead: false, opensAwaitedTask: false, spot: null }]);
   assert.equal(view.step.opensFrom, 'Ouijabrädet');
 });
 
@@ -98,7 +98,7 @@ test('en sak går att hitta från början, öppnar sitt steg när gruppen är d�
   assert.equal(viewFor(state, PLAYERS[2]).house?.things[0].name, 'Byrån');
 
   state = moveOn(state, MISSION, PLAYERS);
-  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: 'En gammal byrå.', pages: null, cover: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null, marksRead: true, opensAwaitedTask: false });
+  assert.deepEqual(viewFor(state).house?.things[0], { id: 'byran', name: 'Byrån', text: 'En gammal byrå.', pages: null, cover: null, opensCurrentStep: false, opensFound: 'Tidningsurklippen', isCalling: false, instrument: null, echo: null, marksRead: true, opensAwaitedTask: false, spot: null });
 });
 
 test('husets dörrar går åt båda hållen och sakerna pekar på steg som finns', () => {
@@ -167,4 +167,46 @@ test('ett låst rum syns bland dörrarna bara för den som får gå in, och dör
   // Den som ska ner i källaren ser dörren dit i stället för saken.
   assert.deepEqual(look('A')?.doors.map((door) => door.name), ['Källaren', 'Biblioteket']);
   assert.deepEqual(look('A')?.things, []);
+});
+
+const PIANO_SPOT = { yawDeg: -28, pitchDeg: -12, radiusDeg: 16 };
+const DOOR_SPOT = { yawDeg: 22, pitchDeg: -2, radiusDeg: 10 };
+const SEEN_HOUSE: House = {
+  start: 'F',
+  rooms: [
+    { place: 'F', image: 'salongen.webp', doors: ['B'], doorSpots: { B: DOOR_SPOT }, things: [{ id: 'bordet', name: 'Ouijabrädet', opensSteps: ['seansen'], spot: { yawDeg: 15, pitchDeg: -27, radiusDeg: 14 } }, { id: 'pianot', name: 'Pianot', text: 'Ett piano.', spot: PIANO_SPOT }] },
+    { place: 'B', doors: ['F', 'D'], things: [{ id: 'dorren', name: 'Källardörren', text: 'Låst.' }] },
+    { place: 'D', doors: ['B'], things: [] },
+  ],
+};
+
+test('i rundbilden ser mobilen var det sitter saker, men inte vad de är förrän någon har hittat dem', () => {
+  const state = start();
+  const look = (current: GameState) => describeHouse({ state: current, mission: { ...MISSION, house: SEEN_HOUSE }, house: SEEN_HOUSE, places: [{ id: 'F', name: 'Salongen' }, { id: 'B', name: 'Hallen' }], viewerId: 'p1', participantIds: ['p0', 'p1', 'p2'] });
+  const before = look(state);
+  assert.equal(before?.image, 'salongen.webp');
+  assert.deepEqual(before?.doors, [{ id: 'B', name: 'Hallen', spot: DOOR_SPOT }]);
+  assert.deepEqual(before?.things, []);
+  assert.equal(before?.hiddenSpots.length, 2);
+  assert.ok(!JSON.stringify(before).includes('Pianot'));
+
+  // Ett tryck bredvid pianot hittar det, men inte brädet. Det står sedan i rummet för alla.
+  const found = findThingAt({ state, house: SEEN_HOUSE, playerId: 'p1', direction: { yawDeg: -20, pitchDeg: -5 } });
+  assert.deepEqual(found.foundThings, ['pianot']);
+  assert.deepEqual(look(found)?.things.map((thing) => [thing.name, thing.spot]), [['Pianot', PIANO_SPOT]]);
+  assert.equal(look(found)?.hiddenSpots.length, 1);
+  assert.equal(findThingAt({ state, house: SEEN_HOUSE, playerId: 'p1', direction: { yawDeg: 120, pitchDeg: 0 } }), state);
+  assert.equal(findThingAt({ state, house: SEEN_HOUSE, playerId: 'p1', direction: 'pianot' }), state);
+});
+
+test('i ett rum med rundbild har varje sak och dörr en plats i bilden', () => {
+  const steps = ['seansen'];
+  assert.deepEqual(findHouseErrors(SEEN_HOUSE, MISSION.places, steps), []);
+  const [salongen, ...rest] = SEEN_HOUSE.rooms;
+  const without = { ...SEEN_HOUSE, rooms: [{ ...salongen, doorSpots: {}, things: [{ ...salongen.things[0], spot: undefined }, { ...salongen.things[1], spot: { yawDeg: 0, pitchDeg: 0, radiusDeg: 0 } }] }, ...rest] };
+  assert.deepEqual(findHouseErrors(without, MISSION.places, steps), [
+    'saken pianot i huset har en plats i rundbilden som inte går att läsa',
+    'dörren från F till B saknar plats i rundbilden',
+    'saken bordet i F saknar plats i rundbilden',
+  ]);
 });

@@ -203,3 +203,26 @@ fotot igen, med mattan som i tuschbilden (Jonas 2026-11-20).
   2026-11-20). Stilproven och källarbilderna finns kvar i git-historiken.
   `kallare-stor.webp` ligger kvar, eftersom den vilande källaruppgiften
   använder den.
+
+## Mitt i rummet, och 1962 före i dag
+
+Ägaren såg att betraktaren stod nära ytterdörren i stället för mitt i rummet,
+och att skavanker från dagens bild syntes i bilden från 1962 (Jonas
+2026-11-20). Hallen togs därför fram på nytt i omvänd ordning.
+
+- **Mitt i rummet.** Text räckte inte. Med en prompt som angav var hörnen
+  ska ligga ritade Gemini konstiga utstickande hörn. I stället ritar
+  `tools/rundbildsmall.py` rummet som en låda i rätt projektion, med färgade
+  ytor för dörrar, möbler och matta. Gemini får mallen och en lista över vad
+  varje färg är. Ett av två försök följde mallen. Det andra struntade i den.
+- **Rättningar.** Gemini tog några färger bokstavligt: ytterdörren blev blå,
+  väggen vid den grön och pianopallen fick en egen röd matta. En redigering
+  rättade det. En till tog bort en dörr för mycket i hörnet vid köket.
+- **I dag från 1962.** Tuschbilden från i dag är en redigering av 1962-bilden:
+  ingen vid pianot, pallen kvar, damm, fuktfläckar, spindelväv, dött ljus och
+  månsken. Fotot från 1962 är tuschbilden från 1962 gjord till foto. Fotot
+  från i dag gjordes först från fotot från 1962, men då fick sovrumsdörren
+  och salongsdörren glasrutor. Det gjordes i stället från tuschbilden från i
+  dag, och då blev dörrarna rätt.
+- Skarven syns inte i någon av de fyra bilderna, och plankorna är raka när
+  man tittar nedåt.

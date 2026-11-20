@@ -3,6 +3,8 @@ import { test } from 'vitest';
 import {
   clampPitchDeg,
   dragToTurn,
+  screenPointToLook,
+  stripPointToLook,
   fieldOfViewToHalfHeight,
   MAX_FIELD_OF_VIEW_DEG,
   MAX_PITCH_DEG,
@@ -126,4 +128,29 @@ test('hårt perspektiv mäter synfältet med tangens', () => {
 test('mjukt perspektiv drar ut kanterna mindre än det hårda', () => {
   assertIsClose(fieldOfViewToHalfHeight(180, 'soft'), 2);
   assert.ok(fieldOfViewToHalfHeight(100, 'soft') < fieldOfViewToHalfHeight(100, 'straight'));
+});
+
+test('mitt på skärmen pekar dit blicken pekar, i båda perspektiven', () => {
+  for (const perspective of ['soft', 'straight'] as const) {
+    const look = screenPointToLook({ yawDeg: 40, pitchDeg: -20 }, { x: 0, y: 0 }, { aspect: 0.5, fieldOfViewDeg: 75, perspective });
+    assert.ok(Math.abs(look.yawDeg - 40) < 1e-9 && Math.abs(look.pitchDeg + 20) < 1e-9, JSON.stringify(look));
+  }
+});
+
+test('överkanten pekar halva synfältet upp, och högerkanten åt höger', () => {
+  const top = screenPointToLook({ yawDeg: 0, pitchDeg: 0 }, { x: 0, y: 1 }, { aspect: 0.5, fieldOfViewDeg: 70, perspective: 'soft' });
+  assert.ok(Math.abs(top.pitchDeg - 35) < 1e-9, JSON.stringify(top));
+  const right = screenPointToLook({ yawDeg: 170, pitchDeg: 0 }, { x: 1, y: 0 }, { aspect: 1, fieldOfViewDeg: 60, perspective: 'straight' });
+  assert.ok(Math.abs(right.yawDeg - -160) < 1e-9, JSON.stringify(right));
+});
+
+test('med mobilen lutad åt höger pekar högerkanten lite nedåt', () => {
+  const right = screenPointToLook({ yawDeg: 0, pitchDeg: 0, rollDeg: 30 }, { x: 1, y: 0 }, { aspect: 1, fieldOfViewDeg: 60, perspective: 'straight' });
+  assert.ok(right.yawDeg > 0 && right.pitchDeg < 0, JSON.stringify(right));
+});
+
+test('i den breda bilden räknas trycket från mitten', () => {
+  const sizes = { imageWidthPx: 2000, imageHeightPx: 1000, viewWidthPx: 400, viewHeightPx: 500 };
+  assert.deepEqual(stripPointToLook(10, { xPx: 200, yPx: 250 }, sizes), { yawDeg: 10, pitchDeg: 0 });
+  assert.deepEqual(stripPointToLook(170, { xPx: 400, yPx: 0 }, sizes), { yawDeg: -154, pitchDeg: 45 });
 });

@@ -206,6 +206,7 @@ export function App() {
     moveInCellar: (move) => sendInGame({ type: 'moveInCellar', move }),
     walk: (placeId) => sendInGame({ type: 'walk', placeId }),
     searchRoom: () => sendInGame({ type: 'searchRoom' }),
+    findThing: (direction) => sendInGame({ type: 'findThing', direction }),
     giveHint: () => sendInGame({ type: 'giveHint' }),
     showSolution: () => sendInGame({ type: 'showSolution' }),
     endGame: () => sendInGame({ type: 'endGame' }),

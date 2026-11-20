@@ -274,7 +274,7 @@ Klar när meddelandet är klart, utan skriver ett svar under `question`, och
 frågan står kvar tills gruppen vet. Med `wrongAnswerMinutes` dras tid från
 nedräkningen för varje fel svar, och alla ser hur många fel det har blivit.
 Med `callsFromHouse` kallar brädet på gruppen tills meddelandet är klart:
-saken som öppnar seansen skimrar i rummets lista, och i de andra rummen
+raden längst ner i rummet med saken som öppnar seansen skimrar, och i de andra rummen
 visas sakens `callingText` som en berättartext i fullskärm, en gång, med
 knappen Ok, till exempel att det hörs något från salongen (Jonas 2026-11-18).
 Knackningar togs bort,
@@ -364,7 +364,7 @@ bitar. Listan Hittat är borttagen, men namnen `found` och `foundTitle` finns
 kvar i koden (Jonas 2026-11-18). Se `found.ts`.
 
 **Huset** står i uppdragets `house`: rummet där alla börjar, och för varje
-rum dörrarna och sakerna. En sak har en text att visa, sidor att bläddra i
+rum dörrarna och sakerna. En sak har en text att visa, med en närbild i `image` om den finns, sidor att bläddra i
 (`pages`, som gästboken) eller ett steg som den
 öppnar (`opensSteps`, en lista, så att ouijabrädet kan öppna båda seanserna).
 Saker går alltid att hitta och undersöka, och `fromStep` på en sak ger fel. Det
@@ -373,8 +373,19 @@ som inte ska nås för tidigt låses i stället (Jonas 2026-11-18). Ett steg med
 läsa från saken direkt. Scenen väntar på uppgiften i `endsWithStep` och på
 att alla har läst.
 Var spelaren är sparas i `placeByPlayer`, som platskorten använder, och det
-gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr,
-och `searchRoom` hittar allt som finns i rummet. Ett
+gruppen har hittat i `foundThings`. Handlingen `walk` går bara genom en dörr.
+
+**Rundbilden** för ett rum står i rummets `image`, och var varje dörr sitter i
+`doorSpots`. En sak i ett rum med bild har en `spot`: vridning och lutning i
+grader, som i visaren, och en träffyta i `radiusDeg` (Jonas 2026-11-20). En
+låst dörr som också är en sak, som källardörren, sitter där saken sitter.
+Mobilen får platserna för det som ingen har hittat i `hiddenSpots`, men inte
+vad det är. Handlingen `findThing` skickar riktningen spelaren tryckte på, och
+servern hittar det som sitter där med samma funktion som mobilen tänder det
+med, `findSpotAt` i `spots.ts`. Ett rum utan bild, som källaren tills den har
+en, visas som en lista, och där hittar `searchRoom` allt som finns i rummet.
+Kontrollen av uppdraget ger fel om en sak eller dörr i ett rum med bild saknar
+plats. Ett
 steg som öppnas från en sak syns i mobilen först när spelaren har öppnat
 saken. Dörrarna kontrolleras så att de går åt båda hållen. Se `house.ts`.
 

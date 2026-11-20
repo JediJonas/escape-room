@@ -12,7 +12,7 @@ import { markRead, skipReading } from './reading.ts';
 import { giveHint } from './hints.ts';
 import { type StateChange, choosePlace, markReady, showSolution, startGame, submitAnswer } from './game.ts';
 import { endGame, setPaused } from './leaderControls.ts';
-import { chooseFlashbackRoom, fadeFlashback, moveInCellar, playKey, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
+import { chooseFlashbackRoom, fadeFlashback, findHere, moveInCellar, playKey, searchHere, touchBoard, turnClock, walkThroughDoor } from './taskActions.ts';
 import { readCellarMove } from './cellar.ts';
 import { isValidJoinCode, normalizeJoinCode } from './joinCode.ts';
 import { DEFAULT_MISSION_ID, cleanPlayerName, findJoinRefusal } from './lobby.ts';
@@ -282,6 +282,15 @@ async function searchRoomAction(action: Action, context: Context): Promise<Actio
   });
 }
 
+/** Som att leta, men bara det som sitter där spelaren tryckte i rundbilden. */
+async function findThingAction(action: Action, context: Context): Promise<ActionResult> {
+  return withParticipant(action, context, async (scope) => {
+    const change = findHere({ state: scope.game.state, mission: scope.mission, player: scope.player, direction: action.direction });
+    const isUnchanged = 'state' in change && change.state === scope.game.state;
+    return applyChange(scope, change, { action: { type: 'findThing' }, recipients: isUnchanged ? [scope.player] : undefined });
+  });
+}
+
 const HANDLERS: Record<string, (action: Action, context: Context) => Promise<ActionResult>> = {
   createGame,
   joinGame,
@@ -303,6 +312,7 @@ const HANDLERS: Record<string, (action: Action, context: Context) => Promise<Act
   playKey: playKeyAction,
   walk: walkAction,
   searchRoom: searchRoomAction,
+  findThing: findThingAction,
   giveHint: giveHintAction,
   showSolution: showSolutionAction,
   admitPlayer: (action, context) => answerPendingAction(action, context, true),

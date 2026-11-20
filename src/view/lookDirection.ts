@@ -121,3 +121,47 @@ export function yawToStripOffsetPx(yawDeg: number, { imageWidthPx, viewWidthPx }
   const centerInImagePx = (wrapYawDeg(yawDeg) / 360 + 0.5) * imageWidthPx;
   return viewWidthPx / 2 - centerInImagePx;
 }
+
+/**
+ * Åt vilket håll en punkt på skärmen pekar ut i rummet, så att ett tryck på
+ * en sak träffar saken. Räknar som visarens shader, bara åt andra hållet.
+ * @param point punkten från -1 till 1 i båda leden, med y uppåt
+ * @param view visarens bredd delat med höjd, synfält i höjdled och perspektiv
+ */
+export function screenPointToLook(look: LookDirection, point: { x: number; y: number }, view: { aspect: number; fieldOfViewDeg: number; perspective: 'straight' | 'soft' }): LookDirection {
+  const toRadians = Math.PI / 180;
+  const halfHeight = fieldOfViewToHalfHeight(view.fieldOfViewDeg, view.perspective);
+  const roll = (look.rollDeg ?? 0) * toRadians;
+  const [screenX, screenY] = [point.x * halfHeight * view.aspect, point.y * halfHeight];
+  const x = screenX * Math.cos(roll) + screenY * Math.sin(roll);
+  const y = screenY * Math.cos(roll) - screenX * Math.sin(roll);
+  let ray: [number, number, number];
+  if (view.perspective === 'soft') {
+    const distance = Math.hypot(x, y);
+    const angle = 2 * Math.atan(distance / 2);
+    ray = distance > 0 ? [(x / distance) * Math.sin(angle), (y / distance) * Math.sin(angle), -Math.cos(angle)] : [0, 0, -1];
+  } else {
+    const length = Math.hypot(x, y, 1);
+    ray = [x / length, y / length, -1 / length];
+  }
+  const [cosPitch, sinPitch] = [Math.cos(look.pitchDeg * toRadians), Math.sin(look.pitchDeg * toRadians)];
+  const [cosYaw, sinYaw] = [Math.cos(look.yawDeg * toRadians), Math.sin(look.yawDeg * toRadians)];
+  const [rayX, pitchedY, pitchedZ] = [ray[0], ray[1] * cosPitch - ray[2] * sinPitch, ray[1] * sinPitch + ray[2] * cosPitch];
+  const [turnedX, turnedZ] = [rayX * cosYaw - pitchedZ * sinYaw, rayX * sinYaw + pitchedZ * cosYaw];
+  return {
+    yawDeg: wrapYawDeg(Math.atan2(turnedX, -turnedZ) / toRadians),
+    pitchDeg: Math.asin(Math.max(-1, Math.min(1, pitchedY))) / toRadians,
+  };
+}
+
+/**
+ * Samma sak för den breda bilden, som bara går att vrida i sidled.
+ * @param point i pixlar från visarens övre vänstra hörn
+ * @param sizes bildens bredd och höjd som den ritas, och visarens storlek
+ */
+export function stripPointToLook(yawDeg: number, point: { xPx: number; yPx: number }, sizes: { imageWidthPx: number; imageHeightPx: number; viewWidthPx: number; viewHeightPx: number }): LookDirection {
+  return {
+    yawDeg: wrapYawDeg(yawDeg + ((point.xPx - sizes.viewWidthPx / 2) / sizes.imageWidthPx) * 360),
+    pitchDeg: ((sizes.viewHeightPx / 2 - point.yPx) / sizes.imageHeightPx) * 180,
+  };
+}

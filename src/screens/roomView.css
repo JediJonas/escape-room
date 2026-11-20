@@ -1,0 +1,107 @@
+/*
+ * Rummet som rundbild fyller hela skärmen, som källaren (Jonas 2026-11-20).
+ * Rummets namn och klockan ligger överst, och längst ner en rad som säger
+ * vad som är tänt mitt i bilden. Raden lämnar plats åt spelledarens meny.
+ */
+.room-screen {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+  touch-action: none;
+  background: #000000;
+}
+
+.room-screen .game-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  margin: 0;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 1rem 1.5rem;
+  align-items: center;
+  color: rgb(240 225 200 / 0.9);
+  background: linear-gradient(rgb(0 0 0 / 0.55), transparent);
+  pointer-events: none;
+}
+
+.room-screen .room-name { font-weight: 600; }
+
+/* Siktet mitt i bilden. Det fylls när något går att trycka på. */
+.room-aim {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid rgb(240 225 200 / 0.55);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: width 0.15s, height 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.room-aim.is-aimed {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-color: rgb(255 214 140 / 0.95);
+  background: rgb(255 214 140 / 0.2);
+  box-shadow: 0 0 12px 2px rgb(255 214 140 / 0.45);
+}
+
+.room-bottom {
+  position: absolute;
+  left: 50%;
+  bottom: calc(1rem + var(--bottom-gap));
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  width: calc(100% - 2 * (var(--leader-menu-size) + 1.5rem));
+  min-height: var(--leader-menu-size);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.room-label,
+.room-note {
+  align-self: center;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(240 225 200 / 0.3);
+  background: rgb(0 0 0 / 0.75);
+  color: rgb(240 225 200 / 0.9);
+  text-align: center;
+}
+
+.room-note:empty { display: none; }
+
+.room-label {
+  width: auto;
+  min-height: var(--leader-menu-size);
+  border-color: rgb(255 214 140 / 0.7);
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+/* Något i rummet kallar på gruppen, som brädet: raden skimrar som i listan förut (Jonas 2026-11-18). */
+.room-bottom .is-calling {
+  position: relative;
+  overflow: hidden;
+  animation: thing-glow 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-bottom .is-calling { animation: none; }
+}
+
+/* Felet från servern ligger under klockan, som i källaren. */
+.room-error {
+  position: absolute;
+  inset: calc(3.5rem + env(safe-area-inset-top)) 1rem auto;
+  z-index: 3;
+  text-align: center;
+  pointer-events: none;
+}
+
+.room-error:empty { display: none; }

@@ -69,9 +69,11 @@ sist under Namn som är bestämda.
 | Rum | En plats i huset, som hallen eller salongen. Ett rum har dörrar och saker. | `HouseRoom` |
 | Dörr | En väg från ett rum till ett annat. I Den femte gästen nås alla rum från hallen, och salongen har också dörrar till sovrummet och köket. | `doors`, `walk` |
 | Sak | Något i ett rum som går att trycka på, som ouijabrädet, golvuret, byrån eller tavlan. Öppnar alltid en sakvy. Också det man undersöker i en rundbild, som tidigare kallades föremål. | `HouseThing`, `ThingView` |
-| Hitta | En sak syns i rummets lista först när någon har hittat den. Det räcker att en spelare gör det. | `foundThings`, `searchRoom` |
-| Leta i rummet | Knappen som hittar det som finns i rummet, tills rundbilderna finns. | `searchRoom` |
-| Kallar | En sak drar till sig gruppen: den skimrar i rummets lista, och i de andra rummen visas en berättartext. | `callsFromHouse`, `isCalling`, `callingText` |
+| Hitta | En sak heter Undersök i rundbilden tills någon har tryckt på den. Sedan heter den sitt namn för alla. Det räcker att en spelare gör det. | `foundThings`, `findThing`, `hiddenSpots` |
+| Leta i rummet | Knappen som hittar det som finns i ett rum utan rundbild, som källaren. | `searchRoom` |
+| Plats i bilden | Var en sak eller dörr sitter i rundbilden: vridning, lutning och en träffyta i grader. | `Spot`, `spot`, `doorSpots` |
+| Tänd | Det som är mitt i rundbilden tänds: siktet fylls och raden längst ner säger vad det är. Ett tryck öppnar det. | `findSpotAt` |
+| Kallar | En sak drar till sig gruppen: raden längst ner i dess rum skimrar, och i de andra rummen visas en berättartext. | `callsFromHouse`, `isCalling`, `callingText` |
 | Instrument | Golvuret och pianot, som går att använda hela tiden och inte bara när berättelsen har kommit dit. | `Instrument`, `instrument` |
 | Instängd | En spelare som isoleras med en egen vy, som i källaren. | `trapped` |
 | Utelåst | En spelare som stängs ute från det de andra gör. Bara i konceptet än. | |
@@ -80,14 +82,13 @@ sist under Namn som är bestämda.
 
 | Begrepp | Betydelse | I koden |
 | --- | --- | --- |
-| Textvy | Rummet som en lista: var spelaren är, det som har hittats där och dörrarna. Hette tidigare textläget. | `TextView` |
-| Rumsvy | Rummet som en rundbild, där spelaren trycker på saker och dörrar i bilden. Nås med Visa rummet. Hette tidigare rundbildsläget. Inte byggd i spelet än. | |
+| Rumsvy | Rummet som en rundbild i fullskärm, där spelaren trycker på saker och dörrar i bilden. Det enda sättet att se ett rum, sedan textvyn togs bort (Jonas 2026-11-20). Ett rum utan bild, som källaren, visas som en lista tills bilden finns. | `RoomView`, `RoomList` |
 | Sakvy | Det som öppnas när spelaren trycker på en sak: saken i fullskärm, utan rubrik och text, med klockan och Tillbaka överst. | `ThingScreen` |
 | Berättartext | En text i fullskärm som dyker upp av sig själv, visas en gång och bekräftas med Ok. Också scenerna i huset visas så. | `narration`, `melodyText`, `callingFrom` |
 | Fullskärm | En vy som fyller skärmen. Inte helskärm. Bakgrunden går kant i kant, men innehållet har en största bredd och höjd. | `ThingScreen` |
 | Fyra hörn | Varje skärm har samma fyra hörn: uppdraget uppe till vänster, tiden uppe till höger, statusraden nere till vänster och spelledarens meny nere till höger. I fullskärm står Tillbaka i uppdragets hörn. Knapparna står ovanför den nedre raden. Hörnen följer innehållets kanter, inte skärmens. | |
 | Statusrad | Den korta raden text nere till vänster, som står kvar och beskriver läget, som Gå runt i huset och leta eller vem skenet väntar på. Hette tidigare notis. | |
-| Tillbaka | Knappen uppe till vänster som tar spelaren ut ur en sakvy till textvyn eller rumsvyn, den hon kom från. Alla har den. | `leaveThing` |
+| Tillbaka | Knappen uppe till vänster som tar spelaren ut ur en sakvy tillbaka till rummet. Alla har den. | `leaveThing` |
 | Meny | Spelledarens hamburgare i nedre högra hörnet. Spelarna har ingen meny, utom den instängda i källaren. | `LeaderMenu` |
 | Inforuta | Den tillfälliga rutan längst ner som visar en ny ledtråd hos alla en stund. Går att trycka bort. Inte samma sak som statusraden, som står kvar. | `InfoBox` |
 | Huvudhandling | Skärmens viktigaste knapp. Ligger underst, närmast tummen. | `actions` i `ScreenLayout` |
@@ -106,7 +107,7 @@ sist under Namn som är bestämda.
 | Ledtråd | En av uppgiftens tre hjälptexter i stigande tydlighet. Spelledaren ger dem en i taget med Ge ledtråd, servern väljer vilken, och alla ser dem en stund i en ruta. Före dem kan det komma att en sak finns i huset, om ingen har hittat den. | `hints`, `findHint`, `giveHint` |
 | Facit | Uppgiftens rätta svar. Ligger på servern och visas bara för spelledaren när hon ber om det. | `solution`, `showSolution` |
 | Hoppa över | Spelledaren går förbi en uppgift som har låst sig. I urklippen räknas alla som lästa och Rummen minns hoppas över med ett tryck. | `nextStep`, `skipReading` |
-| Stegets text | Texten som beskriver steget. Syns i textvyn, men inte i en sak i fullskärm och inte i spelledarens meny. | `step.text` |
+| Stegets text | Texten som beskriver steget. Syns i berättartexter och utanför huset, men inte i en sak i fullskärm och inte i spelledarens meny. | `step.text` |
 
 ## Den femte gästen
 
@@ -151,8 +152,8 @@ sist under Namn som är bestämda.
 
 Jonas tog ställning till de här namnen den 18 november 2026.
 
-1. **Textvy och rumsvy** i stället för textläget och rundbildsläget. I koden
-   heter textvyn `TextView`. Rumsvyn får namnet `RoomView` när den byggs.
+1. **Textvy och rumsvy** i stället för textläget och rundbildsläget. Rumsvyn
+   heter `RoomView` i koden. Textvyn är borttagen (Jonas 2026-11-20).
 2. **Sak och sakvy.** Sak används överallt, också i stället för föremål om
    det man undersöker i en rundbild. Det som öppnas heter sakvy. Koden heter
    redan `HouseThing` och `ThingScreen`.

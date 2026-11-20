@@ -164,3 +164,25 @@
   font: 1.3rem/1.55 Georgia, 'Times New Roman', serif;
 }
 .narration-text + .narration-text { margin-top: 1rem; }
+
+/*
+ * En sak att titta på, som tavlan: närbilden fyller det som blir över, och
+ * texten står under den (Jonas 2026-11-20).
+ */
+.thing-look {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.thing-look.has-image .thing-paper { flex: 0 0 auto; max-height: 40%; }
+
+.thing-image {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+  border-radius: 0.5rem;
+}

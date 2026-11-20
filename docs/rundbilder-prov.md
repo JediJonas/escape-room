@@ -311,3 +311,16 @@ argument och `CZ=-1.0`, eftersom bordet med ouijabrädet står mitt i rummet.
 - **Tiden blev kvart över tio** (Jonas 2026-11-20). Ägaren läste golvuret i
   salongen 1962 som kvart över tio, så tiden i spelet flyttades en timme i
   stället för att göra om bilden.
+
+## Köket och sovrummet
+
+Ägaren bad om de två sista rummen utom källaren (Jonas 2026-11-20). Mallen
+har funktionerna `koket` och `sovrummet`, med betraktaren mitt i rummet.
+
+- **1962** gjordes från mallen med den målade hallen från 1962 som förebild
+  för stilen, ett försök per rum. Båda följde mallen. I köket hamnade
+  proppskåpet på högra väggen vid spisen i stället för på väggen bakom.
+- **I dag** är redigeringar av 1962-bilderna. I köket blev en rostrand i
+  diskhon blodröd och togs bort med en redigering till.
+- **Salongen.** En extra dörr på högra väggen, nära hörnet mot hallen, togs
+  bort i båda bilderna.

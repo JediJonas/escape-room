@@ -6,7 +6,7 @@ färgfält läste Gemini väggarnas bågar som extra hörn. Med skuggningen blev
 fyra hörn (2026-11-20). Gråskalan visar bara form och läge, inte färg.
 Bilden ritas direkt i 16:9, samma format som Gemini svarar i.
 
-Körs med: python3 tools/rundbildsmall.py ut.png [rum], där rum är hallen eller salongen.
+Körs med: python3 tools/rundbildsmall.py ut.png [rum], där rum är hallen, salongen, koket eller sovrummet.
 CX och CZ i miljön flyttar betraktaren i meter från mitten, till exempel
 CZ=-1.3 för en bit in från ytterdörren. Rummet nedan är hallen.
 """
@@ -85,7 +85,32 @@ def salongen():
     rect('right',0.6,-1.2,0,0.95,0.5,Z)    # skänk
     rect('front',0.5,1.4,0,2.1,0.6,X)      # dörr till hallen
     rect('front',-2.0,-0.8,0,2.0,0.45,X)   # vitrinskåp
-ROOMS = {'hallen': hallen, 'salongen': salongen}
+def koket():
+    rug(0, 0, 1.0)
+    rect('back',-2.3,-1.4,0,2.1,0.6,X)     # dörr till salongen
+    rect('back',0.0,1.6,0,0.9,0.5,X)       # diskbänk med diskho
+    rect('back',0.2,1.4,1.1,2.2,1.15,X)    # fönster
+    rect('right',0.6,1.7,0,0.9,0.35,Z)     # spis
+    rect('right',-1.8,0.4,0,0.9,0.5,Z)     # arbetsbänk
+    rect('right',-1.6,0.2,1.4,2.1,0.6,Z)   # väggskåp
+    rect('left',-0.45,0.45,0,2.1,0.6,Z)    # dörr till hallen
+    rect('left',1.0,1.8,1.3,2.0,0.75,Z)    # tavla
+    rect('front',-2.3,-1.4,0,2.2,0.55,X)   # skafferi
+    rect('front',-1.0,0.4,0,0.8,0.5,X)     # köksbord vid väggen
+    rect('front',1.3,1.9,1.4,2.0,0.4,X)    # proppskåp
+def sovrummet():
+    rug(0, 0, 1.25)
+    rect('back',-0.7,0.7,0.9,2.3,1.15,X)   # fönster
+    rect('back',1.4,2.3,0,2.1,0.6,X)       # dörr till salongen
+    rect('left',-0.6,1.0,0,1.0,0.5,Z)      # säng, huvudgavel mot väggen
+    floorbox(-2.5,-0.9,-0.6,1.0,90)
+    rect('left',1.2,1.7,0,0.6,0.5,Z)       # nattduksbord
+    rect('right',0.2,1.4,0,1.0,0.45,Z)     # byrå
+    rect('right',0.3,1.3,1.3,2.0,0.75,Z)   # tavla över byrån
+    rect('right',-2.3,-1.4,0,2.1,0.6,Z)    # dörr till hallen
+    rect('front',-2.3,0.8,0,2.4,0.5,X)     # bokhyllor från biblioteket
+    rect('front',1.2,2.0,0,1.0,0.55,X)     # fåtölj
+ROOMS = {'hallen': hallen, 'salongen': salongen, 'koket': koket, 'sovrummet': sovrummet}
 ROOMS[sys.argv[2] if len(sys.argv) > 2 else 'hallen']()
 # hörn, golvlist och taklist
 wall = idx<4

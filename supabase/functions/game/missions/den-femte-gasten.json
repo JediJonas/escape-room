@@ -42,7 +42,13 @@
             "spot": {
               "yawDeg": 15,
               "pitchDeg": -27,
-              "radiusDeg": 14
+              "radiusDeg": 14,
+              "frame": {
+                "yawDeg": 16,
+                "pitchDeg": -28.5,
+                "widthDeg": 28,
+                "heightDeg": 9
+              }
             }
           },
           {
@@ -55,7 +61,13 @@
             "spot": {
               "yawDeg": 0,
               "pitchDeg": 3,
-              "radiusDeg": 12
+              "radiusDeg": 12,
+              "frame": {
+                "yawDeg": 0.5,
+                "pitchDeg": -4.5,
+                "widthDeg": 13,
+                "heightDeg": 35
+              }
             }
           },
           {
@@ -66,7 +78,13 @@
             "spot": {
               "yawDeg": -150,
               "pitchDeg": -8,
-              "radiusDeg": 16
+              "radiusDeg": 16,
+              "frame": {
+                "yawDeg": -142.5,
+                "pitchDeg": -12.5,
+                "widthDeg": 41,
+                "heightDeg": 67
+              }
             }
           },
           {
@@ -77,7 +95,13 @@
             "spot": {
               "yawDeg": -80,
               "pitchDeg": 9,
-              "radiusDeg": 12
+              "radiusDeg": 12,
+              "frame": {
+                "yawDeg": -79.5,
+                "pitchDeg": 4,
+                "widthDeg": 35,
+                "heightDeg": 24
+              }
             }
           },
           {
@@ -88,7 +112,13 @@
             "spot": {
               "yawDeg": 76,
               "pitchDeg": -17,
-              "radiusDeg": 13
+              "radiusDeg": 13,
+              "frame": {
+                "yawDeg": 76,
+                "pitchDeg": -25.5,
+                "widthDeg": 40,
+                "heightDeg": 23
+              }
             }
           }
         ],
@@ -96,17 +126,35 @@
           "B": {
             "yawDeg": 152,
             "pitchDeg": -2,
-            "radiusDeg": 14
+            "radiusDeg": 14,
+            "frame": {
+              "yawDeg": 150,
+              "pitchDeg": -11,
+              "widthDeg": 28,
+              "heightDeg": 60
+            }
           },
           "D": {
             "yawDeg": -48,
             "pitchDeg": -4,
-            "radiusDeg": 12
+            "radiusDeg": 12,
+            "frame": {
+              "yawDeg": -41.5,
+              "pitchDeg": -8,
+              "widthDeg": 11,
+              "heightDeg": 34
+            }
           },
           "C": {
             "yawDeg": 48,
             "pitchDeg": -4,
-            "radiusDeg": 12
+            "radiusDeg": 12,
+            "frame": {
+              "yawDeg": 42.5,
+              "pitchDeg": -6.5,
+              "widthDeg": 11,
+              "heightDeg": 31
+            }
           }
         }
       },
@@ -133,7 +181,13 @@
             "spot": {
               "yawDeg": -28,
               "pitchDeg": -12,
-              "radiusDeg": 16
+              "radiusDeg": 16,
+              "frame": {
+                "yawDeg": -25,
+                "pitchDeg": -21.5,
+                "widthDeg": 40,
+                "heightDeg": 35
+              }
             }
           },
           {
@@ -150,7 +204,13 @@
             "spot": {
               "yawDeg": -76,
               "pitchDeg": -19,
-              "radiusDeg": 10
+              "radiusDeg": 10,
+              "frame": {
+                "yawDeg": -77,
+                "pitchDeg": -18.5,
+                "widthDeg": 14,
+                "heightDeg": 5
+              }
             }
           },
           {
@@ -162,7 +222,13 @@
             "spot": {
               "yawDeg": 116,
               "pitchDeg": -2,
-              "radiusDeg": 14
+              "radiusDeg": 14,
+              "frame": {
+                "yawDeg": 120,
+                "pitchDeg": -10,
+                "widthDeg": 22,
+                "heightDeg": 44
+              }
             }
           },
           {
@@ -173,7 +239,13 @@
             "spot": {
               "yawDeg": -79,
               "pitchDeg": 1,
-              "radiusDeg": 9
+              "radiusDeg": 9,
+              "frame": {
+                "yawDeg": -79.5,
+                "pitchDeg": -1,
+                "widthDeg": 17,
+                "heightDeg": 18
+              }
             }
           },
           {
@@ -184,7 +256,13 @@
             "spot": {
               "yawDeg": -150,
               "pitchDeg": -5,
-              "radiusDeg": 10
+              "radiusDeg": 10,
+              "frame": {
+                "yawDeg": -145,
+                "pitchDeg": -10,
+                "widthDeg": 14,
+                "heightDeg": 28
+              }
             }
           },
           {
@@ -195,7 +273,13 @@
             "spot": {
               "yawDeg": 152,
               "pitchDeg": -8,
-              "radiusDeg": 8
+              "radiusDeg": 8,
+              "frame": {
+                "yawDeg": 153,
+                "pitchDeg": -8,
+                "widthDeg": 10,
+                "heightDeg": 26
+              }
             }
           }
         ],
@@ -203,17 +287,35 @@
           "F": {
             "yawDeg": 22,
             "pitchDeg": -2,
-            "radiusDeg": 10
+            "radiusDeg": 10,
+            "frame": {
+              "yawDeg": 20.5,
+              "pitchDeg": -9,
+              "widthDeg": 21,
+              "heightDeg": 44
+            }
           },
           "C": {
             "yawDeg": 43,
             "pitchDeg": -2,
-            "radiusDeg": 10
+            "radiusDeg": 10,
+            "frame": {
+              "yawDeg": 39,
+              "pitchDeg": -8.5,
+              "widthDeg": 14,
+              "heightDeg": 41
+            }
           },
           "D": {
             "yawDeg": -112,
             "pitchDeg": -2,
-            "radiusDeg": 14
+            "radiusDeg": 14,
+            "frame": {
+              "yawDeg": -107.5,
+              "pitchDeg": -8.5,
+              "widthDeg": 25,
+              "heightDeg": 43
+            }
           }
         }
       },
@@ -233,7 +335,13 @@
             "spot": {
               "yawDeg": -68,
               "pitchDeg": 6,
-              "radiusDeg": 12
+              "radiusDeg": 12,
+              "frame": {
+                "yawDeg": -59.5,
+                "pitchDeg": 2.5,
+                "widthDeg": 17,
+                "heightDeg": 23
+              }
             }
           },
           {
@@ -244,7 +352,13 @@
             "spot": {
               "yawDeg": 155,
               "pitchDeg": -20,
-              "radiusDeg": 12
+              "radiusDeg": 12,
+              "frame": {
+                "yawDeg": 154,
+                "pitchDeg": -37,
+                "widthDeg": 38,
+                "heightDeg": 46
+              }
             }
           },
           {
@@ -255,7 +369,13 @@
             "spot": {
               "yawDeg": 63,
               "pitchDeg": -17,
-              "radiusDeg": 12
+              "radiusDeg": 12,
+              "frame": {
+                "yawDeg": 77.5,
+                "pitchDeg": -15.5,
+                "widthDeg": 39,
+                "heightDeg": 7
+              }
             }
           },
           {
@@ -266,7 +386,13 @@
             "spot": {
               "yawDeg": -128,
               "pitchDeg": 0,
-              "radiusDeg": 11
+              "radiusDeg": 11,
+              "frame": {
+                "yawDeg": -130,
+                "pitchDeg": -7.5,
+                "widthDeg": 20,
+                "heightDeg": 57
+              }
             }
           },
           {
@@ -277,7 +403,13 @@
             "spot": {
               "yawDeg": 165,
               "pitchDeg": 10,
-              "radiusDeg": 8
+              "radiusDeg": 8,
+              "frame": {
+                "yawDeg": 165.5,
+                "pitchDeg": 10,
+                "widthDeg": 16,
+                "heightDeg": 18
+              }
             }
           }
         ],
@@ -285,12 +417,24 @@
           "B": {
             "yawDeg": -97,
             "pitchDeg": -3,
-            "radiusDeg": 14
+            "radiusDeg": 14,
+            "frame": {
+              "yawDeg": -90,
+              "pitchDeg": -8.5,
+              "widthDeg": 26,
+              "heightDeg": 47
+            }
           },
           "F": {
             "yawDeg": -28,
             "pitchDeg": -3,
-            "radiusDeg": 14
+            "radiusDeg": 14,
+            "frame": {
+              "yawDeg": -18,
+              "pitchDeg": -9,
+              "widthDeg": 22,
+              "heightDeg": 46
+            }
           }
         }
       },
@@ -312,7 +456,13 @@
             "spot": {
               "yawDeg": 73,
               "pitchDeg": -20,
-              "radiusDeg": 16
+              "radiusDeg": 16,
+              "frame": {
+                "yawDeg": 73,
+                "pitchDeg": -26,
+                "widthDeg": 34,
+                "heightDeg": 26
+              }
             }
           },
           {
@@ -323,7 +473,13 @@
             "spot": {
               "yawDeg": 30,
               "pitchDeg": -60,
-              "radiusDeg": 12
+              "radiusDeg": 12,
+              "frame": {
+                "yawDeg": 27,
+                "pitchDeg": -62.5,
+                "widthDeg": 26,
+                "heightDeg": 13
+              }
             }
           },
           {
@@ -334,7 +490,13 @@
             "spot": {
               "yawDeg": -7,
               "pitchDeg": -16,
-              "radiusDeg": 8
+              "radiusDeg": 8,
+              "frame": {
+                "yawDeg": -6.5,
+                "pitchDeg": -15,
+                "widthDeg": 5,
+                "heightDeg": 6
+              }
             }
           },
           {
@@ -345,7 +507,13 @@
             "spot": {
               "yawDeg": -160,
               "pitchDeg": 5,
-              "radiusDeg": 18
+              "radiusDeg": 18,
+              "frame": {
+                "yawDeg": -165,
+                "pitchDeg": -3,
+                "widthDeg": 65,
+                "heightDeg": 62
+              }
             }
           },
           {
@@ -356,7 +524,13 @@
             "spot": {
               "yawDeg": 150,
               "pitchDeg": -17,
-              "radiusDeg": 12
+              "radiusDeg": 12,
+              "frame": {
+                "yawDeg": 145.5,
+                "pitchDeg": -25,
+                "widthDeg": 27,
+                "heightDeg": 26
+              }
             }
           }
         ],
@@ -364,12 +538,24 @@
           "B": {
             "yawDeg": 120,
             "pitchDeg": -3,
-            "radiusDeg": 14
+            "radiusDeg": 14,
+            "frame": {
+              "yawDeg": 120.5,
+              "pitchDeg": -10,
+              "widthDeg": 21,
+              "heightDeg": 44
+            }
           },
           "F": {
             "yawDeg": 37,
             "pitchDeg": -3,
-            "radiusDeg": 12
+            "radiusDeg": 12,
+            "frame": {
+              "yawDeg": 36.5,
+              "pitchDeg": -7.5,
+              "widthDeg": 17,
+              "heightDeg": 39
+            }
           }
         }
       },

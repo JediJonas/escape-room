@@ -155,6 +155,49 @@ export function screenPointToLook(look: LookDirection, point: { x: number; y: nu
 }
 
 /**
+ * Var på skärmen en riktning i rummet hamnar, så att en ram kan ritas runt en
+ * sak. Räknar som screenPointToLook, fast åt andra hållet.
+ * @param view visarens bredd delat med höjd, synfält i höjdled och perspektiv
+ * @returns punkten från -1 till 1 i båda leden, med y uppåt, eller null om
+ * riktningen ligger bakom spelaren
+ */
+export function lookToScreenPoint(look: LookDirection, direction: LookDirection, view: { aspect: number; fieldOfViewDeg: number; perspective: 'straight' | 'soft' }): { x: number; y: number } | null {
+  const toRadians = Math.PI / 180;
+  const [cosPitch, sinPitch] = [Math.cos(look.pitchDeg * toRadians), Math.sin(look.pitchDeg * toRadians)];
+  const [cosYaw, sinYaw] = [Math.cos(look.yawDeg * toRadians), Math.sin(look.yawDeg * toRadians)];
+  const [directionYaw, directionPitch] = [direction.yawDeg * toRadians, direction.pitchDeg * toRadians];
+  const [turnedX, worldY, turnedZ] = [Math.cos(directionPitch) * Math.sin(directionYaw), Math.sin(directionPitch), -Math.cos(directionPitch) * Math.cos(directionYaw)];
+  const [rayX, pitchedZ] = [turnedX * cosYaw + turnedZ * sinYaw, turnedZ * cosYaw - turnedX * sinYaw];
+  const [rayY, rayZ] = [worldY * cosPitch + pitchedZ * sinPitch, pitchedZ * cosPitch - worldY * sinPitch];
+  if (rayZ >= 0) return null;
+  let [x, y] = [rayX / -rayZ, rayY / -rayZ];
+  if (view.perspective === 'soft') {
+    const sideways = Math.hypot(rayX, rayY);
+    const distance = 2 * Math.tan(Math.acos(Math.max(-1, Math.min(1, -rayZ))) / 2);
+    [x, y] = sideways > 0 ? [(rayX / sideways) * distance, (rayY / sideways) * distance] : [0, 0];
+  }
+  const roll = (look.rollDeg ?? 0) * toRadians;
+  const halfHeight = fieldOfViewToHalfHeight(view.fieldOfViewDeg, view.perspective);
+  return {
+    x: (x * Math.cos(roll) - y * Math.sin(roll)) / (halfHeight * view.aspect),
+    y: (x * Math.sin(roll) + y * Math.cos(roll)) / halfHeight,
+  };
+}
+
+/**
+ * Samma sak för den breda bilden. Allt ligger framför spelaren, och
+ * vridningen räknas åt det håll som är närmast.
+ * @param sizes bildens bredd och höjd som den ritas, och visarens storlek
+ * @returns punkten i pixlar från visarens övre vänstra hörn
+ */
+export function stripLookToPoint(yawDeg: number, direction: LookDirection, sizes: { imageWidthPx: number; imageHeightPx: number; viewWidthPx: number; viewHeightPx: number }): { xPx: number; yPx: number } {
+  return {
+    xPx: sizes.viewWidthPx / 2 + (wrapYawDeg(direction.yawDeg - yawDeg) / 360) * sizes.imageWidthPx,
+    yPx: sizes.viewHeightPx / 2 - (direction.pitchDeg / 180) * sizes.imageHeightPx,
+  };
+}
+
+/**
  * Samma sak för den breda bilden, som bara går att vrida i sidled.
  * @param point i pixlar från visarens övre vänstra hörn
  * @param sizes bildens bredd och höjd som den ritas, och visarens storlek

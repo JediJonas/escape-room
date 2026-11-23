@@ -157,3 +157,12 @@ test('dokument och Hittat finns bara i scener och måste ha text', () => {
   assert.deepEqual(findMissionErrors({ ...base, steps: [{ id: 's', type: 'scene', text: 'T', documents: [{ title: 'R', text: 'B', dateline: ' ' }] }] }), ['steget s har dokument utan rubrik eller text']);
   assert.deepEqual(findMissionErrors({ ...base, steps: [{ id: 's', type: 'answer', text: 'T', foundTitle: 'X', hints: ['a', 'b', 'c'], solution: { answers: ['x'] } }] }), ['steget s har dokument eller Hittat men är ingen scen']);
 });
+
+test('allt som går att trycka på i Den femte gästens rundbilder har en ram runt saken', () => {
+  const mission = getMission('den-femte-gasten');
+  assert.ok(mission?.house);
+  for (const room of mission.house.rooms) {
+    for (const thing of room.things) assert.ok(!thing.spot || thing.spot.frame, `${thing.id} i ${room.place} saknar ram`);
+    for (const [door, spot] of Object.entries(room.doorSpots ?? {})) assert.ok(spot.frame, `dörren till ${door} i ${room.place} saknar ram`);
+  }
+});

@@ -22,3 +22,28 @@ test('en plats har vridning, lutning och en träffyta som inte är för stor', (
   assert.ok(!isSpot({ yawDeg: 0, pitchDeg: 0, radiusDeg: 90 }));
   assert.ok(!isSpot('pianot'));
 });
+
+test('en plats kan ha en ram runt saken, och ramen måste gå att läsa', () => {
+  const frame = { yawDeg: -25, pitchDeg: -21, widthDeg: 40, heightDeg: 35 };
+  assert.ok(isSpot({ yawDeg: -28, pitchDeg: -12, radiusDeg: 16, frame }));
+  assert.ok(!isSpot({ yawDeg: -28, pitchDeg: -12, radiusDeg: 16, frame: { ...frame, widthDeg: 0 } }));
+  assert.ok(!isSpot({ yawDeg: -28, pitchDeg: -12, radiusDeg: 16, frame: { ...frame, pitchDeg: 100 } }));
+  assert.ok(!isSpot({ yawDeg: -28, pitchDeg: -12, radiusDeg: 16, frame: 'pianot' }));
+});
+
+test('saken tänds när mitten är innanför ramen, också vid kanten, men inte utanför', () => {
+  const items = [{ name: 'vitrinskåpet', spot: { yawDeg: -150, pitchDeg: -8, radiusDeg: 16, frame: { yawDeg: -150, pitchDeg: -8, widthDeg: 40, heightDeg: 60 } } }];
+  // En bred sak tänds i hela ramen, inte bara nära mitten.
+  assert.equal(findSpotAt(items, { yawDeg: -169, pitchDeg: 20 })?.name, 'vitrinskåpet');
+  // Strax utanför ramen tänds den inte, fast den gamla radien hade räckt.
+  assert.equal(findSpotAt(items, { yawDeg: -128, pitchDeg: -8 }), null);
+});
+
+test('en bred ram vinner över en smal när mitten ligger i båda', () => {
+  const items = [
+    { name: 'tavlan', spot: { yawDeg: 0, pitchDeg: 0, radiusDeg: 8, frame: { yawDeg: 0, pitchDeg: 0, widthDeg: 10, heightDeg: 10 } } },
+    { name: 'bokhyllan', spot: { yawDeg: 6, pitchDeg: 0, radiusDeg: 30, frame: { yawDeg: 6, pitchDeg: 0, widthDeg: 60, heightDeg: 60 } } },
+  ];
+  // Mitten ligger närmare tavlans mitt, så tavlan vinner fast bokhyllan är större.
+  assert.equal(findSpotAt(items, { yawDeg: 2, pitchDeg: 0 })?.name, 'tavlan');
+});

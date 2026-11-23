@@ -3,7 +3,8 @@ import type { HouseView } from '../../supabase/functions/game/house.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import { type Spot, findSpotAt } from '../../supabase/functions/game/spots.ts';
 import type { LookDirection } from '../view/lookDirection.ts';
-import { RoundImageView } from '../view/RoundImageView.tsx';
+import { RoundImageView, type ScreenProjection } from '../view/RoundImageView.tsx';
+import { listFrameOutline } from './roomFrame.ts';
 import { type RoomTarget, findTappedTarget, listRoomTargets } from './roomTargets.ts';
 import './roomView.css';
 
@@ -20,7 +21,8 @@ function rememberLook(roomId: string, look: LookDirection) {
 
 /**
  * Rummet som rundbild i fullskärm. Spelaren ser sig omkring genom att vrida
- * mobilen, med fingret som reserv. Det som hamnar mitt i bilden tänds, och
+ * mobilen, med fingret som reserv. Det som hamnar mitt i bilden tänds med en
+ * ram runt saken, i stället för ett sikte mitt i bilden (Jonas 2026-11-23), och
  * ett tryck öppnar det: en sak, en dörr eller något som ingen har hittat än
  * (Jonas 2026-11-20). Se docs/koncept.md, Rundbilder i huset.
  *
@@ -45,6 +47,8 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
   const roomId = house.room.id;
   const lookRef = useRef<LookDirection>(lastLook.roomId === roomId ? lastLook.look : { yawDeg: 0, pitchDeg: 0 });
   const [aimedKey, setAimedKey] = useState<string | null>(null);
+  // Ramen flyttas vid varje sensorvärde, så den skrivs direkt i SVG:n utan att React ritar om.
+  const frameRef = useRef<SVGPolygonElement>(null);
   const targets = listRoomTargets(house, canFind);
   const aimed = targets.find((target) => target.key === aimedKey) ?? null;
   const callingThing = targets.find((target) => target.kind === 'thing' && target.isCalling);
@@ -56,9 +60,11 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
     else onFind(target.spot);
   }
 
-  function handleLook(look: LookDirection, isSidewaysOnly: boolean) {
+  function handleLook(look: LookDirection, isSidewaysOnly: boolean, toScreen: ScreenProjection) {
     rememberLook(roomId, look);
-    setAimedKey(findSpotAt(targets, look, { isSidewaysOnly })?.key ?? null);
+    const target = findSpotAt(targets, look, { isSidewaysOnly });
+    setAimedKey(target?.key ?? null);
+    frameRef.current?.setAttribute('points', target ? listFramePoints(target.spot, toScreen) : '');
   }
 
   function handleTap(tapped: LookDirection, isSidewaysOnly: boolean) {
@@ -75,7 +81,9 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
       </p>
       <p className="error room-error" role="alert">{error}</p>
       <RoundImageView src={image} lookRef={lookRef} onTap={handleTap} onLook={handleLook}>
-        <div className={aimed ? 'room-aim is-aimed' : 'room-aim'} aria-hidden="true" />
+        <svg className="room-frame" aria-hidden="true">
+          <polygon ref={frameRef} />
+        </svg>
       </RoundImageView>
       <div className="room-bottom">
         {aimed ? (
@@ -91,6 +99,14 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
       </div>
     </main>
   );
+}
+
+/** Ramens kant på skärmen, som SVG vill ha den. Ligger en bit av ramen bakom spelaren ritas ingen ram. */
+function listFramePoints(spot: Spot, toScreen: ScreenProjection): string {
+  const outline = listFrameOutline(spot);
+  const points = outline.map(toScreen).filter((point) => point !== null);
+  if (points.length < outline.length) return '';
+  return points.map((point) => `${point.xPx.toFixed(1)},${point.yPx.toFixed(1)}`).join(' ');
 }
 
 /**

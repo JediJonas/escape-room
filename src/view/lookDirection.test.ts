@@ -6,6 +6,8 @@ import {
   screenPointToLook,
   stripPointToLook,
   fieldOfViewToHalfHeight,
+  lookToScreenPoint,
+  stripLookToPoint,
   MAX_FIELD_OF_VIEW_DEG,
   MAX_PITCH_DEG,
   MIN_FIELD_OF_VIEW_DEG,
@@ -153,4 +155,29 @@ test('i den breda bilden räknas trycket från mitten', () => {
   const sizes = { imageWidthPx: 2000, imageHeightPx: 1000, viewWidthPx: 400, viewHeightPx: 500 };
   assert.deepEqual(stripPointToLook(10, { xPx: 200, yPx: 250 }, sizes), { yawDeg: 10, pitchDeg: 0 });
   assert.deepEqual(stripPointToLook(170, { xPx: 400, yPx: 0 }, sizes), { yawDeg: -154, pitchDeg: 45 });
+});
+
+test('en riktning hamnar där ett tryck på skärmen pekar, i båda perspektiven', () => {
+  const look = { yawDeg: 30, pitchDeg: -20, rollDeg: 12 };
+  for (const perspective of ['straight', 'soft'] as const) {
+    const view = { aspect: 0.5, fieldOfViewDeg: 75, perspective };
+    for (const point of [{ x: 0, y: 0 }, { x: 0.6, y: -0.4 }, { x: -0.9, y: 0.8 }]) {
+      const projected = lookToScreenPoint(look, screenPointToLook(look, point, view), view);
+      assert.ok(projected);
+      assert.ok(Math.abs(projected.x - point.x) < 1e-9 && Math.abs(projected.y - point.y) < 1e-9);
+    }
+  }
+});
+
+test('det som ligger bakom spelaren hamnar inte på skärmen', () => {
+  const view = { aspect: 0.5, fieldOfViewDeg: 75, perspective: 'soft' } as const;
+  assert.equal(lookToScreenPoint({ yawDeg: 0, pitchDeg: 0 }, { yawDeg: 180, pitchDeg: 0 }, view), null);
+});
+
+test('i den breda bilden hamnar en riktning där ett tryck pekar, också över skarven', () => {
+  const sizes = { imageWidthPx: 1600, imageHeightPx: 800, viewWidthPx: 400, viewHeightPx: 400 };
+  for (const point of [{ xPx: 200, yPx: 200 }, { xPx: 30, yPx: 350 }]) {
+    const projected = stripLookToPoint(170, stripPointToLook(170, point, sizes), sizes);
+    assert.ok(Math.abs(projected.xPx - point.xPx) < 1e-9 && Math.abs(projected.yPx - point.yPx) < 1e-9);
+  }
 });

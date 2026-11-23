@@ -8,6 +8,9 @@ const NO_SENSOR_VALUES_TIMEOUT_MS = 2000;
 /** Ett finger som har rört sig mindre än så här räknas som ett tryck, inte ett drag. */
 const MAX_TAP_MOVE_PX = 10;
 
+/** Var en riktning hamnar på visaren, i pixlar från dess övre vänstra hörn, eller null bakom spelaren. */
+export type ScreenProjection = (direction: LookDirection) => { xPx: number; yPx: number } | null;
+
 /**
  * Rundbilden i spelet, med rummet vågrätt och det mjuka perspektivet som
  * provet på riktig mobil valde (se docs/koncept.md, Rundbilder). Mobilen
@@ -27,8 +30,12 @@ export function RoundImageView({ src, lookRef, onTap, onLook, children }: {
    * breda bilden går blicken bara i sidled, och då är isSidewaysOnly sant.
    */
   onTap: (tapped: LookDirection, isSidewaysOnly: boolean) => void;
-  /** Varje gång blicken har ritats, så att den som visar kan tända det som är mitt i bilden. */
-  onLook?: (look: LookDirection, isSidewaysOnly: boolean) => void;
+  /**
+   * Varje gång blicken har ritats, så att den som visar kan tända det som är
+   * mitt i bilden. toScreen säger var en riktning hamnar på visaren, i
+   * pixlar, så att en ram kan ritas runt det som är tänt.
+   */
+  onLook?: (look: LookDirection, isSidewaysOnly: boolean, toScreen: ScreenProjection) => void;
   /** Det som ligger ovanpå bilden, som mörkret och ficklampan. */
   children?: ReactNode;
 }) {
@@ -68,7 +75,12 @@ export function RoundImageView({ src, lookRef, onTap, onLook, children }: {
       const look = lookRef.current;
       if (isSphere && sphereView) sphereView.draw(look, lens);
       else stripView.draw(look);
-      if (isLoaded) onLookRef.current?.(look, !isSphere);
+      if (!isLoaded) return;
+      const sphere = isSphere ? sphereView : null;
+      const toScreen: ScreenProjection = sphere
+        ? (direction) => sphere.lookToPoint(look, direction, lens)
+        : (direction) => stripView.lookToPoint(look, direction);
+      onLookRef.current?.(look, !isSphere, toScreen);
     }
 
     const image = new Image();

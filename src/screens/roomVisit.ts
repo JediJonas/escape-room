@@ -1,5 +1,7 @@
-import { DEFAULT_WALL_CENTERS_DEG, type HouseView } from '../../supabase/functions/game/house.ts';
+import { DEFAULT_WALL_CORNERS_DEG, type HouseView } from '../../supabase/functions/game/house.ts';
 import { type LookDirection, wrapYawDeg } from '../view/lookDirection.ts';
+
+const FULL_TURN_DEG = 360;
 
 /**
  * Rummet som spelaren är i, rummet hon kom från och åt vilket håll hon
@@ -15,20 +17,31 @@ export function enterRoom(visit: RoomVisit, roomId: string): RoomVisit {
   return { roomId, cameFrom: visit.roomId === '' ? null : visit.roomId, look: null };
 }
 
+/** En vinkel mellan 0 och ett helt varv. */
+function wrapPositiveDeg(deg: number): number {
+  return ((deg % FULL_TURN_DEG) + FULL_TURN_DEG) % FULL_TURN_DEG;
+}
+
+/** Mitten av väggen mellan två hörn, räknat åt höger från det första. */
+function findWallCenterDeg(fromDeg: number, toDeg: number): number {
+  return wrapYawDeg(fromDeg + wrapPositiveDeg(toDeg - fromDeg) / 2);
+}
+
 /**
  * Hållet spelaren tittar åt när hon kommer in i ett rum: mot mitten av
- * väggen mittemot dörren hon kom in genom, så att väggen med dörren är i
- * ryggen och rummet ligger rakt framför henne (Jonas 2026-11-23). Vid spelets början,
- * eller om dörren inte syns i rundbilden, tittar hon rakt fram. I hallen är
- * ytterdörren rakt bakom.
+ * väggen mittemot dörren hon kom in genom, mitt emellan väggens hörn i
+ * rundbilden, så att väggen med dörren är i ryggen och väggen framför är
+ * centrerad (Jonas 2026-11-23). Vid spelets början, eller om dörren inte
+ * syns i rundbilden, tittar hon rakt fram. I hallen är ytterdörren rakt bakom.
  */
-export function chooseStartLook(house: Pick<HouseView, 'doors' | 'wallCentersDeg'>, cameFrom: string | null): LookDirection {
+export function chooseStartLook(house: Pick<HouseView, 'doors' | 'wallCornersDeg'>, cameFrom: string | null): LookDirection {
   const spot = house.doors.find((door) => door.id === cameFrom)?.spot;
-  const walls = house.wallCentersDeg ?? DEFAULT_WALL_CENTERS_DEG;
-  if (!spot || walls.length === 0) return { yawDeg: 0, pitchDeg: 0 };
-  // Dörren sitter på väggen vars mitt ligger närmast, och väggen mittemot är två steg bort.
+  const corners = house.wallCornersDeg ?? DEFAULT_WALL_CORNERS_DEG;
+  if (!spot || corners.length === 0) return { yawDeg: 0, pitchDeg: 0 };
+  // Vägg nummer i går från hörn i till nästa hörn åt höger. Dörren sitter på den vägg som den ligger inom.
   const doorDeg = spot.frame?.yawDeg ?? spot.yawDeg;
-  const distances = walls.map((wall) => Math.abs(wrapYawDeg(wall - doorDeg)));
-  const doorWall = distances.indexOf(Math.min(...distances));
-  return { yawDeg: wrapYawDeg(walls[(doorWall + walls.length / 2) % walls.length] ?? 0), pitchDeg: 0 };
+  const at = (index: number) => corners[index % corners.length] ?? 0;
+  const doorWall = Math.max(0, corners.findIndex((corner, index) => wrapPositiveDeg(doorDeg - corner) < wrapPositiveDeg(at(index + 1) - corner)));
+  const facing = doorWall + corners.length / 2;
+  return { yawDeg: findWallCenterDeg(at(facing), at(facing + 1)), pitchDeg: 0 };
 }

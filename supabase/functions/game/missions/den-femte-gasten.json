@@ -16,7 +16,7 @@
       {
         "place": "F",
         "image": "testsida/rundbilder/salongen-malad.webp",
-        "wallCentersDeg": [0, 69, 180, -69],
+        "wallCornersDeg": [-35, 36, 122, -121],
         "doors": [
           "B",
           "D",
@@ -164,6 +164,7 @@
       {
         "place": "B",
         "image": "testsida/rundbilder/hallen-malad.webp",
+        "wallCornersDeg": [-44.5, 46, 136.5, -134.5],
         "doors": [
           "F",
           "C",
@@ -327,6 +328,7 @@
       {
         "place": "C",
         "image": "testsida/rundbilder/koket-malad.webp",
+        "wallCornersDeg": [-40.5, 42.5, 137, -112.5],
         "doors": [
           "B",
           "F"
@@ -446,6 +448,7 @@
       {
         "place": "D",
         "image": "testsida/rundbilder/sovrummet-malad.webp",
+        "wallCornersDeg": [-45.5, 46.5, 136.5, -134],
         "doors": [
           "B",
           "F"

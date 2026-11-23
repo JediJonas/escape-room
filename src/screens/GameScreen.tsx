@@ -14,7 +14,7 @@ import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
 import { DocumentList } from './FoundDocuments.tsx';
-import { RoomList, RoomView } from './RoomView.tsx';
+import { RoomList, RoomView, noteRoom } from './RoomView.tsx';
 import { findThingAtSpot } from './roomTargets.ts';
 import { PaperStack, ThingLook, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { InfoBox } from './InfoBox.tsx';
@@ -163,6 +163,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
 
   // I huset öppnar en sak alltid en vy, och Tillbaka går till rummet (Jonas 2026-11-17).
   const { house } = view;
+  // Rummet noteras varje gång, också när det inte visas, så att nästa rum vet vilken dörr spelaren kom in genom.
+  if (house) noteRoom(house.room.id);
   const pendingThingId = pendingFind && house ? findThingAtSpot(house, pendingFind) : null;
   if (pendingThingId) {
     setPendingFind(null);

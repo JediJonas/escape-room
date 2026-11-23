@@ -161,6 +161,61 @@
 .memory-room { margin: 0 0 0.5rem; font: 600 1rem Georgia, 'Times New Roman', serif; }
 .memory-choices { border: 0; padding: 0; }
 
+/*
+ * Rummen i minnet visas med sina rundbilder, som i huset, men tonade som ett
+ * gammalt fotografi (Jonas 2026-11-23). Bilden är dubbelt så hög som rutan,
+ * så att rutan visar väggarna mitt i rundbilden och inte golv och tak.
+ */
+.memory-picture,
+.memory-room-card.has-image {
+  background: var(--room-image) center / auto 200% no-repeat, #6b5638;
+}
+
+.memory-picture {
+  aspect-ratio: 3 / 2;
+  margin: 0 0 0.75rem;
+  border-radius: var(--radius-l);
+  box-shadow: inset 0 0 2.5rem rgb(40 25 10 / 0.6), 0 0.5rem 1.5rem rgb(40 25 10 / 0.3);
+  filter: sepia(0.5) contrast(0.95);
+}
+
+.memory-room-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.memory-room-card {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  min-height: 0;
+  padding: 0;
+  align-items: flex-end;
+  justify-content: flex-start;
+  overflow: hidden;
+  border: 1px solid rgb(46 36 22 / 0.5);
+  border-radius: var(--radius-m);
+  background-color: rgb(255 248 230 / 0.45);
+  color: var(--memory-ink);
+  box-shadow: 0 0.4rem 1.2rem rgb(40 25 10 / 0.3);
+}
+
+.memory-room-card.has-image { filter: sepia(0.5) contrast(0.95); }
+
+/* Namnet står på en mörk rand nertill, så att det syns mot bilden. */
+.memory-room-card.has-image .memory-room-name {
+  width: 100%;
+  padding: 1.5rem 0.75rem 0.6rem;
+  background: linear-gradient(transparent, rgb(30 20 8 / 0.85));
+  color: #f5ead2;
+  text-align: left;
+}
+
+.memory-room-card:not(.has-image) .memory-room-name { width: 100%; padding: 0.75rem; }
+.memory-room-name { font: 600 1.05rem Georgia, 'Times New Roman', serif; }
+.memory-room-card:disabled { opacity: 0.35; }
+
 @keyframes memory-flicker {
   0%, 100% { filter: sepia(0.6) brightness(1); }
   37% { filter: sepia(0.6) brightness(0.93); }

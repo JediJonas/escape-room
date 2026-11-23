@@ -261,3 +261,13 @@ test('Hoppa över uppgiften medan huset minns får minnet att blekna direkt, och
   const lateFade = fadeFlashback({ state, mission: later, players: PLAYERS, nowMs: 3 * MINUTE_MS });
   assert.deepEqual(lateFade, { state });
 });
+
+test('minnet visar rummen med sina rundbilder, och ett rum utan bild får null', () => {
+  const started = turnHands({ flashback: startFlashback(STEP), step: STEP, minutes: NINE_FIFTEEN, nowMs: 0 });
+  assert.ok('flashback' in started);
+  const chosen = chooseRoom({ flashback: started.flashback, step: STEP, playerId: 'p0', participantIds: ['p0'], placeId: 'B', nowMs: 1 });
+  assert.ok('flashback' in chosen);
+  const view = describeFlashback({ flashback: chosen.flashback, step: STEP, places: PLACES, roomImages: { B: 'hallen.webp', C: 'koket.webp' }, viewerId: 'p0', participantIds: ['p0'] });
+  assert.deepEqual(view.rooms.map((room) => room.image), ['hallen.webp', 'koket.webp', null, null]);
+  assert.equal(view.myRooms[0]?.image, 'hallen.webp');
+});

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { FlashbackView } from '../../supabase/functions/game/flashback.ts';
 import { formatFlashbackLeft } from './flashbackTime.ts';
@@ -31,10 +31,16 @@ export function useFlashbackTime(remembersUntilMs: number | null, clockOffsetMs:
   return { isRemembering, isFading: isRemembering && msLeft < FADING_MS, msLeft };
 }
 
+/** Rummets rundbild som bakgrund, eller ingen när servern inte har skickat någon. */
+function imageStyle(image: string | null | undefined): CSSProperties | undefined {
+  return image ? { '--room-image': `url(${import.meta.env.BASE_URL}${image})` } as CSSProperties : undefined;
+}
+
 /**
  * Huset minns kvällen 1962. Spelaren väljer ett rum bland dem som går att
- * välja och ser det som det var, sepiatonat och flimrande. Det som finns i
- * nuet syns inte så länge minnet varar. Se docs/koncept.md, Nu och 1962.
+ * välja och ser det som det var, sepiatonat och flimrande. Rummen visas med
+ * sina rundbilder, både i valet och i minnet (Jonas 2026-11-23). Det som
+ * finns i nuet syns inte så länge minnet varar. Se docs/koncept.md, Nu och 1962.
  */
 export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy, onChoose }: {
   flashback: FlashbackView;
@@ -56,6 +62,7 @@ export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy
       {myRooms.map((room) => (
         <div key={room.place.id} className="memory-pieces">
           {myRooms.length > 1 && <h2 className="memory-room">{room.place.name}</h2>}
+          {room.image && <div className="memory-picture" style={imageStyle(room.image)} role="img" aria-label={`${room.place.name} som det var`} />}
           {room.pieces.map((piece) => <p key={piece}>{piece}</p>)}
         </div>
       ))}
@@ -67,9 +74,13 @@ export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy
               ? 'Ni är färre än rummen, så du kan se ett rum till i samma minne.'
               : 'Du stannar där tills minnet bleknar. Ett rum går bara att välja om inget annat rum har färre.'}
           </p>
-          {flashback.rooms.map(({ place, isChoosable }) => (
-            <button key={place.id} type="button" className="secondary" onClick={() => onChoose(place.id)} disabled={isBusy || !isChoosable}>{place.name}</button>
-          ))}
+          <div className="memory-room-cards">
+            {flashback.rooms.map(({ place, image, isChoosable }) => (
+              <button key={place.id} type="button" className={image ? 'memory-room-card has-image' : 'memory-room-card'} style={imageStyle(image)} onClick={() => onChoose(place.id)} disabled={isBusy || !isChoosable}>
+                <span className="memory-room-name">{place.name}</span>
+              </button>
+            ))}
+          </div>
         </fieldset>
       )}
       {canChoose && choice === 'waitForOthers' && <p className="memory-note">När alla har valt rum kan du gå till ett rum som står tomt.</p>}

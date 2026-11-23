@@ -198,9 +198,9 @@ export type FlashbackView = {
   /** Raden överst i minnet, efter platsens namn, till exempel "kvart över nio, 1962". */
   flashbackLabel: string;
   /** Alla rum i minnet, och om spelaren kan välja dem just nu. */
-  rooms: { place: Place; isChoosable: boolean }[];
+  rooms: { place: Place; image: string | null; isChoosable: boolean }[];
   /** Spelarens rum i minnet och det hon ser där, i den ordning hon valde dem. */
-  myRooms: { place: Place; pieces: string[] }[];
+  myRooms: { place: Place; image: string | null; pieces: string[] }[];
   /** Om spelaren kan välja ett rum nu, eller ett rum till när de andra har valt. */
   choice: FlashbackChoiceState;
 };
@@ -214,14 +214,20 @@ function findChoiceState(flashback: FlashbackState, step: FlashbackStep, viewerI
   return hasEmptyRoom && someoneHasNone ? 'waitForOthers' : 'done';
 }
 
-export function describeFlashback({ flashback, step, places, viewerId, participantIds }: {
+export function describeFlashback({ flashback, step, places, roomImages = {}, viewerId, participantIds }: {
   flashback: FlashbackState;
   step: FlashbackStep;
   places: readonly Place[];
+  /**
+   * Rummens rundbilder, räknat från webbsidans början. Minnet visar rummen
+   * med dem i stället för bara namnet (Jonas 2026-11-23).
+   */
+  roomImages?: Partial<Record<PlaceId, string>>;
   viewerId: string;
   participantIds: readonly string[];
 }): FlashbackView {
   const findPlace = (id: PlaceId): Place => places.find((place) => place.id === id) ?? { id, name: id };
+  const findImage = (id: PlaceId): string | null => roomImages[id] ?? null;
   const mine = findMyRooms(flashback, step, viewerId);
   const choice = findChoiceState(flashback, step, viewerId, participantIds);
   const canChoose = flashback.remembersUntilMs !== null && (choice === 'choose' || choice === 'takeAnother');
@@ -230,8 +236,8 @@ export function describeFlashback({ flashback, step, places, viewerId, participa
     dialMinutes: flashback.dialMinutes,
     remembersUntilMs: flashback.remembersUntilMs,
     flashbackLabel: step.flashbackLabel,
-    rooms: step.rooms.map((room) => ({ place: findPlace(room.place), isChoosable: choosable.includes(room.place) })),
-    myRooms: mine.map((room) => ({ place: findPlace(room.place), pieces: room.pieces })),
+    rooms: step.rooms.map((room) => ({ place: findPlace(room.place), image: findImage(room.place), isChoosable: choosable.includes(room.place) })),
+    myRooms: mine.map((room) => ({ place: findPlace(room.place), image: findImage(room.place), pieces: room.pieces })),
     choice,
   };
 }

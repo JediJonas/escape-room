@@ -53,7 +53,7 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
   const roomId = house.room.id;
   noteRoom(roomId);
   const isBackFromThing = visit.look !== null;
-  const firstLook = visit.look ?? chooseStartLook(house.doors, visit.cameFrom);
+  const firstLook = visit.look ?? chooseStartLook(house, visit.cameFrom);
   const lookRef = useRef<LookDirection>(firstLook);
   // I ett nytt rum tänds inget förrän spelaren har börjat se sig omkring
   // (Jonas 2026-11-23). Den som kommer tillbaka från en sak ser det tänt som förut.

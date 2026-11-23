@@ -227,7 +227,7 @@
 .memory-grain {
   position: absolute;
   inset: -50%;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   opacity: 0.3;
@@ -235,7 +235,11 @@
   animation: memory-grain 0.4s steps(1, end) infinite;
 }
 
-/* Kanterna mörknar, som i ett gammalt fotografi. */
+/*
+ * Ett lager över bilden gör den lite suddig, som ett minne, och kanterna
+ * mörknar som i ett gammalt fotografi (Jonas 2026-11-23). Kornet ligger
+ * ovanpå och är skarpt.
+ */
 .memory-room-screen .round-view::after {
   content: '';
   position: absolute;
@@ -243,6 +247,8 @@
   z-index: 1;
   pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 55%, rgb(30 20 8 / 0.55));
+  -webkit-backdrop-filter: blur(0.8px);
+  backdrop-filter: blur(0.8px);
 }
 
 .memory-bottom { gap: 0.5rem; flex-wrap: wrap; }

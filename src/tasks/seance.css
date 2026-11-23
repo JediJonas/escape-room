@@ -17,6 +17,8 @@
   --board-paper-dark: #b9a57c;
   --board-edge: #241a12;
   --board-ink: #22170f;
+  /* Linjerna runt bokstäverna och i hörnornamenten är lika tjocka (Jonas 2026-11-23). */
+  --board-line: 2px;
   /* Bordet i salongen, grått trä i månljus som i rundbilden. */
   background-color: #14171c;
   background-image:
@@ -62,18 +64,18 @@
   border-radius: 0.5rem;
   /* Kanten på brädet, med ett mörkt ornament i varje hörn, som solen och månen på ett ouijabräde. */
   background:
-    radial-gradient(circle at 1.1rem 1.1rem, var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem 0.68rem, transparent 0.72rem),
-    radial-gradient(circle at calc(100% - 1.1rem) 1.1rem, var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem 0.68rem, transparent 0.72rem),
-    radial-gradient(circle at 1.1rem calc(100% - 1.1rem), var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem 0.68rem, transparent 0.72rem),
-    radial-gradient(circle at calc(100% - 1.1rem) calc(100% - 1.1rem), var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem 0.68rem, transparent 0.72rem),
+    radial-gradient(circle at 1.1rem 1.1rem, var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem calc(0.6rem + var(--board-line)), transparent calc(0.64rem + var(--board-line))),
+    radial-gradient(circle at calc(100% - 1.1rem) 1.1rem, var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem calc(0.6rem + var(--board-line)), transparent calc(0.64rem + var(--board-line))),
+    radial-gradient(circle at 1.1rem calc(100% - 1.1rem), var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem calc(0.6rem + var(--board-line)), transparent calc(0.64rem + var(--board-line))),
+    radial-gradient(circle at calc(100% - 1.1rem) calc(100% - 1.1rem), var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem calc(0.6rem + var(--board-line)), transparent calc(0.64rem + var(--board-line))),
     radial-gradient(ellipse at 30% 20%, rgb(120 90 50 / 0.18), transparent 40%),
     linear-gradient(135deg, #cdbd96, var(--board-paper-dark));
   box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.6), inset 0 0 0 1px rgb(255 245 220 / 0.25), inset 0 0 1.25rem rgb(60 40 20 / 0.45);
 }
 
 /*
- * Själva brädet innanför kanten, gulnat och fläckigt, med en tjock svart
- * linje runt om (Jonas 2026-11-23). Skenet får lysa ut över kanten.
+ * Själva brädet innanför kanten, gulnat och fläckigt, med två svarta linjer
+ * runt om, lika tjocka som linjen i hörnornamenten (Jonas 2026-11-23). Skenet får lysa ut över kanten.
  */
 .seance-board {
   position: relative;
@@ -84,7 +86,7 @@
     radial-gradient(ellipse at 75% 80%, rgb(120 85 45 / 0.22), transparent 35%),
     radial-gradient(ellipse at 15% 60%, rgb(120 85 45 / 0.14), transparent 30%),
     radial-gradient(ellipse at center, var(--board-paper) 40%, var(--board-paper-dark));
-  box-shadow: inset 0 0 0 6px var(--board-ink), inset 0 0 2rem rgb(70 45 20 / 0.45);
+  box-shadow: inset 0 0 0 var(--board-line) var(--board-ink), inset 0 0 0 calc(var(--board-line) + 3px) var(--board-paper), inset 0 0 0 calc(2 * var(--board-line) + 3px) var(--board-ink), inset 0 0 2rem rgb(70 45 20 / 0.45);
   /* Fingret ska flytta planchetten, inte rulla sidan, markera text eller öppna en meny. */
   touch-action: none;
   user-select: none;

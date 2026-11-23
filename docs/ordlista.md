@@ -72,7 +72,7 @@ sist under Namn som är bestämda.
 | Hitta | En sak heter Undersök i rundbilden tills någon har tryckt på den. Sedan heter den sitt namn för alla. Det räcker att en spelare gör det. | `foundThings`, `findThing`, `hiddenSpots` |
 | Leta i rummet | Knappen som hittar det som finns i ett rum utan rundbild, som källaren. | `searchRoom` |
 | Plats i bilden | Var en sak eller dörr sitter i rundbilden: vridning, lutning och en träffyta i grader. | `Spot`, `spot`, `doorSpots` |
-| Tänd | Det som är mitt i rundbilden tänds: en ram ritas runt saken och raden längst ner säger vad det är. Ett tryck öppnar det. | `findSpotAt` |
+| Tänd | Mitten av rundbilden tänder saken vars ram den är innanför: ramen ritas och raden längst ner säger vad det är. Ett tryck öppnar det. | `findSpotAt` |
 | Kallar | En sak drar till sig gruppen: raden längst ner i dess rum skimrar, och i de andra rummen visas en berättartext. | `callsFromHouse`, `isCalling`, `callingText` |
 | Instrument | Golvuret och pianot, som går att använda hela tiden och inte bara när berättelsen har kommit dit. | `Instrument`, `instrument` |
 | Instängd | En spelare som isoleras med en egen vy, som i källaren. | `trapped` |

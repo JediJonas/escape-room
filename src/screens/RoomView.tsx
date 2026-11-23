@@ -4,7 +4,7 @@ import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import { type Spot, findSpotAt } from '../../supabase/functions/game/spots.ts';
 import type { LookDirection } from '../view/lookDirection.ts';
 import { RoundImageView, type ScreenProjection } from '../view/RoundImageView.tsx';
-import { FRAME_MARGIN_DEG, findSpotFrame, listFrameOutline } from './roomFrame.ts';
+import { listFrameOutline } from './roomFrame.ts';
 import { type RoomTarget, findTappedTarget, listRoomTargets } from './roomTargets.ts';
 import './roomView.css';
 
@@ -101,9 +101,9 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
   );
 }
 
-/** Ramens hörn på skärmen, som SVG vill ha dem. Ligger en bit av ramen bakom spelaren ritas ingen ram. */
+/** Ramens kant på skärmen, som SVG vill ha den. Ligger en bit av ramen bakom spelaren ritas ingen ram. */
 function listFramePoints(spot: Spot, toScreen: ScreenProjection): string {
-  const outline = listFrameOutline(findSpotFrame(spot), FRAME_MARGIN_DEG);
+  const outline = listFrameOutline(spot);
   const points = outline.map(toScreen).filter((point) => point !== null);
   if (points.length < outline.length) return '';
   return points.map((point) => `${point.xPx.toFixed(1)},${point.yPx.toFixed(1)}`).join(' ');

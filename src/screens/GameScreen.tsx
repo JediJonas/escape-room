@@ -171,14 +171,20 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const openThing = house?.things.find((thing) => thing.id === openThingId) ?? null;
   const closeThing = <button key="close" type="button" className="secondary" onClick={leaveThing}>Tillbaka</button>;
   // Överst i en sak i fullskärm: Tillbaka till vänster och klockan alltid till höger, också för
-  // spelledaren. Hennes meny ligger i nedre högra hörnet (Jonas 2026-11-18).
-  const screenHeader = (
+  // spelledaren. Hennes meny ligger i nedre högra hörnet (Jonas 2026-11-18). Mellan dem står
+  // sakens namn som rubrik, samma namn som i rundbilden (Jonas 2026-11-23).
+  const fullscreenHeader = (start: ReactNode, title?: string) => (
     <>
-      <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>
-      {view.clock?.isPaused && <span className="paused">Pausat</span>}
-      {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+      {start}
+      {title ? <span className="thing-title" role="heading" aria-level={1}>{title}</span> : <span />}
+      <span className="thing-header-end">
+        {view.clock?.isPaused && <span className="paused">Pausat</span>}
+        {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+      </span>
     </>
   );
+  const backButton = <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>;
+  const screenHeader = fullscreenHeader(backButton, openThing?.name);
   // Berättartexter i fullskärm, som var och en visas en gång och bekräftas med en knapp (Jonas 2026-11-18).
   // Först det som hörs från ett annat rum när något kallar på gruppen, som planchetten, eller pianots
   // ensamma ton när gruppen lämnar ouijabrädet. Sedan melodin, för den som har den.
@@ -192,13 +198,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     { id: `${view.gameId}:${step.number}:kallaren`, text: cellarText },
   ];
   const narration = narrations.find(({ id, text }) => text !== null && !readNarrations.includes(id));
-  const narrationHeader = (
-    <>
-      <span />
-      {view.clock?.isPaused && <span className="paused">Pausat</span>}
-      {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-    </>
-  );
+  const narrationHeader = fullscreenHeader(<span />);
   const showNarration = (text: string, onOk?: () => void) => withLeaderMenu(
     <ThingScreen header={narrationHeader} actions={onOk ? <button type="button" onClick={onOk} disabled={isBusy}>Ok</button> : undefined}>
       {text.split('\n\n').map((paragraph) => <p key={paragraph} className="narration-text">{paragraph}</p>)}
@@ -320,11 +320,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   if (step.seance && isBoardShown) {
     return withLeaderMenu(
       <main className={step.seance.isComplete ? 'thing-screen seance-screen is-still' : 'thing-screen seance-screen'}>
-        <p className="hint game-header">
-          <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>
-          {view.clock?.isPaused && <span className="paused">Pausat</span>}
-          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-        </p>
+        <p className="hint game-header">{screenHeader}</p>
         <SeanceBoard seance={step.seance} answer={boardAnswer} clockOffsetMs={clockOffsetMs} canTouch={view.me.isPlaying} onTouch={game.touchBoard}  />
       </main>,
     );

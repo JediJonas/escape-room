@@ -38,8 +38,31 @@
   max-width: var(--stage-max-width);
   margin: 0 auto;
   padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0.5rem;
+  /* Tillbaka, sakens namn och klockan. Namnet står mitt på skärmen även när sidorna är olika breda. */
+  display: grid;
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
+  gap: 0.75rem;
   align-items: center;
   color: rgb(240 225 200 / 0.85);
+}
+
+.thing-screen .game-header > :first-child { justify-self: start; }
+
+/* Sakens namn som rubrik, samma namn som i rundbilden (Jonas 2026-11-23). */
+.thing-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f0e1c8;
+  font: 600 1.25rem/1.2 Georgia, 'Times New Roman', serif;
+}
+
+.thing-header-end {
+  justify-self: end;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .thing-stage {

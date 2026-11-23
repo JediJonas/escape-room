@@ -327,7 +327,7 @@ Källardörren finns i hallens rundbild (Jonas 2026-11-17). Den går att hitta t
 
 Akt 1 är uppgift 1–2, akt 2 är uppgift 3–7 och akt 3 är uppgift 8–9.
 
-**Provet slutar efter pianot.** Tills Vera minns och Ritningen är byggda slutar uppdraget när melodin har kallat fram Vera, med sluttexten "Någon knackar på insidan av källardörren", som leder över till fortsättningen. Källaren är byggd i motorn men tagen ur uppdragsfilen, eftersom dörren annars öppnas utan nyckel. Källarsteget ligger sparat i `supabase/functions/game/shelved/` och körs fortfarande av testerna, så att det går att lägga tillbaka (Jonas 2026-11-18).
+**Provet slutar efter pianot.** Tills Vera minns och Ritningen är byggda slutar uppdraget när melodin har kallat fram Vera, med sluttexten "Någon knackar på insidan av källardörren", som leder över till fortsättningen. Under den står "Fortsättning följer" och att uppdraget inte är färdigt än (Jonas 2026-11-23). Källaren är byggd i motorn men tagen ur uppdragsfilen, eftersom dörren annars öppnas utan nyckel. Källarsteget ligger sparat i `supabase/functions/game/shelved/` och körs fortfarande av testerna, så att det går att lägga tillbaka (Jonas 2026-11-18).
 
 ### Uppgifterna
 

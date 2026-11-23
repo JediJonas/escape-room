@@ -10,6 +10,15 @@ const PERCENT = 100;
 const START_SYMBOL = '☽';
 const BOARD_CELLS = [...BOARD_LETTERS, START_SYMBOL];
 
+/** Ringarna i brädets fyra hörn, som på brädet i salongens rundbild (Jonas 2026-11-23). */
+function BoardRings() {
+  return (
+    <div className="seance-rings" aria-hidden="true">
+      <span /><span /><span /><span />
+    </div>
+  );
+}
+
 function toPercent(point: BoardPoint): { left: string; top: string } {
   return { left: `${point.x * PERCENT}%`, top: `${point.y * PERCENT}%` };
 }
@@ -166,6 +175,7 @@ export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, answer }
           onPointerCancel={release}
           onContextMenu={(event) => event.preventDefault()}
         >
+          <BoardRings />
           <div className="seance-letters" aria-hidden="true">
             {BOARD_CELLS.map((symbol, cell) => (
               <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
@@ -214,6 +224,7 @@ export function EchoBoard({ message, clockOffsetMs }: { message: string; clockOf
     <section className="seance" aria-label="Brädet">
       <div className="seance-frame">
         <div className="seance-board" aria-label="Brädet. Skenet rör sig av sig självt.">
+          <BoardRings />
           <div className="seance-letters" aria-hidden="true">
             {BOARD_CELLS.map((symbol, cell) => (
               <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>

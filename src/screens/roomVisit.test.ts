@@ -8,12 +8,14 @@ const HALL_DOORS: DoorView[] = [
   { id: 'D', name: 'Sovrummet', spot: { yawDeg: -112, pitchDeg: -2, radiusDeg: 10 } },
 ];
 
-test('spelaren tittar bort från dörren hon kom in genom', () => {
-  assert.deepEqual(chooseStartLook(HALL_DOORS, 'D'), { yawDeg: 68, pitchDeg: 0 });
+test('spelaren tittar mot mitten av väggen mittemot dörren hon kom in genom', () => {
+  assert.deepEqual(chooseStartLook(HALL_DOORS, 'D'), { yawDeg: 90, pitchDeg: 0 });
+  assert.deepEqual(chooseStartLook(HALL_DOORS, 'F'), { yawDeg: -180, pitchDeg: 0 });
 });
 
-test('ramens mitt gäller före radiens', () => {
-  assert.deepEqual(chooseStartLook(HALL_DOORS, 'F'), { yawDeg: -159.5, pitchDeg: 0 });
+test('ramens mitt avgör vilken vägg dörren sitter på', () => {
+  const door: DoorView = { id: 'B', name: 'Hallen', spot: { yawDeg: 47, pitchDeg: 0, radiusDeg: 10, frame: { yawDeg: 42, pitchDeg: 0, widthDeg: 20, heightDeg: 50 } } };
+  assert.deepEqual(chooseStartLook([door], 'B'), { yawDeg: -180, pitchDeg: 0 });
 });
 
 test('vid början och utan dörr i bilden tittar spelaren rakt fram', () => {

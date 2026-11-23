@@ -16,7 +16,7 @@ import { LeaderMenu } from './LeaderMenu.tsx';
 import { DocumentList } from './FoundDocuments.tsx';
 import { RoomList, RoomView } from './RoomView.tsx';
 import { findThingAtSpot } from './roomTargets.ts';
-import { PaperStack, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
+import { PaperStack, ThingLook, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { InfoBox } from './InfoBox.tsx';
 import { PauseCover } from './PauseCover.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
@@ -96,6 +96,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasLeftBoard, setHasLeftBoard] = useState(false);
   const [openThingId, setOpenThingId] = useState<string | null>(null);
+  // Saken som spelaren har tryckt Använd på, som pianot. Annars visas närbilden och texten först.
+  const [usedThingId, setUsedThingId] = useState<string | null>(null);
   // Det som spelaren just tryckte på och som ingen hade hittat. Det öppnas när servern har svarat.
   const [pendingFind, setPendingFind] = useState<Spot | null>(null);
   const [readNarrations, setReadNarrations] = useState(readReadNarrations);
@@ -111,6 +113,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     setIsMenuOpen(false);
     setHasLeftBoard(false);
     setOpenThingId(null);
+    setUsedThingId(null);
     setPendingFind(null);
   }
 
@@ -214,6 +217,17 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   if (isNarrationScene && !step.isMeDone && !openThing) {
     return showNarration(step.text, view.me.isPlaying ? markReady : undefined);
   }
+  // Pianot och ouijabrädet visar först en närbild och en text, och knappen Använd öppnar dem.
+  // Tillbaka går till rummet, både härifrån och från saken (Jonas 2026-11-23).
+  const canUseThing = openThing !== null && (openThing.opensCurrentStep || openThing.instrument !== null || openThing.echo !== null);
+  if (openThing?.text && canUseThing && usedThingId !== openThing.id) {
+    const useButton = <button type="button" onClick={() => setUsedThingId(openThing.id)}>Använd</button>;
+    return withLeaderMenu(
+      <ThingScreen header={screenHeader} actions={<>{error && <p className="error" role="alert">{error}</p>}{useButton}</>}>
+        <ThingLook name={openThing.name} text={openThing.text} image={openThing.image} />
+      </ThingScreen>,
+    );
+  }
   // Efteråt bokstaverar brädet av sig självt, om och om igen, som VERA (Jonas 2026-11-18).
   if (openThing && !openThing.opensCurrentStep && openThing.echo) {
     return withLeaderMenu(
@@ -233,13 +247,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         {instrument?.type === 'piano' && view.me.isPlaying && <PianoKeys keys={instrument.keys} onPlayKey={game.playKey} />}
         {instrument?.type === 'clock' && <GrandfatherClock dialMinutes={instrument.dialMinutes} canTurn={view.me.isPlaying && !isBusy} onTurn={game.turnClock} />}
         {papers.length > 0 && <PaperStack papers={papers} />}
-        {!instrument && papers.length === 0 && openThing.text && (
-          // En sak att titta på, som tavlan: närbilden överst och texten under (Jonas 2026-11-20).
-          <div className={openThing.image ? 'thing-look has-image' : 'thing-look'}>
-            {openThing.image && <img className="thing-image" src={`${import.meta.env.BASE_URL}${openThing.image}`} alt={openThing.name} />}
-            <article className="document-card thing-paper">{openThing.text.split('\n').map((line) => <p key={line}>{line}</p>)}</article>
-          </div>
-        )}
+        {!instrument && papers.length === 0 && openThing.text && <ThingLook name={openThing.name} text={openThing.text} image={openThing.image} />}
         {!instrument && papers.length === 0 && !openThing.text && <p className="thing-empty">{openThing.name}</p>}
       </ThingScreen>,
     );
@@ -362,6 +370,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     if (!house && step.seance?.isComplete) setHasLeftBoard(true);
     setIsMenuOpen(false);
     setOpenThingId(null);
+    setUsedThingId(null);
   }
 
   // Tillstånden måste begäras direkt i trycket, annars nekar iPhone. Svaret behövs inte här:

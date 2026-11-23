@@ -24,6 +24,20 @@ export function ThingScreen({ className, header, actions, children }: {
   );
 }
 
+/**
+ * En sak att titta på, som tavlan: närbilden överst och texten under
+ * (Jonas 2026-11-20). Pianot och ouijabrädet visas likadant innan spelaren
+ * trycker Använd (Jonas 2026-11-23).
+ */
+export function ThingLook({ name, text, image }: { name: string; text: string; image: string | null }) {
+  return (
+    <div className={image ? 'thing-look has-image' : 'thing-look'}>
+      {image && <img className="thing-image" src={`${import.meta.env.BASE_URL}${image}`} alt={name} />}
+      <article className="document-card thing-paper">{text.split('\n').map((line) => <p key={line}>{line}</p>)}</article>
+    </div>
+  );
+}
+
 /** Ett papper i högen: en artikel som alla ser, ett urklipp som bara spelaren har eller en sida i en bok. */
 export type Paper = { key: string; document?: MissionDocument; text?: string; page?: string; cover?: string };
 

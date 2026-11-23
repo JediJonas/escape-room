@@ -61,7 +61,7 @@ export function createMemoryStore() {
       sentSeances.push({ gameId, update: update as SeanceUpdate });
     },
   };
-  // Testerna kan flytta klockan framåt, till exempel för att skenet i seansen ska hinna glida.
+  // Testerna kan flytta klockan framåt, till exempel för att planchetten i seansen ska hinna glida.
   const clock = { nowMs: SERVER_TIME.getTime() };
   const store: GameStore = {
     readServerTimeMs: async () => clock.nowMs,

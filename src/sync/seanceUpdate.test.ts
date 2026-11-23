@@ -56,7 +56,7 @@ test('ett äldre läge, ett annat steg eller ett annat spel ändrar ingenting', 
   assert.equal(applySeanceUpdate(withoutSeance, createUpdate({ anchorMs: 4000 })), withoutSeance);
 });
 
-test('den som står utanför följer aldrig skenet', () => {
+test('den som står utanför följer aldrig planchetten', () => {
   const leader = createView(SEANCE);
   leader.me = { ...leader.me, name: 'Ledare', isPlaying: false };
   const view = applySeanceUpdate(leader, createUpdate({ anchorMs: 2000, followers: ['Ledare'] }));

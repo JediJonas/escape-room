@@ -5,46 +5,59 @@
  */
 
 /*
- * Golvuret: urtavlan överst i ett huvud av trä, och skåpet med pendeln
- * fortsätter nedåt mot skärmens underkant (Jonas 2026-11-18). Enkelt tills
- * designen görs.
+ * Golvuret är en tecknad bild i samma stil som rundbilderna, med tom urtavla
+ * och tomt pendelfönster. Spelet ritar siffrorna, visarna och pendeln ovanpå
+ * (Jonas 2026-11-23). Bilden står överst i sakvyn, som andra saker, och är så
+ * stor som får plats. Lägena i procent är räknade i bildens pixlar, 528 × 1096.
  */
 .grandfather-clock {
-  --clock-wood: #5a3a22;
-  --clock-wood-dark: #3a2717;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 1rem 0;
-}
-
-.thing-stage > .grandfather-clock { flex: 1 1 auto; min-height: 0; margin: 0; }
-
-.clock-hood {
-  padding: 0.75rem;
-  background: var(--clock-wood);
-  border: 3px solid var(--clock-wood-dark);
-  border-radius: 50% 50% 0.5rem 0.5rem / 30% 30% 0.5rem 0.5rem;
-}
-
-.clock-trunk {
-  flex: 1 1 auto;
-  min-height: 6rem;
-  width: min(44vw, 10rem);
+  /* Utanför sakvyn får uret en egen höjd, eftersom bilden räknas ur ytan. */
+  height: min(70dvh, 40rem);
+  container-type: size;
   display: flex;
   justify-content: center;
-  padding: 1rem 0;
-  background: linear-gradient(90deg, var(--clock-wood-dark), var(--clock-wood) 20% 80%, var(--clock-wood-dark));
+  align-items: flex-start;
 }
 
-.clock-window {
+.clock-case {
   position: relative;
-  width: 68%;
-  display: flex;
-  justify-content: center;
-  background: rgb(10 6 3 / 0.6);
-  border: 2px solid #8a6a3f;
-  border-radius: 999px 999px 0.3rem 0.3rem;
+  width: min(100cqw, 100cqh * 528 / 1096);
+  aspect-ratio: 528 / 1096;
+  background: url('./bilder/golvuret.webp') center / 100% 100% no-repeat;
+  /* Bildens mörka bakgrund tonar ut i sidornas, så att ingen kant syns. */
+  mask-image: linear-gradient(90deg, transparent, #000 12% 88%, transparent), linear-gradient(transparent, #000 6% 94%, transparent);
+  mask-composite: intersect;
+}
+
+.thing-stage > .grandfather-clock { flex: 1 1 auto; height: auto; min-height: 0; }
+
+/* Urtavlan i bilden, 310 × 278 pixlar. */
+.clock-face {
+  position: absolute;
+  left: calc(113 / 528 * 100%);
+  top: calc(108 / 1096 * 100%);
+  width: calc(310 / 528 * 100%);
+  height: calc(278 / 1096 * 100%);
+  /* Fingret vrider visarna och ska inte rulla sidan. */
+  touch-action: none;
+  user-select: none;
+}
+
+.clock-face.can-turn { cursor: grab; }
+.clock-numeral { fill: #23262b; font: 400 24px var(--font-display); }
+.clock-hand { stroke: #16181c; stroke-linecap: round; }
+.clock-hand.hour { stroke-width: 9; }
+.clock-hand.minute { stroke-width: 5.5; }
+.clock-pin { fill: #16181c; }
+
+/* Pendelfönstret i bilden, innanför den målade ramen. */
+.clock-window {
+  position: absolute;
+  left: calc(177 / 528 * 100%);
+  top: calc(510 / 1096 * 100%);
+  width: calc(181 / 528 * 100%);
+  height: calc(428 / 1096 * 100%);
+  border-radius: 40% 40% 0.2rem 0.2rem / 12% 12% 0.2rem 0.2rem;
   perspective: 600px;
   /* Fingret gungar pendeln och ska inte rulla sidan. */
   touch-action: none;
@@ -53,6 +66,7 @@
 
 .clock-window.is-open { cursor: grab; }
 
+/* Bakom glaset syns pendeln svagt. När luckan är öppen är det mörkt bakom den. */
 .clock-glass {
   position: absolute;
   inset: 0;
@@ -60,34 +74,18 @@
   display: flex;
   justify-content: center;
   border-radius: inherit;
+  opacity: 0.55;
+  transition: background-color 0.5s ease, opacity 0.5s ease;
 }
+
+.clock-window.is-open .clock-glass { background: rgb(8 9 12 / 0.9); opacity: 1; }
 
 .clock-pendulum {
   width: 3px;
-  height: 75%;
-  background: #b8954f;
+  height: 72%;
+  background: #a88a4f;
   position: relative;
   transform-origin: top center;
-}
-
-/* Glasluckan framför pendeln. Den svänger upp åt vänster när den öppnas. */
-.clock-door {
-  position: absolute;
-  inset: -2px;
-  min-height: 0;
-  padding: 0;
-  border: 3px solid #8a6a3f;
-  border-radius: inherit;
-  background: linear-gradient(115deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.04) 40%, rgb(255 255 255 / 0.12) 60%, rgb(255 255 255 / 0.02));
-  transform-origin: left center;
-  transition: transform 0.5s ease;
-  cursor: pointer;
-}
-
-.clock-window.is-open .clock-door { transform: rotateY(-70deg); }
-
-@media (prefers-reduced-motion: reduce) {
-  .clock-door { transition: none; }
 }
 
 .clock-pendulum::after {
@@ -95,37 +93,32 @@
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   transform: translate(-50%, 50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #f0d48a, #b8954f 60%, #7a5f2c);
+  background: radial-gradient(circle at 35% 35%, #e6cd8c, #a88a4f 60%, #6a5228);
 }
 
-.clock-base {
-  width: min(56vw, 13rem);
-  height: 1.25rem;
-  background: var(--clock-wood-dark);
-  border-radius: 0.25rem 0.25rem 0 0;
+/* Glasluckan framför pendeln. Den svänger upp åt vänster när den öppnas. */
+.clock-door {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  padding: 0;
+  border: 2px solid rgb(20 22 26 / 0.8);
+  border-radius: inherit;
+  background: linear-gradient(115deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.02) 40%, rgb(255 255 255 / 0.08) 60%, rgb(255 255 255 / 0.01));
+  transform-origin: left center;
+  transition: transform 0.5s ease;
+  cursor: pointer;
 }
 
-.clock-face {
-  display: block;
-  width: min(66vw, 15rem);
-  height: auto;
-  /* Fingret vrider visarna och ska inte rulla sidan. */
-  touch-action: none;
-  user-select: none;
-}
+.clock-window.is-open .clock-door { transform: rotateY(-70deg); background-color: rgb(60 66 76 / 0.6); }
 
-.clock-face.can-turn { cursor: grab; }
-.clock-rim { fill: #3a2717; }
-.clock-dial { fill: #efe3c8; stroke: #8a6a3f; stroke-width: 1.5; }
-.clock-numeral { fill: #2b2116; font: 600 11px Georgia, 'Times New Roman', serif; }
-.clock-hand { stroke: #1c140c; stroke-linecap: round; }
-.clock-hand.hour { stroke-width: 6; }
-.clock-hand.minute { stroke-width: 3.5; }
-.clock-pin { fill: #1c140c; }
+@media (prefers-reduced-motion: reduce) {
+  .clock-door, .clock-glass { transition: none; }
+}
 
 .memory-screen {
   --memory-paper: #d9c7a3;

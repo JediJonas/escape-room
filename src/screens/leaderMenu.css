@@ -128,7 +128,7 @@
 .has-leader-menu .thing-actions { padding-bottom: var(--leader-menu-row); }
 /*
  * En rad text utan knapp, som Gå runt i huset och leta eller vem
- * skenet väntar på, får stå bredvid hamburgaren (Jonas 2026-11-18).
+ * planchetten väntar på, får stå bredvid hamburgaren (Jonas 2026-11-18).
  */
 .has-leader-menu > .screen:not(:has(.screen-actions button)) { padding-bottom: calc(1rem + var(--bottom-gap)); }
 /* Med mus står knapparna direkt under innehållet, men en textrad står ändå längst ner bredvid hamburgaren. */

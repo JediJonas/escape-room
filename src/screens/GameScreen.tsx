@@ -238,7 +238,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     );
   }
   // Efteråt bokstaverar brädet av sig självt, om och om igen, som VERA (Jonas 2026-11-18).
-  // Mellan seanserna står brädet stilla, utan sken (Jonas 2026-11-23).
+  // Mellan seanserna står planchetten stilla på brädet (Jonas 2026-11-23).
   if (openThing && !openThing.opensCurrentStep && openThing.isBoard) {
     return withLeaderMenu(
       <main className="thing-screen seance-screen is-still">
@@ -305,11 +305,11 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
 
   // Under seansen fyller brädet skärmen, utan text. Hur man gör är första ledtråden (Jonas 2026-11-18).
-  // När skenet har slocknat står brädet kvar tills spelaren själv lämnar det (Jonas 2026-11-17).
+  // När meddelandet är klart står brädet kvar tills spelaren själv lämnar det (Jonas 2026-11-17).
   const isBoardShown = step.seance !== null && !hasLeftBoard && !view.isFinished;
   // Spelledaren som står utanför svarar inte och trycker inte Klar.
   const canAnswer = step.acceptsAnswer && !view.isFinished && view.me.isPlaying;
-  // Svaret skrivs på brädet, längst ner, när skenet har bokstaverat frågan (Jonas 2026-11-18).
+  // Svaret skrivs på brädet, längst ner, när planchetten har bokstaverat frågan (Jonas 2026-11-18).
   const boardAnswer = canAnswer ? (
     <form className="board-answer" onSubmit={submitAnswer}>
       {step.wrongAnswers && <p className="hint" role="status">Ett fel svar kostar {step.wrongAnswers.nextMinutes} minuter.</p>}

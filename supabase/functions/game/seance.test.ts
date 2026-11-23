@@ -23,13 +23,13 @@ function describe(seance: SeanceState, viewerId: string) {
   return describeSeance({ seance, message: MESSAGE, players: PLAYERS, participantIds: IDS, viewerId });
 }
 
-/** Tiden då skenet når bokstaven, om alla följer från nowMs. */
+/** Tiden då planchetten når bokstaven, om alla följer från nowMs. */
 function arrival(seance: SeanceState, nowMs: number): number {
   const { durationMs } = findSegment(LETTERS, seance.letterIndex);
   return Math.max(nowMs, seance.pauseUntilMs ?? 0) + (1 - seance.progress) * durationMs;
 }
 
-/** Alla följer, och skenet når nästa bokstav. Ger tillståndet och tiden. */
+/** Alla följer, och planchetten når nästa bokstav. Ger tillståndet och tiden. */
 function takeNextLetter(seance: SeanceState, nowMs: number): { seance: SeanceState; nowMs: number } {
   const following = everyoneOn(seance, nowMs);
   const arrivedAt = arrival(following, nowMs);
@@ -46,7 +46,7 @@ test('brädet har alla bokstäver från A till Ö och en startruta', () => {
   assert.deepEqual(findCellCenter(0), { x: 0.1, y: 1 / 12 });
 });
 
-test('skenet står still tills alla följer, och glider sedan långsamt mot bokstaven', () => {
+test('planchetten står still tills alla följer, och glider sedan långsamt mot bokstaven', () => {
   let seance = touch(touch(startSeance(), 'p0', 'onGlow', 1000), 'p1', 'onGlow', 1000);
   seance = advanceSeance({ seance, message: MESSAGE, participantIds: IDS, nowMs: 60_000 });
   assert.equal(seance.progress, 0);
@@ -54,14 +54,14 @@ test('skenet står still tills alla följer, och glider sedan långsamt mot boks
 
   seance = touch(seance, 'p2', 'onGlow', 61_000);
   const { durationMs } = findSegment(LETTERS, 0);
-  // Från startrutan längst ner till höger till J är det långt, så skenet tar flera sekunder.
+  // Från startrutan längst ner till höger till J är det långt, så planchetten tar flera sekunder.
   assert.ok(durationMs > 4000, String(durationMs));
   const halfway = advanceSeance({ seance, message: MESSAGE, participantIds: IDS, nowMs: 61_000 + durationMs / 2 });
   assert.ok(Math.abs(halfway.progress - 0.5) < 1e-9);
   assert.equal(halfway.letterIndex, 0);
 });
 
-test('halkar någon efter stannar skenet där det är, och fortsätter när hon är med igen', () => {
+test('halkar någon efter stannar planchetten där den är, och fortsätter när hon är med igen', () => {
   let seance = everyoneOn(startSeance(), 0);
   const { durationMs } = findSegment(LETTERS, 0);
   seance = touch(seance, 'p1', 'offGlow', durationMs / 4);
@@ -73,19 +73,19 @@ test('halkar någon efter stannar skenet där det är, och fortsätter när hon 
   assert.equal(seance.letterIndex, 1);
 });
 
-test('mobilen räknar fram samma läge för skenet som servern', () => {
+test('mobilen räknar fram samma läge för planchetten som servern', () => {
   const seance = everyoneOn(startSeance(), 0);
   const { durationMs, from, to } = findSegment(LETTERS, 0);
   const view = describe(seance, 'p0');
   const glow = findGlowPoint(view, durationMs / 2);
   assert.ok(Math.abs(glow.point.x - (from.x + to.x) / 2) < 1e-9 && !glow.hasArrived);
   assert.deepEqual(findGlowPoint(view, durationMs), { point: to, hasArrived: true });
-  // Står skenet still syns det där det stannade, hur lång tid som än går.
+  // Står planchetten still syns den där den stannade, hur lång tid som än går.
   const stopped = touch(seance, 'p2', 'offGlow', durationMs / 2);
   assert.ok(Math.abs(findGlowPoint(describe(stopped, 'p0'), 10 * durationMs).point.x - (from.x + to.x) / 2) < 1e-9);
 });
 
-test('skenet börjar sakta, går fortast i mitten och bromsar in', () => {
+test('planchetten börjar sakta, går fortast i mitten och bromsar in', () => {
   assert.equal(easeGlow(0), 0);
   assert.equal(easeGlow(0.5), 0.5);
   assert.equal(easeGlow(1), 1);
@@ -95,7 +95,7 @@ test('skenet börjar sakta, går fortast i mitten och bromsar in', () => {
   assert.ok(speedAt(0.5) > 1.3);
 });
 
-test('när skenet når bokstaven står det kvar där hos alla, och glider sedan mot nästa', () => {
+test('när planchetten når bokstaven står den kvar där hos alla, och glider sedan mot nästa', () => {
   let round = takeNextLetter(startSeance(), 0);
   assert.equal(round.seance.letterIndex, 1);
   for (const id of IDS) assert.deepEqual(findGlowPoint(describe(round.seance, id), round.nowMs).point, findCellCenter(BOARD_LETTERS.indexOf('J')));
@@ -103,7 +103,7 @@ test('när skenet når bokstaven står det kvar där hos alla, och glider sedan 
   assert.deepEqual(findGlowPoint(describe(round.seance, 'p2'), round.nowMs).point, findCellCenter(BOARD_LETTERS.indexOf('A')));
 });
 
-test('skenet står kvar på bokstaven en stund innan det glider vidare', () => {
+test('planchetten står kvar på bokstaven en stund innan den glider vidare', () => {
   const { seance, nowMs } = takeNextLetter(startSeance(), 0);
   assert.equal(seance.pauseUntilMs, nowMs + GLOW_PAUSE_MS);
   const view = describe(seance, 'p0');
@@ -132,13 +132,13 @@ test('att lyfta fingret får meddelandet att börja om från starten och visar v
   assert.deepEqual(findGlowPoint(view, nowMs + 9000).point, findCellCenter(START_CELL));
 });
 
-test('att lyfta innan skenet har rört sig bryter ingenting', () => {
+test('att lyfta innan planchetten har rört sig bryter ingenting', () => {
   const seance = touch(touch(startSeance(), 'p0', 'onGlow', 0), 'p0', 'lifted', 0);
   assert.equal(seance.brokenBy, null);
   assert.deepEqual(seance.followerIds, []);
 });
 
-test('flera mobiler som säger att skenet har kommit fram ändrar bara något en gång', () => {
+test('flera mobiler som säger att planchetten har kommit fram ändrar bara något en gång', () => {
   const following = everyoneOn(startSeance(), 0);
   const arrivedAt = arrival(following, 0);
   const first = touch(following, 'p0', 'arrived', arrivedAt);
@@ -147,7 +147,7 @@ test('flera mobiler som säger att skenet har kommit fram ändrar bara något en
   assert.equal(hasSeanceChanged(first, second), false);
 });
 
-test('när meddelandet är klart står skenet kvar på sista bokstaven och inget mer händer', () => {
+test('när meddelandet är klart står planchetten kvar på sista bokstaven och inget mer händer', () => {
   let round = { seance: startSeance(), nowMs: 0 };
   for (let letter = 0; letter < LETTERS.length; letter += 1) round = takeNextLetter(round.seance, round.nowMs);
   assert.equal(touch(round.seance, 'p0', 'lifted', round.nowMs + 1).brokenBy, null);
@@ -156,7 +156,7 @@ test('när meddelandet är klart står skenet kvar på sista bokstaven och inget
   assert.deepEqual(findGlowPoint(view, round.nowMs + 60_000).point, findCellCenter(BOARD_LETTERS.indexOf('J')));
 });
 
-test('två lika bokstäver i rad tas utan att skenet behöver flytta sig', () => {
+test('två lika bokstäver i rad tas utan att planchetten behöver flytta sig', () => {
   const letters = splitMessage('ALLA');
   assert.equal(findSegment(letters, 2).durationMs, 0);
   let seance = startSeance();
@@ -182,6 +182,6 @@ test('brädet bokstaverar ekot om och om igen efter serverns tid, med vila vid s
   // Ett helt varv senare är det samma läge.
   const lapMs = findEchoLapMs('VERA');
   assert.ok(measureDistanceInCells(findEchoGlowPoint('VERA', lapMs + atE + 10), findEchoGlowPoint('VERA', atE + 10)) < 1e-6);
-  // Sist vilar skenet vid starten.
+  // Sist vilar planchetten vid starten.
   assert.deepEqual(findEchoGlowPoint('VERA', lapMs - ECHO_REST_MS / 2), start);
 });

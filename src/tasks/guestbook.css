@@ -1,0 +1,44 @@
+/*
+ * Gästboken: varje sida är en tecknad bild av ett olinjerat blad i en sliten
+ * bok, och namnen står i skrivstil med blått bläck (Jonas 2026-11-23).
+ * Bladet i bilden går från 110 till 845 i sidled och från 40 till 1165 i
+ * höjdled, av 896 × 1200 pixlar.
+ */
+
+/* Homemade Apple, en handskrift. Licensen, Apache 2.0, ligger bredvid. */
+@font-face {
+  font-family: 'Homemade Apple';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./typsnitt/homemade-apple.woff2') format('woff2');
+}
+
+.paper.book-page {
+  width: min(100cqw, 100cqh * 896 / 1200);
+  aspect-ratio: 896 / 1200;
+  background: url('./bilder/gastboken-sida.webp') center / 100% 100% no-repeat;
+  padding: 14% 12% 8% 20%;
+  color: #1f2a55;
+  font: 400 min(4.6cqw, 3.4cqh, 1.5rem)/1.6 'Homemade Apple', var(--font-reading);
+}
+
+/* Bladen under är samma sida, nästan rakt under, som i en bok. */
+.paper-behind.book-page.depth-1 { transform: translate(1%, 0.6%); }
+.paper-behind.book-page.depth-2 { transform: translate(2%, 1.2%); }
+
+.paper.book-page .dateline {
+  margin: 0 0 1.25em;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 0.8em;
+  letter-spacing: 0;
+  text-transform: none;
+  color: inherit;
+}
+
+.paper.book-page .page-line { margin: 0 0 0.6em; }
+
+.paper.book-page.is-cover { display: flex; align-items: center; justify-content: center; padding-left: 16%; }
+.paper.book-page .book-cover { margin: 0; text-align: center; font: inherit; font-size: 1.4em; line-height: 1.5; color: inherit; }

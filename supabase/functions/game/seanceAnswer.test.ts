@@ -9,7 +9,7 @@ import { type GameState, type PlayerRecord, createInitialState } from './state.t
 const STEP: SeanceStep = {
   id: 'vem-ar-jag',
   type: 'seance',
-  text: 'Följ skenet.',
+  text: 'Följ planchetten.',
   callsFromHouse: true,
   question: 'Vem är hon?',
   wrongAnswerMinutes: 2,

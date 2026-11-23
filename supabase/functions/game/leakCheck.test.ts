@@ -192,10 +192,10 @@ function playWholeMelody(mission: Mission, state: GameState, players: PlayerReco
   return played;
 }
 
-/** Lång nog för att skenet ska hinna fram till vilken bokstav som helst. */
+/** Lång nog för att planchetten ska hinna fram till vilken bokstav som helst. */
 const GLIDE_WAIT_MS = 60_000;
 
-/** Alla följer skenet genom hela meddelandet, och vyerna kontrolleras efter varje bokstav. */
+/** Alla följer planchetten genom hela meddelandet, och vyerna kontrolleras efter varje bokstav. */
 function followWholeSeance(mission: Mission, state: GameState, players: PlayerRecord[], participants: PlayerRecord[]): GameState {
   let followed = state;
   let nowMs = 0;

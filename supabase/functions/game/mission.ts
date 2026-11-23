@@ -121,7 +121,7 @@ export type AnswerStep = {
 };
 
 /**
- * Seansen: alla följer skenet över brädet, och bokstäverna i meddelandet
+ * Seansen: alla följer planchetten över brädet, och bokstäverna i meddelandet
  * syns på en mobil i taget. Se seance.ts.
  */
 export type SeanceStep = {

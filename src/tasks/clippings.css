@@ -1,0 +1,91 @@
+/*
+ * Tidningsurklippen är tecknade bilder utan text, och spelet sätter texten i
+ * Old Standard TT, ett tidningstypsnitt (Jonas 2026-11-23). Det stora
+ * urklippet bär artikeln med datumrad, rubrik och anfang. Det lilla bär en
+ * notis, med första meningen som rubrik. Textens storlek räknas i urklippets
+ * bredd, så att den får plats på bilden i alla mobiler.
+ */
+
+/* Old Standard TT i normal och fet vikt. Licensen, SIL OFL, ligger bredvid. */
+@font-face {
+  font-family: 'Old Standard TT';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./typsnitt/old-standard-tt.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Old Standard TT';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./typsnitt/old-standard-tt-bold.woff2') format('woff2');
+}
+
+.paper.clip {
+  container-type: inline-size;
+  color: #23201b;
+  font-family: 'Old Standard TT', Georgia, serif;
+}
+
+/* Det stora urklippet, 819 × 1126 pixlar. */
+.paper.clip-big {
+  width: min(100cqw, 100cqh * 819 / 1126);
+  aspect-ratio: 819 / 1126;
+  padding: 11% 11% 9%;
+  background: url('./bilder/urklipp-stort.webp') center / 100% 100% no-repeat;
+}
+
+/* Det lilla urklippet, 1050 × 765 pixlar, med texten mitt i höjdled. */
+.paper.clip-small {
+  width: min(100cqw, 100cqh * 1050 / 765);
+  aspect-ratio: 1050 / 765;
+  padding: 9% 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: url('./bilder/urklipp-litet.webp') center / 100% 100% no-repeat;
+}
+
+.np-date {
+  margin: 0 0 3cqw;
+  padding-bottom: 2cqw;
+  border-bottom: 1px solid rgb(35 32 27 / 0.55);
+  font-size: 3.4cqw;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.np-head {
+  margin: 0 0 4cqw;
+  font: 700 8.2cqw/1.08 'Old Standard TT', Georgia, serif;
+  text-align: center;
+}
+
+.np-body {
+  margin: 0;
+  font-size: 4.6cqw;
+  line-height: 1.42;
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Anfang: artikelns första bokstav är stor och går över tre rader. */
+.np-lead::first-letter {
+  float: left;
+  padding: 0.04em 0.08em 0 0;
+  font-size: 3.05em;
+  font-weight: 700;
+  line-height: 0.85;
+}
+
+.np-kicker {
+  margin: 0 0 1.5cqw;
+  font: 700 5.2cqw/1.1 'Old Standard TT', Georgia, serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.np-notice { margin: 0; font-size: 4.7cqw; line-height: 1.38; }

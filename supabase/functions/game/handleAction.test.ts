@@ -306,10 +306,10 @@ async function startSeanceWithBo() {
   return { memory, gameId, view };
 }
 
-/** Lång nog för att skenet ska hinna fram till vilken bokstav som helst. */
+/** Lång nog för att planchetten ska hinna fram till vilken bokstav som helst. */
 const GLIDE_WAIT_MS = 60_000;
 
-test('i seansen glider skenet när alla följer, och bokstaven lyser hos alla när skenet når den', async () => {
+test('i seansen glider planchetten när alla följer, och bokstaven lyser hos alla när planchetten når den', async () => {
   const { memory, gameId } = await startSeanceWithBo();
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'touchBoard', gameId, touch: 'fuska' }), { status: 400, body: { error: 'unknownAction' } });
   assert.deepEqual(await send(memory.store, 'user-Bo', { type: 'submitAnswer', gameId, answer: 'HJÄLP MIG' }), { status: 409, body: { error: 'notATask' } });
@@ -322,7 +322,7 @@ test('i seansen glider skenet när alla följer, och bokstaven lyser hos alla n�
   assert.deepEqual(boView.step.seance?.waitingFor, []);
   assert.equal(boView.step.seance?.movesFromMs, memory.clock.nowMs);
 
-  // Precis så länge som skenet behöver för att nå första bokstaven, så att det inte hinner vidare.
+  // Precis så länge som planchetten behöver för att nå första bokstaven, så att den inte hinner vidare.
   memory.clock.nowMs += boView.step.seance?.segment.durationMs ?? 0;
   memory.sentViews.length = 0;
   memory.sentSeances.length = 0;

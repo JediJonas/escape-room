@@ -1,8 +1,12 @@
 import { type PointerEvent, type ReactNode, useState } from 'react';
 import type { FoundItem } from '../../supabase/functions/game/found.ts';
 import type { MissionDocument } from '../../supabase/functions/game/mission.ts';
+import { Icon } from './Icon.tsx';
+import { splitNotice } from './notice.ts';
 import { swipeTarget } from './swipe.ts';
 import './thingScreen.css';
+import '../tasks/guestbook.css';
+import '../tasks/clippings.css';
 
 /**
  * En sak i huset i fullskärm, som ouijabrädet: bara saken, utan text. Överst
@@ -73,26 +77,45 @@ function PaperContent({ paper }: { paper: Paper }) {
       </>
     );
   }
+  // Tidningsurklippen är tecknade urklipp, och texten sätts i ett tidningstypsnitt (Jonas 2026-11-23).
   if (paper.document) {
+    const [first, ...rest] = paper.document.text.split('\n');
     return (
       <>
-        {paper.document.dateline && <p className="dateline">{paper.document.dateline}</p>}
-        <h2>{paper.document.title}</h2>
-        {paper.document.text.split('\n').map((line) => <p key={line}>{line}</p>)}
+        {paper.document.dateline && <p className="np-date">{paper.document.dateline}</p>}
+        <h2 className="np-head">{paper.document.title}</h2>
+        <p className="np-body np-lead">{first}</p>
+        {rest.map((line) => <p key={line} className="np-body">{line}</p>)}
       </>
     );
   }
+  const notice = splitNotice(paper.text ?? '');
   return (
     <>
-      <p>{paper.text}</p>
-      <p className="paper-only-mine">Bara du har det här urklippet.</p>
+      {notice.heading && <p className="np-kicker">{notice.heading}</p>}
+      <p className="np-notice">{notice.body}</p>
     </>
   );
 }
 
+function isBookPage(paper: Paper): boolean {
+  return paper.page !== undefined || paper.cover !== undefined;
+}
+
+/** Vilket slags papper det är, som avgör bilden bakom texten. */
+function describePaperKind(paper: Paper): string {
+  if (isBookPage(paper)) return 'book-page';
+  return paper.document ? 'clip clip-big' : 'clip clip-small';
+}
+
 function describePaperClass(paper: Paper): string {
-  if (paper.cover !== undefined) return 'paper document-card book-page is-cover';
-  return paper.page !== undefined ? 'paper document-card book-page' : 'paper document-card';
+  const kind = `paper ${describePaperKind(paper)}`;
+  return paper.cover !== undefined ? `${kind} is-cover` : kind;
+}
+
+/** Ett av spelarens egna urklipp, som bara hon ser. */
+function isMine(paper: Paper): boolean {
+  return paper.text !== undefined;
 }
 
 /** Så många pixlar i sidled lutar papperet en grad när det dras. */
@@ -104,7 +127,8 @@ const VISIBLE_BEHIND = 2;
 /**
  * Papper som ligger ovanpå varandra. Kanterna på dem som ligger under syns,
  * och spelaren bläddrar genom att svajpa i sidled eller med pilarna
- * (Jonas 2026-11-18).
+ * (Jonas 2026-11-18). Pilarna ligger längst ner, närmast tummen, och högen
+ * överst under rubriken (Jonas 2026-11-23).
  */
 export function PaperStack({ papers }: { papers: readonly Paper[] }) {
   const [index, setIndex] = useState(0);
@@ -130,7 +154,7 @@ export function PaperStack({ papers }: { papers: readonly Paper[] }) {
     <section className="paper-stack" aria-label="Papper i en hög" aria-roledescription="hög">
       <div className="paper-pile">
         {behind.map((paper, depth) => (
-          <div key={paper.key} className={`paper paper-behind depth-${depth + 1}`} aria-hidden="true" />
+          <div key={paper.key} className={`paper paper-behind ${describePaperKind(paper)} depth-${depth + 1}`} aria-hidden="true" />
         )).reverse()}
         <article
           key={papers[current].key}
@@ -146,11 +170,13 @@ export function PaperStack({ papers }: { papers: readonly Paper[] }) {
       </div>
       {papers.length > 1 && (
         <nav className="paper-nav" aria-label="Bläddra">
-          <button type="button" className="secondary" onClick={() => setIndex(current - 1)} disabled={current === 0} aria-label="Föregående">‹</button>
+          <button type="button" className="secondary" onClick={() => setIndex(current - 1)} disabled={current === 0} aria-label="Föregående"><Icon name="back" /></button>
           <span>{current + 1} av {papers.length}</span>
-          <button type="button" className="secondary" onClick={() => setIndex(current + 1)} disabled={current === papers.length - 1} aria-label="Nästa">›</button>
+          <button type="button" className="secondary" onClick={() => setIndex(current + 1)} disabled={current === papers.length - 1} aria-label="Nästa"><Icon name="next" /></button>
         </nav>
       )}
+      {/* Statusraden nere till vänster säger när spelaren tittar på sina egna urklipp (Jonas 2026-11-23). */}
+      {isMine(papers[current]) && <p className="status-line paper-secret"><Icon name="secret" />Bara du ser det här</p>}
     </section>
   );
 }

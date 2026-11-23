@@ -1,7 +1,8 @@
-import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react';
+import { type CSSProperties, type KeyboardEvent, type PointerEvent, useRef, useState } from 'react';
 import type { PianoKey, PianoView } from '../../supabase/functions/game/piano.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { playMelody, playNote } from '../sound/piano.ts';
+import { OCTAVE_IMAGE, layOutPianoKeys } from './pianoLayout.ts';
 import './piano.css';
 
 /** Hur länge en tangent klingar när den slås an. */
@@ -37,45 +38,18 @@ function MelodyPanel({ piano }: { piano: PianoView }) {
   );
 }
 
-/** Den svarta tangentens plats räknas i procent av pianots bredd. */
+/** Lägena räknas i procent av fönstrets bredd. */
 const PERCENT = 100;
 
-/** Vita tangenter som har en svart tangent emellan, som på ett riktigt piano. Mellan E och F och mellan B och C finns ingen. */
-const HAS_BLACK_AFTER = new Set(['C', 'D', 'F', 'G', 'A']);
-
-/** De vita tangenterna i en oktav, från C. */
-const WHITE_LETTERS = 'CDEFGAB';
-
-/** Den svarta tangenten efter en vit, till exempel C#4 efter C4, eller null. */
-function findBlackAfter(note: string): string | null {
-  const match = /^([A-G])(\d)$/.exec(note);
-  return match && HAS_BLACK_AFTER.has(match[1]) ? `${match[1]}#${match[2]}` : null;
-}
-
-/** Den vita tangenten närmast under, till exempel B3 under C4. */
-function findWhiteBelow(note: string): string | null {
-  const match = /^([A-G])(\d)$/.exec(note);
-  if (!match) return null;
-  const index = WHITE_LETTERS.indexOf(match[1]);
-  const octave = Number(match[2]);
-  return index === 0 ? `B${octave - 1}` : `${WHITE_LETTERS[index - 1]}${octave}`;
-}
-
-/**
- * De svarta tangenterna och var de ligger, räknat i vita tangenter från
- * vänster. Den före den första och den efter den sista hamnar i kanten och
- * syns till hälften, som på ett riktigt piano (Jonas 2026-11-18).
- */
-function placeBlackKeys(keys: readonly PianoKey[]): { note: string; position: number }[] {
-  const below = findWhiteBelow(keys[0].note);
-  const edges = [below === null ? null : findBlackAfter(below), ...keys.map((key) => findBlackAfter(key.note))];
-  return edges.flatMap((note, position) => (note === null ? [] : [{ note, position }]));
+function toPercent(pixels: number, width: number): string {
+  return `${(pixels / width) * PERCENT}%`;
 }
 
 /**
  * Spelarens tangenter, ritade som en bit av ett riktigt piano: fyra
  * intilliggande vita tangenter och de svarta däremellan och i kanterna
- * (Jonas 2026-11-18).
+ * (Jonas 2026-11-18). Pianot är en tecknad bild av en oktav, och knapparna
+ * ligger osynliga ovanpå tangenterna i bilden (Jonas 2026-11-23).
  * En vit tangent låter i den egna mobilen och skickas till servern, som avgör
  * om de senaste tonerna är melodin. De svarta finns inte i melodin, så de
  * låter bara i mobilen. Inget säger till om en fel ton (Jonas 2026-11-18).
@@ -105,27 +79,33 @@ export function PianoKeys({ keys, onPlayKey }: { keys: readonly PianoKey[]; onPl
     void playNote(gameAudio, note, KEY_LENGTH_S);
   }
 
-  if (keys.length === 0) return null;
+  const layout = layOutPianoKeys(keys.map((key) => key.note));
+  if (!layout) return null;
+  const { width } = layout;
+  const names = new Map(keys.map((key) => [key.note, key.name]));
   return (
     <section className="piano-keys" aria-label="Dina tangenter">
-      {keys.map((key) => (
-        <button key={key.note} type="button" className="piano-key" onPointerDown={(event) => strike(event, key.note, true)} onPointerUp={release} onPointerCancel={forget} onKeyDown={(event) => strike(event, key.note, true)}>
-          {key.name}
-        </button>
-      ))}
-      {placeBlackKeys(keys).map(({ note, position }) => (
-        <button
-          key={note}
-          type="button"
-          className="piano-key piano-key-black"
-          aria-label="Svart tangent"
-          style={{ left: `${(position / keys.length) * PERCENT}%` }}
-          onPointerDown={(event) => strike(event, note, false)}
-          onPointerUp={release}
-          onPointerCancel={forget}
-          onKeyDown={(event) => strike(event, note, false)}
-        />
-      ))}
+      <div className="piano-window" style={{ '--keys-ratio': width / OCTAVE_IMAGE.height } as CSSProperties}>
+        <div className="piano-octaves" aria-hidden="true" style={{ left: toPercent(layout.imageLeft, width), width: toPercent(2 * OCTAVE_IMAGE.width, width) }} />
+        {layout.whiteKeys.map(({ note, left, width: keyWidth }) => (
+          <button key={note} type="button" className="piano-key" style={{ left: toPercent(left, width), width: toPercent(keyWidth, width) }} onPointerDown={(event) => strike(event, note, true)} onPointerUp={release} onPointerCancel={forget} onKeyDown={(event) => strike(event, note, true)}>
+            {names.get(note)}
+          </button>
+        ))}
+        {layout.blackKeys.map(({ note, left, width: keyWidth }) => (
+          <button
+            key={note}
+            type="button"
+            className="piano-key piano-key-black"
+            aria-label="Svart tangent"
+            style={{ left: toPercent(left, width), width: toPercent(keyWidth, width) }}
+            onPointerDown={(event) => strike(event, note, false)}
+            onPointerUp={release}
+            onPointerCancel={forget}
+            onKeyDown={(event) => strike(event, note, false)}
+          />
+        ))}
+      </div>
     </section>
   );
 }

@@ -6,6 +6,15 @@
  * att något lyser upp.
  */
 
+/* IM Fell Double Pica SC, med bara versalerna A till Ö. Licensen, SIL OFL, ligger bredvid (Jonas 2026-11-23). */
+@font-face {
+  font-family: 'IM Fell Double Pica SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./typsnitt/im-fell-double-pica-sc.woff2') format('woff2');
+}
+
 /*
  * Skärmen är en sakvy (.thing-screen) och har dess bakgrund. Klockan,
  * menyknappen och raderna ligger ovanpå brädet och släpper igenom fingret.
@@ -105,8 +114,9 @@
   grid-template-rows: repeat(6, 1fr);
   place-items: center;
   /* Tung, gammaldags antikva, som skriften på brädet i rundbilden. */
-  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', 'Iowan Old Style', Georgia, serif;
-  font-weight: 700;
+  /* Ett gammalt boktryckstypsnitt. Det finns bara i normal vikt, så det görs inte fetare. */
+  font-family: 'IM Fell Double Pica SC', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  font-weight: 400;
   font-size: clamp(1.5rem, 7.5vw, 2.4rem);
   color: var(--board-ink);
   text-shadow: 0 1px 0 rgb(255 245 220 / 0.45);

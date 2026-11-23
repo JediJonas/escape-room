@@ -9,7 +9,7 @@ import { gameAudio, unlockAudioOnEveryTap } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
 import { MelodyButton, PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
-import { FlashbackScreen, useFlashbackTime } from '../tasks/FlashbackScreen.tsx';
+import { FlashbackScreen, MemoryRoomView, useFlashbackTime } from '../tasks/FlashbackScreen.tsx';
 import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
@@ -105,6 +105,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Det som spelaren just tryckte på och som ingen hade hittat. Det öppnas när servern har svarat.
   const [pendingFind, setPendingFind] = useState<Spot | null>(null);
   const [readNarrations, setReadNarrations] = useState(readReadNarrations);
+  // Spelaren står i ett rum i minnet och har tryckt Ett rum står tomt.
+  const [isChoosingAnotherRoom, setIsChoosingAnotherRoom] = useState(false);
   const { step } = view;
   const flashback = useFlashbackTime(step.flashback?.remembersUntilMs ?? null, clockOffsetMs, game.fadeFlashback);
   const isAtGoal = step.goTo !== null && view.myPlace?.id === step.goTo.id;
@@ -156,7 +158,23 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     );
   }
   // Medan huset minns ser alla minnet, var de än är, och inget av det som finns i nuet (Jonas 2026-11-17).
+  if (isChoosingAnotherRoom && (!flashback.isRemembering || step.flashback?.choice !== 'takeAnother')) setIsChoosingAnotherRoom(false);
   if (step.flashback && flashback.isRemembering && !view.isFinished) {
+    // Rummen i minnet visas i fullskärm som rundbilder, som rummen i huset (Jonas 2026-11-23).
+    const memoryRooms = step.flashback.myRooms.flatMap((room) => (room.image ? [{ place: room.place, image: room.image }] : []));
+    if (memoryRooms.length > 0 && !isChoosingAnotherRoom) {
+      return withLeaderMenu(
+        <MemoryRoomView
+          rooms={memoryRooms}
+          flashbackLabel={step.flashback.flashbackLabel}
+          header={clockChip}
+          error={error}
+          isFading={flashback.isFading}
+          msLeft={flashback.msLeft}
+          onTakeAnother={step.flashback.choice === 'takeAnother' ? () => setIsChoosingAnotherRoom(true) : null}
+        />,
+      );
+    }
     return withLeaderMenu(
       <ScreenLayout className="memory-screen" top={<>{missionLabel}{clockChip}</>} actions={<p className="status-line">Dörrarna är stängda tills minnet bleknar.</p>}>
         <FlashbackScreen flashback={step.flashback} isFading={flashback.isFading} msLeft={flashback.msLeft} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseFlashbackRoom} />

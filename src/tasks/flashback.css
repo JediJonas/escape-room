@@ -162,21 +162,6 @@
 .memory-choices { border: 0; padding: 0; }
 
 /*
- * Det valda rummet är rundbilden från 1962, och spelaren ser sig om i den som
- * i huset (Jonas 2026-11-23). Den tonas som ett gammalt fotografi.
- */
-.memory-look {
-  position: relative;
-  height: min(55dvh, 34rem);
-  margin: 0 0 0.75rem;
-  overflow: hidden;
-  border-radius: var(--radius-l);
-  background: #2e2416;
-  box-shadow: 0 0.5rem 1.5rem rgb(40 25 10 / 0.3);
-  filter: sepia(0.6) contrast(0.95);
-}
-
-/*
  * Valet visar rummen som de ser ut i dag, en bit mitt i rundbilden. Bilden är
  * dubbelt så hög som rutan, så att rutan visar väggarna och inte golv och tak.
  */
@@ -234,3 +219,60 @@
 }
 .memory-left { margin: 0 0 0.75rem; font-variant-numeric: tabular-nums; font-weight: 600; }
 .memory-left.is-fading { color: var(--bad); }
+
+/*
+ * Rummet i minnet i fullskärm. Bilden från 1962 är lätt tonad, brusar och
+ * flimrar, så att det syns att det är ett minne och inte nuet (Jonas 2026-11-23).
+ */
+.memory-room-screen .round-view {
+  filter: sepia(0.35) contrast(0.92) brightness(1.02);
+  animation: memory-room-flicker 5s steps(1, end) infinite;
+  transition: opacity 2s;
+}
+
+.memory-room-screen.is-fading .round-view { opacity: 0.55; }
+
+/* Bruset ligger över bilden och hoppar runt, som korn i en gammal film. */
+.memory-grain {
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  animation: memory-grain 0.5s steps(1, end) infinite;
+}
+
+/* Kanterna mörknar, som i ett gammalt fotografi. */
+.memory-room-screen .round-view::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgb(30 20 8 / 0.55));
+}
+
+.memory-bottom { gap: 0.5rem; flex-wrap: wrap; }
+.memory-bottom .memory-left { margin: 0; font-weight: 400; font-variant-numeric: tabular-nums; }
+.memory-bottom .room-label { font-size: var(--text-s); }
+
+@keyframes memory-grain {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-7%, 4%); }
+  40% { transform: translate(5%, -6%); }
+  60% { transform: translate(-3%, -9%); }
+  80% { transform: translate(8%, 3%); }
+}
+
+@keyframes memory-room-flicker {
+  0%, 100% { filter: sepia(0.35) contrast(0.92) brightness(1.02); }
+  41% { filter: sepia(0.35) contrast(0.92) brightness(0.9); }
+  43% { filter: sepia(0.35) contrast(0.92) brightness(1.06); }
+  77% { filter: sepia(0.35) contrast(0.92) brightness(0.95); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memory-grain, .memory-room-screen .round-view { animation: none; }
+}

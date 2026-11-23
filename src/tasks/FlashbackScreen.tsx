@@ -1,9 +1,10 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { LookDirection } from '../view/lookDirection.ts';
 import { RoundImageView } from '../view/RoundImageView.tsx';
 import type { FlashbackView } from '../../supabase/functions/game/flashback.ts';
 import { formatFlashbackLeft } from './flashbackTime.ts';
+import '../screens/roomView.css';
 import './flashback.css';
 
 const TICK_MS = 1000;
@@ -39,24 +40,56 @@ function imageStyle(image: string | null | undefined): CSSProperties | undefined
 }
 
 /**
- * Rundbilden av rummet som det var. Spelaren ser sig om i den som i huset,
- * men inget går att trycka på (Jonas 2026-11-23).
+ * Rummet i minnet som rundbild i fullskärm, som ett rum i huset. Spelaren ser
+ * sig om genom att vrida mobilen, med fingret som reserv. Inga texter: det som
+ * finns att se står i bilden. Bilden brusar och flimrar, så att det syns att
+ * det är ett minne (Jonas 2026-11-23). Har spelaren flera rum i minnet byter
+ * hon mellan dem nertill, och står ett rum tomt kan hon gå dit också.
  */
-function MemoryLook({ image, name }: { image: string; name: string }) {
+export function MemoryRoomView({ rooms, flashbackLabel, header, error, isFading, msLeft, onTakeAnother }: {
+  /** Spelarens rum i minnet som har en rundbild, i den ordning hon valde dem. */
+  rooms: { place: { id: PlaceId; name: string }; image: string }[];
+  /** Står ovanför rummets namn i stället för uppdraget, så att det syns att huset minns. */
+  flashbackLabel: string;
+  /** Det som står överst till höger, som klockan. */
+  header: ReactNode;
+  error: string;
+  isFading: boolean;
+  msLeft: number;
+  /** Visar valet av ett tomt rum, eller null när det inte går. */
+  onTakeAnother: (() => void) | null;
+}) {
+  const [shownId, setShownId] = useState<PlaceId | null>(null);
+  const shown = rooms.find((room) => room.place.id === shownId) ?? rooms[rooms.length - 1];
+  const next = rooms[(rooms.indexOf(shown) + 1) % rooms.length];
   const lookRef = useRef<LookDirection>({ yawDeg: 0, pitchDeg: 0 });
   return (
-    <div className="memory-look" role="img" aria-label={`${name} som det var`}>
-      <RoundImageView src={`${import.meta.env.BASE_URL}${image}`} lookRef={lookRef} onTap={() => {}} />
-    </div>
+    <main className={isFading ? 'room-screen memory-room-screen is-fading' : 'room-screen memory-room-screen'}>
+      <header className="topbar room-top">
+        <h1 className="room-name"><span className="eyebrow">{flashbackLabel}</span>{shown.place.name}</h1>
+        {header}
+      </header>
+      <p className="error room-error" role="alert">{error}</p>
+      <RoundImageView key={shown.place.id} src={`${import.meta.env.BASE_URL}${shown.image}`} lookRef={lookRef} onTap={() => {}}>
+        <div className="memory-grain" aria-hidden="true" />
+      </RoundImageView>
+      <div className="room-bottom memory-bottom">
+        <p className={isFading ? 'room-note memory-left is-fading' : 'room-note memory-left'} role="timer">
+          Minnet bleknar om {formatFlashbackLeft(msLeft)}
+        </p>
+        {rooms.length > 1 && <button type="button" className="room-label" onClick={() => setShownId(next.place.id)}>Till {next.place.name.toLocaleLowerCase('sv')}</button>}
+        {onTakeAnother && <button type="button" className="room-label" onClick={onTakeAnother}>Ett rum står tomt</button>}
+      </div>
+    </main>
   );
 }
 
 /**
  * Huset minns kvällen 1962. Spelaren väljer ett rum bland dem som går att
- * välja och ser sig om i det som det var, sepiatonat och flimrande. Valet
- * visar rummen som de ser ut i dag, och det valda rummet visas med
- * rundbilden från 1962 (Jonas 2026-11-23). Det som finns i nuet syns inte så
- * länge minnet varar. Se docs/koncept.md, Nu och 1962.
+ * välja. Valet visar rummen som de ser ut i dag. Ett rum med rundbild från
+ * 1962 visas i MemoryRoomView, och här står bara bitarna i ett rum utan bild
+ * (Jonas 2026-11-23). Det som finns i nuet syns inte så länge minnet varar.
+ * Se docs/koncept.md, Nu och 1962.
  */
 export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy, onChoose }: {
   flashback: FlashbackView;
@@ -68,7 +101,9 @@ export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy
   isBusy: boolean;
   onChoose: (placeId: PlaceId) => void;
 }) {
-  const { myRooms, choice } = flashback;
+  const { choice } = flashback;
+  // Rum med rundbild visas i fullskärm. Här står bara rummen som saknar bild.
+  const myRooms = flashback.myRooms.filter((room) => !room.image);
   const [onlyRoom] = myRooms;
   const isTakingAnother = choice === 'takeAnother';
   return (
@@ -78,7 +113,6 @@ export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy
       {myRooms.map((room) => (
         <div key={room.place.id} className="memory-pieces">
           {myRooms.length > 1 && <h2 className="memory-room">{room.place.name}</h2>}
-          {room.image && <MemoryLook image={room.image} name={room.place.name} />}
           {room.pieces.map((piece) => <p key={piece}>{piece}</p>)}
         </div>
       ))}

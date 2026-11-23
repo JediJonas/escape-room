@@ -17,14 +17,19 @@ export type SpotFrame = { yawDeg: number; pitchDeg: number; widthDeg: number; he
 /**
  * En plats i rundbilden. Radien fanns innan ramen och används för en plats
  * utan ram. Ramen följer saken och kan ha en annan mitt än radien.
+ * Konturen är sakens form som punkter med vridning och lutning i grader. Den
+ * ritas i stället för ramen, men ramen är fortfarande träffytan, så att det
+ * räcker att mitten är i närheten av en smal sak (Jonas 2026-11-23).
  */
-export type Spot = { yawDeg: number; pitchDeg: number; radiusDeg: number; frame?: SpotFrame };
+export type Spot = { yawDeg: number; pitchDeg: number; radiusDeg: number; frame?: SpotFrame; outline?: [number, number][] };
 
 export type Direction = { yawDeg: number; pitchDeg: number };
 
 const MAX_RADIUS_DEG = 45;
 /** En ram får vara högst ett halvt varv bred och gå från rakt ner till rakt upp. */
 const MAX_FRAME_SIZE_DEG = 180;
+/** En kontur har minst en triangel och högst så här många punkter, så att uppdragsfilen hålls läsbar. */
+const MAX_OUTLINE_POINTS = 64;
 /** Lite luft mellan saken och ramen, så att ramen inte skär i saken (Jonas 2026-11-23). */
 export const FRAME_MARGIN_DEG = 1;
 /** Närmare rakt upp eller ner än så här blir en grad i sidled för kort för att räkna med. */
@@ -99,10 +104,16 @@ function isSpotFrame(value: unknown): value is SpotFrame {
     && typeof heightDeg === 'number' && heightDeg > 0 && heightDeg <= MAX_FRAME_SIZE_DEG;
 }
 
+function isOutline(value: unknown): value is [number, number][] {
+  return Array.isArray(value) && value.length >= 3 && value.length <= MAX_OUTLINE_POINTS
+    && value.every((point) => Array.isArray(point) && point.length === 2 && isDirection(point[0], point[1]));
+}
+
 export function isSpot(value: unknown): value is Spot {
   if (!value || typeof value !== 'object') return false;
-  const { yawDeg, pitchDeg, radiusDeg, frame } = value as Record<string, unknown>;
+  const { yawDeg, pitchDeg, radiusDeg, frame, outline } = value as Record<string, unknown>;
   return isDirection(yawDeg, pitchDeg)
     && typeof radiusDeg === 'number' && radiusDeg > 0 && radiusDeg <= MAX_RADIUS_DEG
-    && (frame === undefined || isSpotFrame(frame));
+    && (frame === undefined || isSpotFrame(frame))
+    && (outline === undefined || isOutline(outline));
 }

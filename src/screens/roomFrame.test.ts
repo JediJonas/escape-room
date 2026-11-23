@@ -20,3 +20,8 @@ test('en plats utan ram får en fyrkant över radien', () => {
   const yaws = outline.map((point) => point.yawDeg);
   assert.deepEqual([Math.min(...yaws), Math.max(...yaws)], [-8, 18]);
 });
+
+test('en plats med kontur ritas efter sakens form i stället för ramen', () => {
+  const outline: [number, number][] = [[0, 0], [10, 5], [4, -6]];
+  assert.deepEqual(listFrameOutline({ yawDeg: 4, pitchDeg: 0, radiusDeg: 8, outline }), [{ yawDeg: 0, pitchDeg: 0 }, { yawDeg: 10, pitchDeg: 5 }, { yawDeg: 4, pitchDeg: -6 }]);
+});

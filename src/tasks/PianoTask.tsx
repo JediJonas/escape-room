@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type PointerEvent, useState } from 'react';
+import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react';
 import type { PianoKey, PianoView } from '../../supabase/functions/game/piano.ts';
 import { gameAudio } from '../sound/gameAudio.ts';
 import { playMelody, playNote } from '../sound/piano.ts';
@@ -81,24 +81,35 @@ function placeBlackKeys(keys: readonly PianoKey[]): { note: string; position: nu
  * låter bara i mobilen. Inget säger till om en fel ton (Jonas 2026-11-18).
  */
 export function PianoKeys({ keys, onPlayKey }: { keys: readonly PianoKey[]; onPlayKey: (note: string) => void }) {
-  function sound(note: string) {
-    gameAudio.unlock();
-    void playNote(gameAudio, note, KEY_LENGTH_S);
-  }
+  // En ton som inte kunde höras när fingret sattes ned, eftersom ljudmotorn inte var
+  // upplåst än. iPhone låser bara upp när fingret lyfts, så tonen spelas då i stället.
+  const waitingNote = useRef<string | null>(null);
 
   function strike(event: PointerEvent<HTMLButtonElement> | KeyboardEvent<HTMLButtonElement>, note: string, isWhite: boolean) {
     if ('key' in event && event.key !== 'Enter' && event.key !== ' ') return;
     // Tonen ska komma direkt i trycket, inte när fingret lyfts.
     event.preventDefault();
-    sound(note);
+    gameAudio.unlock();
+    if (gameAudio.isRunning() || 'key' in event) void playNote(gameAudio, note, KEY_LENGTH_S);
+    else waitingNote.current = note;
     if (isWhite) onPlayKey(note);
+  }
+
+  const forget = () => { waitingNote.current = null; };
+
+  function release() {
+    const note = waitingNote.current;
+    if (note === null) return;
+    waitingNote.current = null;
+    gameAudio.unlock();
+    void playNote(gameAudio, note, KEY_LENGTH_S);
   }
 
   if (keys.length === 0) return null;
   return (
     <section className="piano-keys" aria-label="Dina tangenter">
       {keys.map((key) => (
-        <button key={key.note} type="button" className="piano-key" onPointerDown={(event) => strike(event, key.note, true)} onKeyDown={(event) => strike(event, key.note, true)}>
+        <button key={key.note} type="button" className="piano-key" onPointerDown={(event) => strike(event, key.note, true)} onPointerUp={release} onPointerCancel={forget} onKeyDown={(event) => strike(event, key.note, true)}>
           {key.name}
         </button>
       ))}
@@ -110,6 +121,8 @@ export function PianoKeys({ keys, onPlayKey }: { keys: readonly PianoKey[]; onPl
           aria-label="Svart tangent"
           style={{ left: `${(position / keys.length) * PERCENT}%` }}
           onPointerDown={(event) => strike(event, note, false)}
+          onPointerUp={release}
+          onPointerCancel={forget}
           onKeyDown={(event) => strike(event, note, false)}
         />
       ))}

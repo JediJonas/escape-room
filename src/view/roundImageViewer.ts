@@ -4,7 +4,7 @@
  * bilden som en bred remsa som bara går att panorera i sidled.
  */
 
-import { fieldOfViewToHalfHeight, type LookDirection, screenPointToLook, stripPointToLook, yawToStripOffsetPx } from './lookDirection.ts';
+import { fieldOfViewToHalfHeight, type LookDirection, lookToScreenPoint, screenPointToLook, stripLookToPoint, stripPointToLook, yawToStripOffsetPx } from './lookDirection.ts';
 
 /** Remsan visar mitten av bilden, där en rundbild är minst förvrängd. */
 const STRIP_SHARE_OF_IMAGE_HEIGHT = 0.5;
@@ -141,6 +141,18 @@ export function createSphereView(canvas: HTMLCanvasElement) {
       const screen = { x: (point.xPx / widthPx) * 2 - 1, y: 1 - (point.yPx / heightPx) * 2 };
       return screenPointToLook(look, screen, { aspect: widthPx / heightPx, fieldOfViewDeg, perspective });
     },
+
+    /**
+     * Var på visaren en riktning hamnar, i pixlar från dess övre vänstra
+     * hörn, eller null om den ligger bakom spelaren.
+     */
+    lookToPoint(look: LookDirection, direction: LookDirection, { fieldOfViewDeg, perspective }: { fieldOfViewDeg: number; perspective: 'straight' | 'soft' }): { xPx: number; yPx: number } | null {
+      const [widthPx, heightPx] = [canvas.clientWidth, canvas.clientHeight];
+      // En dold visare har ingen storlek, och då finns ingen plats att rita på.
+      if (widthPx === 0 || heightPx === 0) return null;
+      const screen = lookToScreenPoint(look, direction, { aspect: widthPx / heightPx, fieldOfViewDeg, perspective });
+      return screen && { xPx: ((screen.x + 1) / 2) * widthPx, yPx: ((1 - screen.y) / 2) * heightPx };
+    },
   };
 }
 
@@ -168,6 +180,12 @@ export function createStripView(strip: HTMLElement) {
     pointToLook(look: LookDirection, point: { xPx: number; yPx: number }): LookDirection {
       const imageHeightPx = strip.clientHeight / STRIP_SHARE_OF_IMAGE_HEIGHT;
       return stripPointToLook(look.yawDeg, point, { imageWidthPx: imageHeightPx * imageAspect, imageHeightPx, viewWidthPx: strip.clientWidth, viewHeightPx: strip.clientHeight });
+    },
+
+    /** Var på remsan en riktning hamnar, i pixlar från dess övre vänstra hörn. */
+    lookToPoint(look: LookDirection, direction: LookDirection): { xPx: number; yPx: number } {
+      const imageHeightPx = strip.clientHeight / STRIP_SHARE_OF_IMAGE_HEIGHT;
+      return stripLookToPoint(look.yawDeg, direction, { imageWidthPx: imageHeightPx * imageAspect, imageHeightPx, viewWidthPx: strip.clientWidth, viewHeightPx: strip.clientHeight });
     },
   };
 }

@@ -26,27 +26,26 @@
 
 .room-screen .room-name { font-weight: 600; }
 
-/* Siktet mitt i bilden. Det fylls när något går att trycka på. */
-.room-aim {
+/*
+ * Ramen runt det som är tänt. Den ersätter siktet som alltid låg mitt i
+ * bilden, och syns bara när något går att trycka på (Jonas 2026-11-23).
+ */
+.room-frame {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   z-index: 1;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 2px solid rgb(240 225 200 / 0.55);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  overflow: visible;
   pointer-events: none;
-  transition: width 0.15s, height 0.15s, background-color 0.15s, border-color 0.15s;
 }
 
-.room-aim.is-aimed {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-color: rgb(255 214 140 / 0.95);
-  background: rgb(255 214 140 / 0.2);
-  box-shadow: 0 0 12px 2px rgb(255 214 140 / 0.45);
+.room-frame polygon {
+  fill: none;
+  stroke: rgb(255 214 140 / 0.95);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgb(255 214 140 / 0.6));
 }
 
 .room-bottom {

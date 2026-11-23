@@ -22,3 +22,11 @@ test('en plats har vridning, lutning och en träffyta som inte är för stor', (
   assert.ok(!isSpot({ yawDeg: 0, pitchDeg: 0, radiusDeg: 90 }));
   assert.ok(!isSpot('pianot'));
 });
+
+test('en plats kan ha en ram runt saken, och ramen måste gå att läsa', () => {
+  const frame = { yawDeg: -25, pitchDeg: -21, widthDeg: 40, heightDeg: 35 };
+  assert.ok(isSpot({ yawDeg: -28, pitchDeg: -12, radiusDeg: 16, frame }));
+  assert.ok(!isSpot({ yawDeg: -28, pitchDeg: -12, radiusDeg: 16, frame: { ...frame, widthDeg: 0 } }));
+  assert.ok(!isSpot({ yawDeg: -28, pitchDeg: -12, radiusDeg: 16, frame: { ...frame, pitchDeg: 100 } }));
+  assert.ok(!isSpot({ yawDeg: -28, pitchDeg: -12, radiusDeg: 16, frame: 'pianot' }));
+});

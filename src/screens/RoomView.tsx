@@ -5,18 +5,24 @@ import { type Spot, findSpotAt } from '../../supabase/functions/game/spots.ts';
 import type { LookDirection } from '../view/lookDirection.ts';
 import { RoundImageView, type ScreenProjection } from '../view/RoundImageView.tsx';
 import { listFrameOutline } from './roomFrame.ts';
+import { type RoomVisit, chooseStartLook, enterRoom } from './roomVisit.ts';
 import { type RoomTarget, findTappedTarget, hasLookedAround, listRoomTargets } from './roomTargets.ts';
 import './roomView.css';
 
 /**
- * Åt vilket håll spelaren tittade senast och i vilket rum. När hon går
- * tillbaka från en sak tittar hon åt samma håll, och i ett nytt rum rakt fram.
+ * Spelarens besök i rummet. När hon går tillbaka från en sak tittar hon åt
+ * samma håll, och i ett nytt rum har hon dörren hon kom in genom i ryggen
+ * (Jonas 2026-11-23).
  */
-const lastLook: { roomId: string; look: LookDirection } = { roomId: '', look: { yawDeg: 0, pitchDeg: 0 } };
+let visit: RoomVisit = { roomId: '', cameFrom: null, look: null };
+
+/** Säger att spelaren är i rummet. Anropas för alla rum, också de utan rundbild, så att det syns varifrån hon kom. */
+export function noteRoom(roomId: string) {
+  visit = enterRoom(visit, roomId);
+}
 
 function rememberLook(roomId: string, look: LookDirection) {
-  lastLook.roomId = roomId;
-  lastLook.look = look;
+  if (visit.roomId === roomId) visit = { ...visit, look };
 }
 
 /**
@@ -45,8 +51,9 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
   onFind: (spot: Spot) => void;
 }) {
   const roomId = house.room.id;
-  const isBackFromThing = lastLook.roomId === roomId;
-  const firstLook = isBackFromThing ? lastLook.look : { yawDeg: 0, pitchDeg: 0 };
+  noteRoom(roomId);
+  const isBackFromThing = visit.look !== null;
+  const firstLook = visit.look ?? chooseStartLook(house.doors, visit.cameFrom);
   const lookRef = useRef<LookDirection>(firstLook);
   // I ett nytt rum tänds inget förrän spelaren har börjat se sig omkring
   // (Jonas 2026-11-23). Den som kommer tillbaka från en sak ser det tänt som förut.

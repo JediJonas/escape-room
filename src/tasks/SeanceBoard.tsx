@@ -191,7 +191,11 @@ export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, answer }
  * gruppen har svarat (Jonas 2026-11-18). Ingen planchett och inget skickas.
  * Skenet räknas ur serverns tid, så att alla mobiler visar samma bokstav.
  */
-export function EchoBoard({ message, clockOffsetMs }: { message: string; clockOffsetMs: number }) {
+/**
+ * Brädet när ingen seans pågår. Har brädet något att säga bokstaverar det av
+ * sig självt, och annars står det stilla utan sken (Jonas 2026-11-23).
+ */
+export function EchoBoard({ message, clockOffsetMs }: { message: string | null; clockOffsetMs: number }) {
   const glowRef = useRef<HTMLDivElement>(null);
   const latest = useRef({ message, clockOffsetMs });
 
@@ -203,7 +207,7 @@ export function EchoBoard({ message, clockOffsetMs }: { message: string; clockOf
     let frame = 0;
     const draw = () => {
       const { message: current, clockOffsetMs: offset } = latest.current;
-      if (glowRef.current) Object.assign(glowRef.current.style, toPercent(findEchoGlowPoint(current, Date.now() + offset)));
+      if (glowRef.current && current !== null) Object.assign(glowRef.current.style, toPercent(findEchoGlowPoint(current, Date.now() + offset)));
       frame = requestAnimationFrame(draw);
     };
     frame = requestAnimationFrame(draw);
@@ -213,13 +217,13 @@ export function EchoBoard({ message, clockOffsetMs }: { message: string; clockOf
   return (
     <section className="seance" aria-label="Brädet">
       <div className="seance-frame">
-        <div className="seance-board" aria-label="Brädet. Skenet rör sig av sig självt.">
+        <div className="seance-board" aria-label={message === null ? 'Brädet' : 'Brädet. Skenet rör sig av sig självt.'}>
           <div className="seance-letters" aria-hidden="true">
             {BOARD_CELLS.map((symbol, cell) => (
               <span key={symbol} className={cell === START_CELL ? 'is-start' : undefined}>{symbol}</span>
             ))}
           </div>
-          <div ref={glowRef} className="seance-glow" />
+          {message !== null && <div ref={glowRef} className="seance-glow" />}
         </div>
       </div>
     </section>

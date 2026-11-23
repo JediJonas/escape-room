@@ -201,6 +201,8 @@ export type ThingView = {
   instrument: Instrument | null;
   /** Det brädet bokstaverar av sig självt när steget det öppnar inte är det gruppen är på, annars null. */
   echo: string | null;
+  /** Saken är ett bräde som öppnar en seans. Det går att öppna också när inget händer på det (Jonas 2026-11-23). */
+  isBoard: boolean;
   /** Spelaren har inte läst det som saken ger, som urklippen. Tillbaka räknas då som läst (Jonas 2026-11-18). */
   marksRead: boolean;
   /**
@@ -272,6 +274,7 @@ function describeThing(thing: HouseThing, mission: Mission, state: GameState, vi
     opensFound,
     isCalling: current !== undefined && isStepCalling(current.step, state),
     instrument: current === undefined && viewer ? describeInstrument(opened.map(({ step }) => step), state, viewer.id, viewer.participantIds) : null,
+    isBoard: opened.some(({ step }) => step.type === 'seance'),
     echo: current === undefined ? (thing.echoes ?? []).filter((echo) => state.stepIndex >= stepIndexOf(mission, echo.fromStep)).at(-1)?.message ?? null : null,
     opensAwaitedTask: isAwaitedBy(mission.steps[state.stepIndex], state, thing),
     marksRead: viewer !== undefined && findReadSteps(mission, thing.id).some((stepId) => !hasRead(state.foundReaders, stepId, viewer.id)),

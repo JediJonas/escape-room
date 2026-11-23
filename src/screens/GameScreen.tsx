@@ -14,7 +14,7 @@ import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
 import { DocumentList } from './FoundDocuments.tsx';
-import { RoomList, RoomView } from './RoomView.tsx';
+import { RoomList, RoomView, noteRoom } from './RoomView.tsx';
 import { findThingAtSpot } from './roomTargets.ts';
 import { PaperStack, ThingLook, ThingScreen, listFoundPapers, listPages, listPapers } from './ThingScreen.tsx';
 import { InfoBox } from './InfoBox.tsx';
@@ -163,6 +163,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
 
   // I huset öppnar en sak alltid en vy, och Tillbaka går till rummet (Jonas 2026-11-17).
   const { house } = view;
+  // Rummet noteras varje gång, också när det inte visas, så att nästa rum vet vilken dörr spelaren kom in genom.
+  if (house) noteRoom(house.room.id);
   const pendingThingId = pendingFind && house ? findThingAtSpot(house, pendingFind) : null;
   if (pendingThingId) {
     setPendingFind(null);
@@ -219,8 +221,11 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
   // Pianot och ouijabrädet visar först en närbild och en text, och knappen Använd öppnar dem.
   // Tillbaka går till rummet, både härifrån och från saken (Jonas 2026-11-23).
-  const canUseThing = openThing !== null && (openThing.opensCurrentStep || openThing.instrument !== null || openThing.echo !== null);
-  if (openThing?.text && canUseThing && usedThingId !== openThing.id) {
+  // Byrån, golvuret och gästboken visas likadant, och Använd öppnar urklippen, urtavlan eller sidorna (Jonas 2026-11-23).
+  const canUseThing = openThing !== null && (openThing.opensCurrentStep || openThing.instrument !== null || openThing.isBoard || openThing.opensFound !== null || openThing.pages !== null);
+  // Den som går tillbaka från närbilden har inte läst eller gjort något än.
+  const isShowingLook = openThing?.text !== null && openThing?.text !== undefined && canUseThing && usedThingId !== openThing.id;
+  if (openThing?.text && isShowingLook) {
     const useButton = <button type="button" onClick={() => setUsedThingId(openThing.id)}>Använd</button>;
     return withLeaderMenu(
       <ThingScreen header={screenHeader} actions={<>{error && <p className="error" role="alert">{error}</p>}{useButton}</>}>
@@ -229,7 +234,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     );
   }
   // Efteråt bokstaverar brädet av sig självt, om och om igen, som VERA (Jonas 2026-11-18).
-  if (openThing && !openThing.opensCurrentStep && openThing.echo) {
+  // Mellan seanserna står brädet stilla, utan sken (Jonas 2026-11-23).
+  if (openThing && !openThing.opensCurrentStep && openThing.isBoard) {
     return withLeaderMenu(
       <main className="thing-screen seance-screen is-still">
         <p className="hint game-header">{screenHeader}</p>
@@ -360,8 +366,10 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Tillbaka går till rummet. Att lämna brädet efter meddelandet, eller urklippen efter att ha
   // läst dem, räknas som klar, så ingen Klar-knapp behövs (Jonas 2026-11-18).
   function leaveThing() {
-    if (openThing?.marksRead && view.me.isPlaying) game.markRead(openThing.id);
-    else if (step.isDoneByLeaving && openThing?.opensCurrentStep && view.me.isPlaying && !step.isMeDone) markReady();
+    // Inget räknas som läst eller klart förrän spelaren har tryckt Använd.
+    const hasUsed = !isShowingLook;
+    if (hasUsed && openThing?.marksRead && view.me.isPlaying) game.markRead(openThing.id);
+    else if (hasUsed && step.isDoneByLeaving && openThing?.opensCurrentStep && view.me.isPlaying && !step.isMeDone) markReady();
     // Utan huset finns inget rum att gå till, så spelaren kommer till stegets sida.
     if (!house && step.seance?.isComplete) setHasLeftBoard(true);
     setIsMenuOpen(false);

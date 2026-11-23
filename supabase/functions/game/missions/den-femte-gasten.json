@@ -55,6 +55,8 @@
           {
             "id": "golvuret",
             "name": "Golvuret",
+            "text": "Ett högt golvur i mörkt trä står mellan fönstren. Pendeln hänger stilla bakom det dammiga glaset, och visarna har stannat.",
+            "image": "uppdrag/den-femte-gasten/saker/golvuret.webp",
             "findHint": "Det finns ett golvur någonstans i huset.",
             "opensSteps": [
               "rummen-minns"
@@ -202,6 +204,8 @@
           {
             "id": "gastboken",
             "name": "Gästboken",
+            "text": "En gästbok ligger uppslagen på bordet i hallen. Pärmen är sliten, och bläcket på de första sidorna har bleknat.",
+            "image": "uppdrag/den-femte-gasten/saker/gastboken.webp",
             "cover": "Gästbok Ekbacken",
             "pages": [
               "14 juni 1958\nIngrid Lindahl\nTore Lindahl\nBirgitta Nyberg\nLennart Nyberg\nUlla Forsén",
@@ -473,6 +477,8 @@
           {
             "id": "byran",
             "name": "Byrån",
+            "text": "En gammal byrå med tre tunga lådor. Dammet på knopparna till den översta är bortsvept, som om någon nyss har öppnat den.",
+            "image": "uppdrag/den-femte-gasten/saker/byran.webp",
             "findHint": "Det finns en byrå någonstans i huset.",
             "opensSteps": [
               "tidningsurklippen"

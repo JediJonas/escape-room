@@ -5,9 +5,10 @@ import { swipeTarget } from './swipe.ts';
 import './thingScreen.css';
 
 /**
- * En sak i huset i fullskärm, som ouijabrädet: bara saken, utan rubrik och
- * text. Överst ligger klockan och en knapp tillbaka eller till menyn, och
- * underst en eventuell huvudhandling nära tummen (Jonas 2026-11-18).
+ * En sak i huset i fullskärm, som ouijabrädet: bara saken, utan text. Överst
+ * ligger klockan och en knapp tillbaka eller till menyn, och underst en
+ * eventuell huvudhandling nära tummen (Jonas 2026-11-18). Mellan knappen och
+ * klockan står sakens namn som rubrik (Jonas 2026-11-23).
  */
 export function ThingScreen({ className, header, actions, children }: {
   className?: string;

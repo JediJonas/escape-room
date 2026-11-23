@@ -19,7 +19,7 @@ sist under Namn som är bestämda.
 | Uppdragsfil | Filen som beskriver ett uppdrag: steg, roller, texter, hus, ledtrådar och facit. Bara serverfunktionen läser den. | `missions/*.json` |
 | Provhuset | Ett litet provuppdrag som bara används för att prova motorn. | `missions/prov.json` |
 | Motor | Koden som är lika för alla uppdrag: spelets tillstånd, roller, tid, huset och uppgiftstyperna. | `supabase/functions/game/` |
-| Steg | En post i uppdragets ordning. Ett steg är antingen en scen eller en uppgift. Spelarna ser till exempel steg 3 av 12. | `MissionStep`, `stepIndex` |
+| Steg | En post i uppdragets ordning. Ett steg är antingen en scen eller en uppgift. Spelledaren ser till exempel steg 3 av 12 överst i sin meny (Jonas 2026-11-23). | `MissionStep`, `stepIndex` |
 | Scen | Ett steg med berättelse mellan uppgifterna. Spelarna läser berättartexten och trycker Ok, eller blir klara av att lämna en sak. | `SceneStep`, `type: 'scene'` |
 | Uppgift | Ett steg där gruppen ska klara något, som Seansen eller Pianot. Har ledtrådar och facit. | `TaskStep` |
 | Uppgiftstyp | En sorts uppgift som byggs en gång i motorn och fylls med innehåll i olika uppdrag, som Samtidigt eller Orkestern. I koden har varje typ ett eget namn. | `type`: `seance`, `flashback`, `piano`, `cellar`, `answer` |

@@ -27,10 +27,13 @@ export type LobbyView = {
   /** Väntrummet byter till uppdragets tema (Jonas 2026-11-23). */
   theme: MissionTheme | null;
   /** Bara hos spelledaren: uppdragen hon kan välja mellan. */
-  missionChoices: { id: string; title: string; minPlayers: number; theme: MissionTheme | null }[] | null;
+  missionChoices: MissionChoice[] | null;
   me: { playerId: string; name: string; isLeader: boolean };
   players: { name: string; isLeader: boolean; isMe: boolean }[];
 };
+
+/** Ett uppdrag som spelledaren kan välja, som ett kort med bild. */
+export type MissionChoice = { id: string; title: string; minPlayers: number; theme: MissionTheme | null; cover: string | null; tagline: string | null };
 
 export type JoinRefusal = 'invalidName' | 'gameStarted' | 'gameFull' | 'nameTaken';
 
@@ -89,7 +92,7 @@ export function buildLobbyView({ game, mission, missions, players, viewer }: {
     missionTitle: mission.title,
     minPlayers: mission.minPlayers,
     theme: mission.theme ?? null,
-    missionChoices: viewer.isLeader ? missions.map(({ id, title, minPlayers, theme }) => ({ id, title, minPlayers, theme: theme ?? null })) : null,
+    missionChoices: viewer.isLeader ? missions.map(({ id, title, minPlayers, theme, cover, tagline }) => ({ id, title, minPlayers, theme: theme ?? null, cover: cover ?? null, tagline: tagline ?? null })) : null,
     me: describeViewer(viewer),
     players: playersInJoinOrder.map((player) => ({
       name: player.name,

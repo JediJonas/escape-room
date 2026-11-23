@@ -3,6 +3,8 @@
   "id": "den-femte-gasten",
   "title": "Den femte gästen",
   "minPlayers": 2,
+  "cover": "uppdrag/den-femte-gasten/omslag.webp",
+  "tagline": "Spökhus · från 16 år",
   "theme": {
     "tokens": {
       "bg": "#0e0b09",

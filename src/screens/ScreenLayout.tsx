@@ -8,7 +8,9 @@ import type { FormEvent, ReactNode } from 'react';
  * Efter startsidan ligger huvudhandlingen underst, närmast tummen
  * (Jonas 2026-11-17). Startsidan har sina två val i den ordning de har.
  */
-export function ScreenLayout({ children, actions, onSubmit, className }: {
+export function ScreenLayout({ top, children, actions, onSubmit, className }: {
+  /** Raden överst, med Tillbaka eller uppdraget till vänster och klockan till höger. */
+  top?: ReactNode;
   children: ReactNode;
   actions: ReactNode;
   /** En extra klass på skärmen, till exempel minnet i Rummen minns. */
@@ -18,6 +20,7 @@ export function ScreenLayout({ children, actions, onSubmit, className }: {
 }) {
   const body = (
     <>
+      {top && <header className="topbar">{top}</header>}
       <div className="screen-content">{children}</div>
       <div className="screen-actions">{actions}</div>
     </>

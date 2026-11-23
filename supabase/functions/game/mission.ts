@@ -280,6 +280,9 @@ export type Mission = {
   house?: House;
   /** Färger, typsnitt och papper. Utan tema används motorns standard (Jonas 2026-11-23). */
   theme?: MissionTheme;
+  /** Bilden och raden på uppdragets kort i väntrummet, till exempel Spökhus · från 16 år. */
+  cover?: string;
+  tagline?: string;
   steps: MissionStep[];
 };
 
@@ -425,6 +428,8 @@ export function findMissionErrors(data: unknown): string[] {
   errors.push(...findEndsWithNextErrors(mission.steps));
   if (mission.house !== undefined) errors.push(...findHouseErrors(mission.house, places ?? {}, [...stepIds]));
   if (mission.theme !== undefined) errors.push(...findThemeErrors(mission.theme));
+  if (mission.cover !== undefined && !(isFilledText(mission.cover) && /^uppdrag\/[a-z0-9/-]+\.webp$/.test(mission.cover))) errors.push('omslaget ska vara en webp-bild under uppdrag/');
+  if (mission.tagline !== undefined && !isFilledText(mission.tagline)) errors.push('raden på kortet är tom');
   return errors;
 }
 

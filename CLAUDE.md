@@ -59,9 +59,9 @@ Se README.md för mapparna. Det viktigaste:
   direkt under innehållet med mus. Mönstret står i skillen
   `knappar-i-mobilen` och i `src/start/start.css`. All luft nertill kommer
   från `--bottom-gap`.
-- Huvudhandlingen ligger underst, närmast tummen, till exempel Skapa spelet
-  under Tillbaka. Startsidan är ett undantag med Gå med i spel överst
-  (Jonas 2026-11-17).
+- Huvudhandlingen ligger underst, närmast tummen. Startsidan är ett undantag
+  med Gå med i spel överst (Jonas 2026-11-17). Tillbaka står uppe till vänster
+  som en rund ruta, också i Gå med och Starta nytt spel (Jonas 2026-11-23).
 - Lägg till `?matt` i adressen för att se mätrutan. Avståndet till Safaris
   verktygsfält går bara att mäta på en riktig iPhone. Med iPhone 14 och iOS 26
   lämnar Safari själv cirka 17 px ovanför fältet, så `--bottom-gap` är då 0.

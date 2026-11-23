@@ -10,17 +10,28 @@
   right: var(--content-edge);
   bottom: calc(5rem + var(--bottom-gap));
   z-index: 20;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: var(--space-3);
   min-height: 0;
-  padding: 0.9rem 1rem;
+  padding: var(--space-4);
   border: 1px solid rgb(var(--glow) / 0.45);
   border-radius: var(--radius-l);
   background: var(--surface-solid);
   color: var(--text);
   font: 1.125rem/1.4 var(--font-reading);
+  font-weight: 400;
   text-align: left;
   box-shadow: var(--shadow-2), 0 0 40px rgb(var(--glow) / 0.15);
   animation: info-box-in 0.3s ease-out;
 }
+
+/* Glödlampan i accenten, och raden om att trycka i motorns typsnitt. */
+.info-box-halo { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.info-box .eyebrow { margin-bottom: 0.125rem; color: var(--accent); }
+.info-box-text { display: block; }
+.info-box small { display: block; margin-top: var(--space-2); color: var(--text-muted); font: var(--text-xs) var(--font-ui); }
 
 @keyframes info-box-in {
   from { opacity: 0; transform: translateY(1rem); }

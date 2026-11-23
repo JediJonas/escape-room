@@ -176,3 +176,9 @@ test('uppdragens typsnitt finns i public', () => {
     for (const font of mission.theme?.fonts ?? []) assert.ok(existsSync(join(import.meta.dirname, '../../../public', font.file)), font.file);
   }
 });
+
+test('omslaget i väntrummet är en bild under uppdrag/', () => {
+  assert.deepEqual(findMissionErrors({ ...VALID, cover: 'uppdrag/test/omslag.webp', tagline: 'Prov' }), []);
+  assert.match(findMissionErrors({ ...VALID, cover: 'https://example.com/a.webp' }).join(), /omslaget/);
+  for (const mission of MISSIONS) if (mission.cover) assert.ok(existsSync(join(import.meta.dirname, '../../../public', mission.cover)), mission.cover);
+});

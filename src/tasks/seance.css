@@ -72,8 +72,8 @@
 }
 
 /*
- * Själva brädet innanför kanten, gulnat och fläckigt, med en tunn tuschlinje
- * runt om. Skenet får lysa ut över kanten.
+ * Själva brädet innanför kanten, gulnat och fläckigt, med en tjock svart
+ * linje runt om (Jonas 2026-11-23). Skenet får lysa ut över kanten.
  */
 .seance-board {
   position: relative;
@@ -84,7 +84,7 @@
     radial-gradient(ellipse at 75% 80%, rgb(120 85 45 / 0.22), transparent 35%),
     radial-gradient(ellipse at 15% 60%, rgb(120 85 45 / 0.14), transparent 30%),
     radial-gradient(ellipse at center, var(--board-paper) 40%, var(--board-paper-dark));
-  box-shadow: inset 0 0 0 2px var(--board-ink), inset 0 0 0 5px var(--board-paper), inset 0 0 0 6px rgb(34 23 15 / 0.7), inset 0 0 2rem rgb(70 45 20 / 0.45);
+  box-shadow: inset 0 0 0 6px var(--board-ink), inset 0 0 2rem rgb(70 45 20 / 0.45);
   /* Fingret ska flytta planchetten, inte rulla sidan, markera text eller öppna en meny. */
   touch-action: none;
   user-select: none;

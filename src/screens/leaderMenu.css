@@ -4,7 +4,7 @@
  * den, nära tummen. Knapparna längst ner lämnar plats åt hamburgaren.
  */
 :root {
-  --leader-menu-size: 3rem;
+  --leader-menu-size: var(--tap);
   /*
    * Hamburgaren står i innehållets högerkant, inte i skärmens hörn, så att
    * den står i rad med knapparna också i iPad och dator (Jonas 2026-11-18).
@@ -23,11 +23,11 @@
   min-height: var(--leader-menu-size);
   height: var(--leader-menu-size);
   padding: 0;
-  border: 1px solid rgb(240 225 200 / 0.45);
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
-  background: rgb(20 12 6 / 0.85);
-  color: #f0e1c8;
-  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 0.45);
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
 }
 
 .leader-menu-badge {
@@ -38,8 +38,9 @@
   height: 1.25rem;
   padding: 0 0.3rem;
   border-radius: 0.625rem;
-  background: var(--bad, #c0392b);
-  color: #ffffff;
+  background: var(--danger);
+  color: var(--on-danger);
+  font-weight: 700;
   font-size: 0.75rem;
   line-height: 1.25rem;
 }
@@ -52,7 +53,7 @@
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: rgb(0 0 0 / 0.35);
+  background: var(--scrim);
   cursor: default;
 }
 
@@ -65,20 +66,17 @@
   max-height: calc(100dvh - 7rem - var(--bottom-gap));
   overflow-y: auto;
   padding: 1rem;
-  border: 1px solid rgb(240 225 200 / 0.4);
-  border-radius: 0.75rem;
-  background: rgb(20 12 6 / 0.96);
-  color: #f0e1c8;
-  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.5);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-l);
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: var(--shadow-2);
 }
 
 .leader-menu h2 { font-size: 1rem; }
-.leader-menu .hint { color: rgb(240 225 200 / 0.7); }
+.leader-menu .hint { color: var(--text-muted); }
 .leader-menu-actions { display: grid; gap: 0.5rem; }
 .leader-menu-actions button { width: 100%; }
-.leader-menu button.secondary { border-color: rgb(240 225 200 / 0.6); color: #f0e1c8; }
-/* Avsluta spelet går inte att ångra, så knappen i frågan är röd. */
-.leader-menu button.danger { border-color: #c0392b; background: #c0392b; color: #ffffff; }
 
 /*
  * Hamburgaren ligger ensam i den understa raden, aldrig bredvid en knapp, i

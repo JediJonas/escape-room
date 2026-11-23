@@ -19,7 +19,7 @@
   margin: 0;
   padding: calc(0.5rem + env(safe-area-inset-top)) 1rem 1.5rem;
   align-items: center;
-  color: rgb(240 225 200 / 0.9);
+  color: var(--text);
   background: linear-gradient(rgb(0 0 0 / 0.55), transparent);
   pointer-events: none;
 }
@@ -42,11 +42,11 @@
 
 .room-frame path {
   fill: none;
-  stroke: rgb(255 214 140 / 0.95);
+  stroke: rgb(var(--glow) / 0.95);
   stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 4px rgb(255 214 140 / 0.6));
+  filter: drop-shadow(0 0 6px rgb(var(--glow) / 0.7));
 }
 
 .room-bottom {
@@ -67,10 +67,13 @@
   align-self: center;
   margin: 0;
   padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgb(240 225 200 / 0.3);
-  background: rgb(0 0 0 / 0.75);
-  color: rgb(240 225 200 / 0.9);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(var(--blur));
+  backdrop-filter: blur(var(--blur));
+  color: var(--text-muted);
+  font-size: var(--text-s);
   text-align: center;
 }
 
@@ -79,7 +82,10 @@
 .room-label {
   width: auto;
   min-height: var(--leader-menu-size);
-  border-color: rgb(255 214 140 / 0.7);
+  border-color: rgb(var(--glow) / 0.7);
+  box-shadow: 0 0 24px rgb(var(--glow) / 0.25);
+  color: var(--text);
+  font-size: var(--text-m);
   font-weight: 600;
   pointer-events: auto;
 }

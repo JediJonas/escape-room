@@ -12,13 +12,13 @@
   z-index: 20;
   min-height: 0;
   padding: 0.9rem 1rem;
-  border: 1px solid rgb(240 225 200 / 0.4);
-  border-radius: 0.6rem;
-  background: rgb(20 12 6 / 0.92);
-  color: #f0e1c8;
-  font: 1rem/1.4 Georgia, 'Times New Roman', serif;
+  border: 1px solid rgb(var(--glow) / 0.45);
+  border-radius: var(--radius-l);
+  background: var(--surface-solid);
+  color: var(--text);
+  font: 1.125rem/1.4 var(--font-reading);
   text-align: left;
-  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.5);
+  box-shadow: var(--shadow-2), 0 0 40px rgb(var(--glow) / 0.15);
   animation: info-box-in 0.3s ease-out;
 }
 

@@ -10,3 +10,11 @@ export function formatRemaining(remainingMs: number): string {
   const seconds = totalSeconds % SECONDS_PER_MINUTE;
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
+
+/** Klockan blir röd när det är fem minuter kvar (Jonas 2026-11-23). */
+const LOW_TIME_MINUTES = 5;
+const LOW_TIME_MS = LOW_TIME_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND;
+
+export function isLowTime(remainingMs: number): boolean {
+  return remainingMs <= LOW_TIME_MS;
+}

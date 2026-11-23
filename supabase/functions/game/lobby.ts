@@ -5,6 +5,7 @@
 
 import type { Mission } from './mission.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
+import type { MissionTheme } from './theme.ts';
 
 export const MAX_PLAYERS = 10;
 export const MAX_NAME_LENGTH = 20;
@@ -23,8 +24,10 @@ export type LobbyView = {
   missionId: string;
   missionTitle: string;
   minPlayers: number;
+  /** Väntrummet byter till uppdragets tema (Jonas 2026-11-23). */
+  theme: MissionTheme | null;
   /** Bara hos spelledaren: uppdragen hon kan välja mellan. */
-  missionChoices: { id: string; title: string; minPlayers: number }[] | null;
+  missionChoices: { id: string; title: string; minPlayers: number; theme: MissionTheme | null }[] | null;
   me: { playerId: string; name: string; isLeader: boolean };
   players: { name: string; isLeader: boolean; isMe: boolean }[];
 };
@@ -85,7 +88,8 @@ export function buildLobbyView({ game, mission, missions, players, viewer }: {
     missionId: mission.id,
     missionTitle: mission.title,
     minPlayers: mission.minPlayers,
-    missionChoices: viewer.isLeader ? missions.map(({ id, title, minPlayers }) => ({ id, title, minPlayers })) : null,
+    theme: mission.theme ?? null,
+    missionChoices: viewer.isLeader ? missions.map(({ id, title, minPlayers, theme }) => ({ id, title, minPlayers, theme: theme ?? null })) : null,
     me: describeViewer(viewer),
     players: playersInJoinOrder.map((player) => ({
       name: player.name,

@@ -6,6 +6,7 @@
 
 import { MAX_PLAYERS, isSameName } from './lobby.ts';
 import type { GameState, PendingPlayer, PlayerRecord } from './state.ts';
+import type { MissionTheme } from './theme.ts';
 
 export type LateJoinRefusal = 'gameStarted' | 'gameFull' | 'nameTaken';
 
@@ -71,6 +72,7 @@ export type WaitingView = {
   type: 'waiting';
   gameId: string;
   missionTitle: string;
+  theme: MissionTheme | null;
   me: { playerId: string; name: string; isLeader: boolean };
   /** Namnet på spelaren som mobilen vill ta över, eller null om den vill vara med som ny. */
   takesOver: string | null;

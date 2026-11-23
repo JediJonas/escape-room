@@ -239,7 +239,7 @@ test('den som kommer sent väntar tills spelledaren släpper in den', async () =
   await send(memory.store, 'user-leader', { type: 'startGame', gameId });
   memory.sentViews.length = 0;
   const late = await send(memory.store, 'user-Cia', { type: 'joinGame', joinCode: 'BCDF', name: 'Cia' });
-  assert.deepEqual((late.body as { view: object }).view, { type: 'waiting', gameId, missionTitle: 'Provhuset', me: { playerId: 'player-4', name: 'Cia', isLeader: false }, takesOver: null });
+  assert.deepEqual((late.body as { view: object }).view, { type: 'waiting', gameId, missionTitle: 'Provhuset', theme: null, me: { playerId: 'player-4', name: 'Cia', isLeader: false }, takesOver: null });
   // Bara spelledaren och den nya får veta något.
   assert.deepEqual(memory.sentViews.map(({ view }) => view.me.name).sort(), ['Cia', 'Ledare']);
   const leaderView = readGameView((await send(memory.store, 'user-leader', { type: 'getView', gameId })).body);

@@ -22,6 +22,8 @@ import { PauseCover } from './PauseCover.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { readReadNarrations, saveReadNarrations } from '../start/savedGame.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
+import { Icon } from './Icon.tsx';
+import { useMissionTheme } from '../theme/useMissionTheme.ts';
 
 /** Allt mobilen kan be servern om under spelet. */
 export type GameActions = {
@@ -73,6 +75,7 @@ type Info = { id: number; title?: string; text: string };
 export function GameScreen(props: GameScreenProps) {
   const { step } = props.view;
   useEffect(unlockAudioOnEveryTap, []);
+  useMissionTheme(props.view.theme);
   const [info, setInfo] = useState<Info | null>(null);
   const [hintsSeen, setHintsSeen] = useState({ stepNumber: step.number, count: step.hints.length });
   if (hintsSeen.stepNumber !== step.number || hintsSeen.count !== step.hints.length) {
@@ -185,7 +188,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       </span>
     </>
   );
-  const backButton = <button type="button" className="secondary seance-menu-button" onClick={leaveThing}>Tillbaka</button>;
+  const backButton = <button type="button" className="chip" onClick={leaveThing}><Icon name="back" />Tillbaka</button>;
   const screenHeader = fullscreenHeader(backButton, openThing?.name);
   // Berättartexter i fullskärm, som var och en visas en gång och bekräftas med en knapp (Jonas 2026-11-18).
   // Först det som hörs från ett annat rum när något kallar på gruppen, som planchetten, eller pianots
@@ -354,7 +357,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     return withLeaderMenu(
       <main className="cellar-screen">
         <p className="hint game-header">
-          <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(true)}>Meny</button>
+          <button type="button" className="chip" onClick={() => setIsMenuOpen(true)}><Icon name="menu" />Meny</button>
           {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
         </p>
         <CellarDark cellar={cellar} image={cellar.image} clockOffsetMs={clockOffsetMs} onOpenDoor={(yawDeg) => game.moveInCellar({ type: 'openDoor', yawDeg })} onTimeUp={timeUpInCellar} />
@@ -417,7 +420,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   return withLeaderMenu(
     <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint" />}>
       <p className="hint game-header">
-        {isMenuOverView && <button type="button" className="secondary seance-menu-button" onClick={() => setIsMenuOpen(false)}>Stäng menyn</button>}
+        {isMenuOverView && <button type="button" className="chip" onClick={() => setIsMenuOpen(false)}><Icon name="close" />Stäng menyn</button>}
         <span>{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</span>
         {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
       </p>

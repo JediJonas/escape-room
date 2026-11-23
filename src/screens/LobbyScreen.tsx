@@ -4,6 +4,7 @@ import { MAX_PLAYERS } from '../../supabase/functions/game/lobby.ts';
 import { DEFAULT_GAME_MINUTES, GAME_MINUTES } from '../../supabase/functions/game/clock.ts';
 import { JoinQrCode } from './JoinQrCode.tsx';
 import { ScreenLayout } from './ScreenLayout.tsx';
+import { useMissionTheme } from '../theme/useMissionTheme.ts';
 
 /** Det spelledaren väljer när hon startar. */
 export type StartChoices = { missionId: string; leaderPlays: boolean; minutes: number };
@@ -20,7 +21,9 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
   const [minutes, setMinutes] = useState<number>(DEFAULT_GAME_MINUTES);
   const [missionId, setMissionId] = useState(view.missionId);
   const isLeader = view.me.isLeader;
-  const mission = view.missionChoices?.find((choice) => choice.id === missionId) ?? { id: view.missionId, title: view.missionTitle, minPlayers: view.minPlayers };
+  const mission = view.missionChoices?.find((choice) => choice.id === missionId) ?? { id: view.missionId, title: view.missionTitle, minPlayers: view.minPlayers, theme: view.theme };
+  // Väntrummet byter till det valda uppdragets tema (Jonas 2026-11-23).
+  useMissionTheme(mission.theme);
   // Spelledaren som står utanför räknas inte som spelare.
   const missingPlayers = mission.minPlayers - view.players.length + (isLeader && !leaderPlays ? 1 : 0);
   return (

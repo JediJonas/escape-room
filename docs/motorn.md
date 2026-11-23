@@ -389,6 +389,16 @@ plats. Ett
 steg som öppnas från en sak syns i mobilen först när spelaren har öppnat
 saken. Dörrarna kontrolleras så att de går åt båda hållen. Se `house.ts`.
 
+**Temat** står i uppdragets `theme`: `tokens` med CSS-variabler och `fonts`
+med typsnittsfiler under `public/uppdrag/<id>/`. Bara variablerna i
+`THEME_TOKENS` får skrivas över, alltså färger, typsnitt, papper, bakgrund och
+ornament. Storlekar, avstånd och placering är motorns (Jonas 2026-11-23).
+Temat är inte hemligt och skickas i väntrummet, väntande mobilers vy och
+spelets vy. Mobilen sätter variablerna på sidan med `useMissionTheme` och tar
+bort dem när den lämnar spelet, så att startsidan har motorns standard.
+Kontrollen av uppdraget ger fel om temat ändrar något annat. Se `theme.ts` och
+`src/theme/tokens.css`.
+
 **Uppdraget väljs när spelet startar.** Spelledaren ser uppdragen i
 väntrummet och väljer ett när hon trycker Starta spelet. Spelet skapas med
 Provhuset.

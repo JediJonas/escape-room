@@ -18,6 +18,7 @@ import { type FoundItem, describeFound, hasRead, keepFound } from './found.ts';
 import { type HintsView, describeHints, findOpenTask } from './hints.ts';
 import { type HouseView, describeHouse, findOpener, placeInHouse } from './house.ts';
 import type { GameRecord, GameState, PlayerRecord } from './state.ts';
+import type { MissionTheme } from './theme.ts';
 
 export type GameRefusal = 'notLeader' | 'gameStarted' | 'tooFewPlayers' | 'notRunning' | 'unknownPlace' | 'notAtPlace' | 'notATask' | 'wrongAnswer' | 'noMoreHints' | 'notTrapped' | 'noMoreFuses' | 'noDoor' | 'locked' | FlashbackRefusal | PianoRefusal;
 
@@ -367,6 +368,7 @@ export type GameView = {
   type: 'game';
   gameId: string;
   missionTitle: string;
+  theme: MissionTheme | null;
   /** isPlaying är falskt för spelledaren som står utanför. Hon får ingen roll. */
   me: { playerId: string; name: string; isLeader: boolean; isPlaying: boolean };
   isFinished: boolean;
@@ -501,6 +503,7 @@ export function buildGameView({ game, mission, players, viewer }: {
     type: 'game',
     gameId: game.id,
     missionTitle: mission.title,
+    theme: mission.theme ?? null,
     me: { ...describeViewer(viewer), isPlaying: participants.some((player) => player.id === viewer.id) },
     isFinished: state.status === 'finished',
     isEndedByLeader: state.status === 'finished' && state.isEndedByLeader,

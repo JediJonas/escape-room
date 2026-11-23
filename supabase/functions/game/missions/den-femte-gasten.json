@@ -3,6 +3,47 @@
   "id": "den-femte-gasten",
   "title": "Den femte gästen",
   "minPlayers": 2,
+  "theme": {
+    "tokens": {
+      "bg": "#0e0b09",
+      "bg-image": "radial-gradient(90% 55% at 50% -8%, rgb(231 183 106 / 0.16) 0%, transparent 60%), radial-gradient(140% 90% at 50% 120%, #1a120c 0%, transparent 60%)",
+      "surface": "rgb(26 20 15 / 0.80)",
+      "surface-solid": "#1b1511",
+      "surface-raised": "#261d17",
+      "line": "rgb(242 226 200 / 0.12)",
+      "line-strong": "rgb(242 226 200 / 0.26)",
+      "text": "#f2e8d8",
+      "text-muted": "#b8a88f",
+      "accent": "#e8b86c",
+      "accent-soft": "rgb(232 184 108 / 0.15)",
+      "on-accent": "#1f1406",
+      "glow": "255 206 130",
+      "paper": "#e9dcc0",
+      "paper-ink": "#2b2116",
+      "paper-line": "rgb(60 40 20 / 0.25)",
+      "font-display": "'IM Fell English SC', Georgia, serif",
+      "font-reading": "'EB Garamond', Georgia, serif",
+      "display-tracking": "0.02em",
+      "display-weight": "400",
+      "ornament": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12'%3E%3Cpath d='M0 6h48M72 6h48' stroke='%23e8b86c' stroke-opacity='.5'/%3E%3Cpath d='M60 1l5 5-5 5-5-5z' fill='none' stroke='%23e8b86c' stroke-opacity='.8'/%3E%3C/svg%3E\")"
+    },
+    "fonts": [
+      {
+        "family": "IM Fell English SC",
+        "file": "uppdrag/den-femte-gasten/typsnitt/im-fell-english-sc.woff2"
+      },
+      {
+        "family": "EB Garamond",
+        "file": "uppdrag/den-femte-gasten/typsnitt/eb-garamond.woff2",
+        "weight": "400 600"
+      },
+      {
+        "family": "EB Garamond",
+        "file": "uppdrag/den-femte-gasten/typsnitt/eb-garamond-italic.woff2",
+        "style": "italic"
+      }
+    ]
+  },
   "places": {
     "A": "Källaren",
     "B": "Hallen",

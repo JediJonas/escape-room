@@ -21,6 +21,7 @@ function buildWaitingView({ game, mission, players, viewer }: { game: GameRecord
     type: 'waiting',
     gameId: game.id,
     missionTitle: mission.title,
+    theme: mission.theme ?? null,
     me: { playerId: viewer.id, name: viewer.name, isLeader: viewer.isLeader },
     takesOver: target?.name ?? null,
   };

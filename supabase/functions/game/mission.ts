@@ -12,6 +12,7 @@ import { type House, findHouseErrors } from './house.ts';
 import { type MelodyNote, describePianoSolution, findPianoErrors } from './piano.ts';
 import { describeFlashbackSolution, findFlashbackErrors } from './flashback.ts';
 import { SEANCE_LETTERS } from './seance.ts';
+import { type MissionTheme, findThemeErrors } from './theme.ts';
 
 export const MISSION_FORMAT = 1;
 
@@ -277,6 +278,8 @@ export type Mission = {
   places: Partial<Record<PlaceId, string>>;
   /** Rummen i mobilen. Utan hus väljer spelarna plats i en lista. */
   house?: House;
+  /** Färger, typsnitt och papper. Utan tema används motorns standard (Jonas 2026-11-23). */
+  theme?: MissionTheme;
   steps: MissionStep[];
 };
 
@@ -421,6 +424,7 @@ export function findMissionErrors(data: unknown): string[] {
   }
   errors.push(...findEndsWithNextErrors(mission.steps));
   if (mission.house !== undefined) errors.push(...findHouseErrors(mission.house, places ?? {}, [...stepIds]));
+  if (mission.theme !== undefined) errors.push(...findThemeErrors(mission.theme));
   return errors;
 }
 

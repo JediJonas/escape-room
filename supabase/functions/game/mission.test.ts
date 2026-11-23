@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'vitest';
 import { findMissionErrors, listPlaces } from './mission.ts';
@@ -164,5 +164,15 @@ test('allt som går att trycka på i Den femte gästens rundbilder har en ram oc
   for (const room of mission.house.rooms) {
     for (const thing of room.things) assert.ok(!thing.spot || (thing.spot.frame && thing.spot.outline), `${thing.id} i ${room.place} saknar ram eller kontur`);
     for (const [door, spot] of Object.entries(room.doorSpots ?? {})) assert.ok(spot.frame && spot.outline, `dörren till ${door} i ${room.place} saknar ram eller kontur`);
+  }
+});
+
+test('uppdragets tema kontrolleras med resten av filen', () => {
+  assert.match(findMissionErrors({ ...VALID, theme: { tokens: { tap: '1rem' } } }).join(), /får inte ändra tap/);
+});
+
+test('uppdragens typsnitt finns i public', () => {
+  for (const mission of MISSIONS) {
+    for (const font of mission.theme?.fonts ?? []) assert.ok(existsSync(join(import.meta.dirname, '../../../public', font.file)), font.file);
   }
 });

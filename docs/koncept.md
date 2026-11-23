@@ -164,6 +164,8 @@ Spelet är en webbapp som körs i mobilens webbläsare, med en server som hålle
 - **React och Vite, som i Maffia.** Webbsidan byggs med React och Vite och har samma verktyg och upplägg som Maffia, men skrivs i TypeScript (Jonas 2026-11-16).
 - **Inga andra bibliotek före behov.** Kandidater att utvärdera när en uppgift kräver dem är Tone.js och Howler.js för ljud och dnd-kit för dra och släpp. QR-koder läses med jsQR där webbläsaren saknar egen läsare.
 - **En teknisk testsida.** Varje funktion ska kunna provas för sig på iPhone Safari och Android Chrome, utan att ett helt uppdrag startas.
+- **Motorn äger formen, uppdraget äger stämningen.** Knappar, klockan, Tillbaka, menyn, avstånd, storlekar och ikoner ser likadana ut i alla uppdrag. Ett uppdrag ändrar bara färger, typsnitt, papper, bakgrund och ornament, genom ett tema i uppdragsfilen. Temat är CSS-variabler från en fast lista, och motorn sätter dem på sidan när uppdraget visas. Det man trycker på har alltid mobilens eget typsnitt, och uppdragets typsnitt används till rubriker, berättartext, ledtrådar och papper. Accentfärgen betyder att något går att göra eller kallar på en, och rött betyder alltid fel, lite tid kvar eller Avsluta. Klockan blir röd när det är fem minuter kvar (Jonas 2026-11-23). Förslaget står i `granskning/designsystem/designforslag.md` i projektfilerna.
+- **Mörkt hela tiden.** Spelet är mörkt oavsett mobilens inställning, också startsidan, som har motorns neutrala färger. Väntrummet byter till uppdragets tema när spelledaren väljer uppdrag (Jonas 2026-11-23).
 
 ### Drift
 
@@ -230,6 +232,8 @@ Hur bra en svensk viskning faktiskt låter är oprövat. Reserven är att spela 
 Den femte gästen är ett spökhusuppdrag på cirka 60 minuter med nio uppgifter. Rummen finns i mobilen, så inget behöver förberedas och inga platskort sätts upp (Jonas 2026-11-17).
 
 **Tonen.** Uppdraget ska vara läskigt och samtidigt roligt, från 16 år. Stämningen byggs med mörker, viskningar i en enda mobil och skrämselmoment, som en skärm som plötsligt slocknar. Inget blod och inget våld. Åldern höjdes från ungefär tio år i november 2026, för att uppdraget ska få vara läskigare.
+
+**Utseendet.** Temat är levande ljus och gulnat papper: svartbrun bakgrund med ett varmt sken uppifrån, mörkt trä i rutorna och en accent i ljusets gula färg. Rubriker och sakernas namn står i IM Fell English SC, och berättartexter, urklipp, rollkort och ledtrådar i EB Garamond, som är lättare att läsa i längre stycken (Jonas 2026-11-23). Båda typsnitten ligger i repot under SIL Open Font License.
 
 ### Vad spelarna får veta
 

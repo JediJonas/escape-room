@@ -48,7 +48,6 @@
 }
 
 .seance-screen .game-header button { pointer-events: auto; }
-.seance-menu-button { min-height: 2.5rem; padding: 0.25rem 1rem; }
 
 .seance {
   position: absolute;

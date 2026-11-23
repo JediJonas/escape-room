@@ -35,20 +35,9 @@ html body { padding: 0; }
   .screen-content { flex: 1 0 auto; }
 }
 
-button.secondary {
-  background: transparent;
-  color: var(--accent);
-}
-
 .field { display: grid; gap: 0.25rem; }
 .field label { font-weight: 600; }
 .field input {
-  min-height: 3rem;
-  padding: 0.5rem 0.75rem;
-  border: 2px solid var(--border);
-  border-radius: 0.6rem;
-  background: var(--surface);
-  color: var(--text);
   /* 16 px eller mer, annars zoomar Safari in när fältet får fokus. */
   font: inherit;
   font-size: max(1rem, 16px);
@@ -113,45 +102,23 @@ button.secondary {
 .checkbox-field { display: flex; gap: 0.6rem; align-items: flex-start; }
 .checkbox-field input { width: 1.5rem; height: 1.5rem; margin: 0.1rem 0 0; flex: none; accent-color: var(--accent); }
 
-.scene-text { font-size: 1.2rem; line-height: 1.45; }
-
-/* Det som bara den som står på platsen ser. */
-.place-text {
-  padding: 0.75rem 1rem;
-  border-left: 4px solid var(--accent);
-  border-radius: 0.4rem;
-  background: var(--surface);
-}
-
 .place-list { display: grid; gap: 0.5rem; margin: 0 0 0.75rem; padding: 0; border: 0; }
 .place-list legend { margin-bottom: 0.5rem; padding: 0; font-weight: 600; }
 .place-list button { width: 100%; }
 
-/* Rollen och bitarna, som bara den här spelaren ser. */
-.role-card {
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--accent);
-  border-radius: 0.6rem;
-  background: var(--surface);
-}
-.role-card h2 { color: var(--accent); }
+/* Rollen och bitarna, som bara den här spelaren ser. Ramen står i engine.css. */
+.role-card { margin: 0 0 1rem; }
 .role-card p:last-child { margin-bottom: 0; }
 
 /* Tidningsurklipp och andra dokument som alla ser, i tidningsstil. */
 .document-card {
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;
-  border-radius: 0.2rem;
-  background: var(--paper, #efe6d2);
-  color: var(--paper-text, #2b2418);
-  font-family: Georgia, 'Times New Roman', serif;
 }
 .document-card h2 { color: inherit; font-size: 1.1rem; }
 .document-card .dateline { margin: 0 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid currentColor; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .document-card p:last-child { margin-bottom: 0; }
-.clipping { font-family: Georgia, 'Times New Roman', serif; }
-.role-card .clipping + .clipping { padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.role-card .clipping + .clipping { padding-top: 0.75rem; border-top: 1px solid var(--line); }
 .house-list { display: grid; gap: 0.5rem; margin: 0 0 1rem; }
 .house-list h2 { margin-bottom: 0; font-size: 1rem; }
 
@@ -162,14 +129,14 @@ button.secondary {
 .house-list .is-calling {
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 10px 1px rgb(255 214 140 / 0.45);
+  box-shadow: 0 0 10px 1px rgb(var(--glow) / 0.45);
   animation: thing-glow 2.8s ease-in-out infinite;
 }
 .house-list .is-calling::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, transparent 30%, rgb(255 236 190 / 0.4) 50%, transparent 70%);
+  background: linear-gradient(100deg, transparent 30%, rgb(var(--glow) / 0.4) 50%, transparent 70%);
   transform: translateX(-100%);
   animation: thing-shimmer 2.8s ease-in-out infinite;
   pointer-events: none;
@@ -177,8 +144,8 @@ button.secondary {
 .calling-note { font-weight: 400; font-style: italic; }
 
 @keyframes thing-glow {
-  0%, 100% { box-shadow: 0 0 4px 0 rgb(255 214 140 / 0.2); }
-  50% { box-shadow: 0 0 16px 3px rgb(255 214 140 / 0.65); }
+  0%, 100% { box-shadow: 0 0 4px 0 rgb(var(--glow) / 0.2); }
+  50% { box-shadow: 0 0 16px 3px rgb(var(--glow) / 0.65); }
 }
 
 @keyframes thing-shimmer {

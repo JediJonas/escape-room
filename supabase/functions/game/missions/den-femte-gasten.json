@@ -25,6 +25,8 @@
           {
             "id": "ouijabradet",
             "name": "Ouijabrädet",
+            "text": "Ett gammalt ouijabräde ligger på det runda bordet. Bokstäverna har bleknat, men dammet runt brädet är bortsvept, som om någon nyss har suttit här.",
+            "image": "uppdrag/den-femte-gasten/saker/ouijabradet.webp",
             "findHint": "Det finns ett ouijabräde någonstans i huset.",
             "opensSteps": [
               "seansen",
@@ -121,6 +123,8 @@
           {
             "id": "pianot",
             "name": "Pianot",
+            "text": "Ett gammalt piano står mot väggen, insvept i spindelväv. Tangenterna har gulnat, men dammet på dem är bortsvept, som om någon nyss har spelat.",
+            "image": "uppdrag/den-femte-gasten/saker/pianot.webp",
             "findHint": "Det finns ett piano någonstans i huset.",
             "opensSteps": [
               "pianot"

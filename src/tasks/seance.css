@@ -1,8 +1,9 @@
 /*
- * Brädet i seansen. Det har samma mörka trä som de andra sakvyerna, som
- * golvuret och pianot, och står i en ram (Jonas 2026-11-18). Bokstäverna syns
- * hela tiden, och skenet stannar på dem utan att något lyser upp. Brädet och
- * planchetten blir bilder när designen ses över (Jonas 2026-11-17).
+ * Brädet i seansen ser ut som i salongens rundbild: ljust, gulnat trä med mörk
+ * sliten kant, mörka ornament i hörnen och tung svart skrift. Det ligger på
+ * det runda bordet i månljus (Jonas 2026-11-23). Rutnätet med bokstäverna är
+ * kvar som förut. Bokstäverna syns hela tiden, och skenet stannar på dem utan
+ * att något lyser upp.
  */
 
 /*
@@ -12,11 +13,15 @@
 .seance-screen {
   /* Ett finger utanför rutnätet ska inte heller rulla eller zooma sidan. */
   touch-action: none;
-  --board-wood: #6b4527;
-  --board-wood-dark: #3f2615;
-  --board-frame: #2e1c0f;
-  --board-inlay: #8a6a3f;
-  --board-ink: rgb(240 225 200 / 0.8);
+  --board-paper: #e2d5b4;
+  --board-paper-dark: #b9a57c;
+  --board-edge: #241a12;
+  --board-ink: #22170f;
+  /* Bordet i salongen, grått trä i månljus som i rundbilden. */
+  background-color: #14171c;
+  background-image:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 23px),
+    radial-gradient(ellipse at 50% 40%, #4a515c, #262b33 55%, #14171c);
 }
 
 .thing-screen.seance-screen .game-header {
@@ -52,26 +57,34 @@
   max-height: var(--stage-max-height);
   margin: 0 auto;
   display: flex;
-  padding: 0.6rem;
-  border: 2px solid #1a0f07;
-  border-radius: 0.9rem;
-  background: linear-gradient(135deg, #4d3019, var(--board-frame) 45%, #4d3019);
-  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.55), inset 0 0 0 1px rgb(255 230 190 / 0.12);
+  padding: 1.1rem;
+  border: 3px solid var(--board-edge);
+  border-radius: 0.5rem;
+  /* Kanten på brädet, med ett mörkt ornament i varje hörn, som solen och månen på ett ouijabräde. */
+  background:
+    radial-gradient(circle at 1.1rem 1.1rem, var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem 0.68rem, transparent 0.72rem),
+    radial-gradient(circle at calc(100% - 1.1rem) 1.1rem, var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem 0.68rem, transparent 0.72rem),
+    radial-gradient(circle at 1.1rem calc(100% - 1.1rem), var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem 0.68rem, transparent 0.72rem),
+    radial-gradient(circle at calc(100% - 1.1rem) calc(100% - 1.1rem), var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem 0.68rem, transparent 0.72rem),
+    radial-gradient(ellipse at 30% 20%, rgb(120 90 50 / 0.18), transparent 40%),
+    linear-gradient(135deg, #cdbd96, var(--board-paper-dark));
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.6), inset 0 0 0 1px rgb(255 245 220 / 0.25), inset 0 0 1.25rem rgb(60 40 20 / 0.45);
 }
 
 /*
- * Själva brädet i ramen, i ljusare trä med ådring och en mässingslist som på
- * golvuret. Skenet får lysa ut över ramen.
+ * Själva brädet innanför kanten, gulnat och fläckigt, med en tunn tuschlinje
+ * runt om. Skenet får lysa ut över kanten.
  */
 .seance-board {
   position: relative;
   flex: 1 1 auto;
-  border-radius: 0.4rem;
+  border-radius: 0.2rem;
   background:
-    repeating-linear-gradient(93deg, rgb(255 235 200 / 0.035) 0 2px, transparent 2px 11px),
-    repeating-linear-gradient(87deg, rgb(0 0 0 / 0.06) 0 1px, transparent 1px 17px),
-    radial-gradient(ellipse at center, var(--board-wood), var(--board-wood-dark) 85%);
-  box-shadow: inset 0 0 0 2px var(--board-inlay), inset 0 0 1.5rem rgb(0 0 0 / 0.5);
+    repeating-linear-gradient(91deg, rgb(90 60 30 / 0.05) 0 1px, transparent 1px 13px),
+    radial-gradient(ellipse at 75% 80%, rgb(120 85 45 / 0.22), transparent 35%),
+    radial-gradient(ellipse at 15% 60%, rgb(120 85 45 / 0.14), transparent 30%),
+    radial-gradient(ellipse at center, var(--board-paper) 40%, var(--board-paper-dark));
+  box-shadow: inset 0 0 0 2px var(--board-ink), inset 0 0 0 5px var(--board-paper), inset 0 0 0 6px rgb(34 23 15 / 0.7), inset 0 0 2rem rgb(70 45 20 / 0.45);
   /* Fingret ska flytta planchetten, inte rulla sidan, markera text eller öppna en meny. */
   touch-action: none;
   user-select: none;
@@ -89,13 +102,15 @@
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(6, 1fr);
   place-items: center;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(1.4rem, 7vw, 2.2rem);
+  /* Tung, gammaldags antikva, som skriften på brädet i rundbilden. */
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', 'Iowan Old Style', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 7.5vw, 2.4rem);
   color: var(--board-ink);
-  text-shadow: 0 1px 0 rgb(0 0 0 / 0.5);
+  text-shadow: 0 1px 0 rgb(255 245 220 / 0.45);
 }
 
-.seance-letters .is-start { font-size: 1.2em; color: rgb(240 225 200 / 0.5); }
+.seance-letters .is-start { font-size: 1.2em; color: rgb(34 23 15 / 0.45); }
 
 
 .seance-glow,
@@ -109,7 +124,8 @@
 
 .seance-glow {
   width: 24%;
-  background: radial-gradient(circle, rgb(255 226 160 / 0.95), rgb(255 176 80 / 0.4) 45%, transparent 70%);
+  /* Ett varmt sken som syns också på det ljusa brädet. */
+  background: radial-gradient(circle, rgb(255 214 120 / 0.95), rgb(230 130 40 / 0.55) 45%, transparent 70%);
 }
 
 /* Skenet flimrar medan det väntar på någon. */
@@ -129,8 +145,8 @@
   /* Större än fingret, så att skenet syns runt det. */
   width: 28%;
   z-index: 2;
-  border: 3px solid rgb(240 230 210 / 0.85);
-  box-shadow: 0 0 12px rgb(0 0 0 / 0.6);
+  border: 3px solid var(--board-ink);
+  box-shadow: 0 0 0 2px rgb(255 245 220 / 0.6), 0 0 12px rgb(0 0 0 / 0.5);
 }
 
 .seance-glow[hidden],

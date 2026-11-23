@@ -54,3 +54,14 @@ test('en kontur är minst tre punkter med vridning och lutning', () => {
   assert.ok(!isSpot({ ...spot, outline: [[0, 0], [10, 5]] }));
   assert.ok(!isSpot({ ...spot, outline: [[0, 0], [10, 5], [4, -100]] }));
 });
+
+test('dolda linjer finns bara på en kontur, och minst en linje syns', () => {
+  const spot = { yawDeg: 0, pitchDeg: 0, radiusDeg: 10, outline: [[0, 0], [10, 5], [4, -6]] };
+  assert.ok(isSpot({ ...spot, hiddenEdges: [2] }));
+  assert.ok(isSpot({ ...spot, hiddenEdges: [0, 1] }));
+  assert.ok(!isSpot({ ...spot, hiddenEdges: [0, 1, 2] }));
+  assert.ok(!isSpot({ ...spot, hiddenEdges: [3] }));
+  assert.ok(!isSpot({ ...spot, hiddenEdges: [1, 1] }));
+  assert.ok(!isSpot({ ...spot, hiddenEdges: [0.5] }));
+  assert.ok(!isSpot({ yawDeg: 0, pitchDeg: 0, radiusDeg: 10, hiddenEdges: [0] }));
+});

@@ -1,4 +1,6 @@
 /*
+ * Texten är stor, så att den går att läsa i mobilen (Jonas 2026-11-23).
+ *
  * Gästboken: varje sida är en tecknad bild av ett olinjerat blad i en sliten
  * bok, och namnen står i skrivstil med blått bläck (Jonas 2026-11-23).
  * Bladet i bilden går från 110 till 845 i sidled och från 40 till 1165 i
@@ -18,9 +20,9 @@
   width: min(100cqw, 100cqh * 896 / 1200);
   aspect-ratio: 896 / 1200;
   background: url('./bilder/gastboken-sida.webp') center / 100% 100% no-repeat;
-  padding: 14% 12% 8% 20%;
+  padding: 13% 10% 8% 18%;
   color: #1f2a55;
-  font: 400 min(4.6cqw, 3.4cqh, 1.5rem)/1.6 'Homemade Apple', var(--font-reading);
+  font: 400 min(7cqw, 2.25rem)/1.6 'Homemade Apple', var(--font-reading);
 }
 
 /* Bladen under är samma sida, nästan rakt under, som i en bok. */

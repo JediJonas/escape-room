@@ -2,7 +2,7 @@ import { type PointerEvent, type ReactNode, useState } from 'react';
 import type { FoundItem } from '../../supabase/functions/game/found.ts';
 import type { MissionDocument } from '../../supabase/functions/game/mission.ts';
 import { Icon } from './Icon.tsx';
-import { splitNotice } from './notice.ts';
+import { isFramedNotice, splitNotice } from './notice.ts';
 import { swipeTarget } from './swipe.ts';
 import './thingScreen.css';
 import '../tasks/guestbook.css';
@@ -105,7 +105,8 @@ function isBookPage(paper: Paper): boolean {
 /** Vilket slags papper det är, som avgör bilden bakom texten. */
 function describePaperKind(paper: Paper): string {
   if (isBookPage(paper)) return 'book-page';
-  return paper.document ? 'clip clip-big' : 'clip clip-small';
+  if (paper.document) return 'clip clip-big';
+  return isFramedNotice(paper.text ?? '') ? 'clip clip-small is-framed' : 'clip clip-small';
 }
 
 function describePaperClass(paper: Paper): string {
@@ -170,9 +171,12 @@ export function PaperStack({ papers }: { papers: readonly Paper[] }) {
       </div>
       {papers.length > 1 && (
         <nav className="paper-nav" aria-label="Bläddra">
-          <button type="button" className="secondary" onClick={() => setIndex(current - 1)} disabled={current === 0} aria-label="Föregående"><Icon name="back" /></button>
-          <span>{current + 1} av {papers.length}</span>
-          <button type="button" className="secondary" onClick={() => setIndex(current + 1)} disabled={current === papers.length - 1} aria-label="Nästa"><Icon name="next" /></button>
+          <button type="button" className="secondary round" onClick={() => setIndex(current - 1)} disabled={current === 0} aria-label="Föregående"><Icon name="back" /></button>
+          {/* En prick per papper, och den som visas är en lång prick i accentfärgen, som i designen (Jonas 2026-11-23). */}
+          <span className="paper-dots" role="img" aria-label={`${current + 1} av ${papers.length}`}>
+            {papers.map((paper, position) => <i key={paper.key} className={position === current ? 'is-on' : undefined} />)}
+          </span>
+          <button type="button" className="secondary round" onClick={() => setIndex(current + 1)} disabled={current === papers.length - 1} aria-label="Nästa"><Icon name="next" /></button>
         </nav>
       )}
       {/* Statusraden nere till vänster säger när spelaren tittar på sina egna urklipp (Jonas 2026-11-23). */}

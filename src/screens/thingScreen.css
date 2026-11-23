@@ -127,6 +127,8 @@
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
+  /* Stor text kan göra papperet längre än ytan, och då rullar högen. */
+  overflow: hidden auto;
   container-type: size;
   display: flex;
   justify-content: center;
@@ -138,7 +140,8 @@
   flex: none;
   margin: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  /* Synligt, så att papperet blir längre när texten inte får plats i bilden. */
+  overflow: visible;
   filter: drop-shadow(0 3px 8px rgb(0 0 0 / 0.55));
   transition: transform 0.2s ease-out;
   /* Fingret bläddrar i sidled. */
@@ -157,25 +160,35 @@
 .paper-behind.depth-1 { transform: translate(-4%, 2%) rotate(-3deg); filter: brightness(0.72) drop-shadow(0 3px 8px rgb(0 0 0 / 0.5)); }
 .paper-behind.depth-2 { transform: translate(5%, 4%) rotate(3deg); filter: brightness(0.6) drop-shadow(0 3px 8px rgb(0 0 0 / 0.5)); }
 
-/* Pilarna ligger längst ner, närmast tummen, och högen överst (Jonas 2026-11-23). */
+/*
+ * Pilarna ligger längst ner, närmast tummen, och högen överst. Pilarna är
+ * runda glasknappar, och mellan dem står en prick per papper (Jonas 2026-11-23).
+ */
 .paper-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-5);
-  color: var(--text-muted);
-  font-size: var(--text-s);
-  font-variant-numeric: tabular-nums;
+  gap: var(--space-4);
 }
 
-.paper-nav button {
+.paper-nav button.round {
   display: grid;
   place-items: center;
   width: 2.75rem;
   min-height: 2.75rem;
+  height: 2.75rem;
   padding: 0;
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
 }
+
+.paper-nav button.round:disabled { opacity: 0.35; }
+
+.paper-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 12rem; }
+.paper-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--line-strong); transition: width 0.2s ease; }
+.paper-dots i.is-on { width: 18px; background: var(--accent); }
 
 /*
  * Statusraden nere till vänster, i höjd med spelledarens meny, när spelaren

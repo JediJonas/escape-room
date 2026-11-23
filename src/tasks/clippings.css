@@ -3,7 +3,8 @@
  * Old Standard TT, ett tidningstypsnitt (Jonas 2026-11-23). Det stora
  * urklippet bär artikeln med datumrad, rubrik och anfang. Det lilla bär en
  * notis, med första meningen som rubrik. Textens storlek räknas i urklippets
- * bredd, så att den får plats på bilden i alla mobiler.
+ * bredd, och den är stor, så att den går att läsa i mobilen. Får texten
+ * inte plats blir urklippet längre (Jonas 2026-11-23).
  */
 
 /* Old Standard TT i normal och fet vikt. Licensen, SIL OFL, ligger bredvid. */
@@ -33,7 +34,7 @@
 .paper.clip-big {
   width: min(100cqw, 100cqh * 819 / 1126);
   aspect-ratio: 819 / 1126;
-  padding: 11% 11% 9%;
+  padding: 10% 9% 9%;
   background: url('./bilder/urklipp-stort.webp') center / 100% 100% no-repeat;
 }
 
@@ -41,7 +42,7 @@
 .paper.clip-small {
   width: min(100cqw, 100cqh * 1050 / 765);
   aspect-ratio: 1050 / 765;
-  padding: 9% 10%;
+  padding: 9% 9%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -52,7 +53,7 @@
   margin: 0 0 3cqw;
   padding-bottom: 2cqw;
   border-bottom: 1px solid rgb(35 32 27 / 0.55);
-  font-size: 3.4cqw;
+  font-size: min(5cqw, 1.2rem);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-align: center;
@@ -60,14 +61,14 @@
 
 .np-head {
   margin: 0 0 4cqw;
-  font: 700 8.2cqw/1.08 'Old Standard TT', Georgia, serif;
+  font: 700 min(11cqw, 2.6rem)/1.08 'Old Standard TT', Georgia, serif;
   text-align: center;
 }
 
 .np-body {
   margin: 0;
-  font-size: 4.6cqw;
-  line-height: 1.42;
+  font-size: min(6.6cqw, 1.6rem);
+  line-height: 1.4;
   text-align: justify;
   hyphens: auto;
 }
@@ -83,9 +84,23 @@
 
 .np-kicker {
   margin: 0 0 1.5cqw;
-  font: 700 5.2cqw/1.1 'Old Standard TT', Georgia, serif;
+  font: 700 min(7.4cqw, 1.75rem)/1.15 'Old Standard TT', Georgia, serif;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.np-notice { margin: 0; font-size: 4.7cqw; line-height: 1.38; }
+.np-notice { margin: 0; font-size: min(6.8cqw, 1.6rem); line-height: 1.38; }
+
+/*
+ * Vissa notiser har en svart ram, som annonser i en tidning, men inte alla
+ * (Jonas 2026-11-23). Vilka avgörs av texten, så att samma notis alltid ser
+ * likadan ut.
+ */
+.paper.clip-small.is-framed::before {
+  content: '';
+  position: absolute;
+  inset: 6% 6.5%;
+  border: 3px solid #1d1a16;
+  box-shadow: inset 0 0 0 3px transparent, inset 0 0 0 4px #1d1a16;
+  pointer-events: none;
+}

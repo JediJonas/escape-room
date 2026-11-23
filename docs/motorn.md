@@ -142,7 +142,7 @@ tio spelare blir en ändring 11 meddelanden i stället för 20. Vyn och läget k
 komma i fel ordning, så mobilen behåller det läge som har den senaste
 serverns tid. Mobilerna skickar inte i gruppens kanal, så ingen kan låtsas
 vara servern. En mobil som väntar på att bli insläppt kan lyssna där, men ser
-då bara seansens läge och namnen på dem som skenet väntar på.
+då bara seansens läge och namnen på dem som planchetten väntar på.
 
 **Rörelser går inte genom servern.** Lutning och riktning som ska synas direkt
 i en annan mobil, som i Lotsen, skickas mellan mobilerna i spelets kanal. Det
@@ -249,25 +249,27 @@ De gemensamma fälten bestäms nu. Fälten i `content` för varje uppgiftstyp
 bestäms när typen byggs.
 
 **Seansen** har typen `seance` och meddelandet i `solution.message`, med
-versaler och ett mellanslag mellan orden. Servern sparar vilken bokstav
-skenet är på väg till, hur långt det har kommit vid en viss tid, vems
-planchett som följer. Skenet
+versaler och ett mellanslag mellan orden. En gemensam planchett glider över
+brädet, och alla följer den med fingret (Jonas 2026-11-23). Servern sparar
+vilken bokstav planchetten är på väg till, hur långt den har kommit vid en
+viss tid och vems finger som följer. Planchetten
 tar en bestämd tid för varje sträcka medan alla följer, så både servern och
-mobilerna kan räkna ut var det är utan att servern tickar. Farten längs
-sträckan varierar, men det avgör bara var mobilen ritar skenet. Mobilen avgör själv om
-planchetten är på skenet och säger bara till när det ändras, och när den ser
-skenet nå en bokstav. Fingrets rörelser går inte genom servern. Seansens läge
+mobilerna kan räkna ut var den är utan att servern tickar. Farten längs
+sträckan varierar, men det avgör bara var mobilen ritar planchetten. Mobilen avgör själv om
+fingret är på planchetten och säger bara till när det ändras, och när den ser
+planchetten nå en bokstav. Fingrets rörelser går inte genom servern. Seansens läge
 skickas i gruppens kanal, och bara när meddelandet är klart får alla en ny vy.
-Läget har namnen på dem som följer i den ordning de kom till skenet, så att
+Läget har namnen på dem som följer i den ordning de kom till planchetten, så att
 varje mobil ser om den själv följer utan att någon annans id skickas. När
-skenet når en bokstav säger den som kom först till skenet till direkt, och de
+planchetten når en bokstav säger den som kom först till planchetten till direkt, och de
 andra en halv sekund senare var, i tur och ordning, om servern inte redan har
 svarat. Annars ställer sig tio anrop i kö hos servern samtidigt
-(Jonas 2026-11-17). Skenet
-flyttas aldrig bakåt på skärmen, och den egna mobilen stoppar det direkt när
-planchetten tappar, så att fördröjningen till servern inte syns som ett hopp.
-Ligger skenet efter servern när det rör sig igen glider det ikapp. Se
-`seance.ts`.
+(Jonas 2026-11-17). Planchetten
+flyttas aldrig bakåt på skärmen, och den egna mobilen stoppar den direkt när
+fingret tappar, så att fördröjningen till servern inte syns som ett hopp.
+Ligger planchetten efter servern när den rör sig igen glider den ikapp. Se
+`seance.ts`. I koden heter planchettens väg `glow`, efter skenet som fanns
+före planchetten.
 
 En seans kan ställa en fråga. Har den `solution.answers` trycker gruppen inte
 Klar när meddelandet är klart, utan skriver ett svar under `question`, och
@@ -282,7 +284,7 @@ eftersom de var svåra att förstå (Jonas 2026-11-18). En sak i huset kan öppn
 `opensSteps`, som ouijabrädet som öppnar båda seanserna. Med `echoes`
 bokstaverar en sådan sak av sig självt, om och om igen, när gruppen inte är
 på något av dess steg: det senaste ekot vars `fromStep` berättelsen har
-kommit till gäller. Skenet räknas ur serverns tid i varje mobil, så att alla
+kommit till gäller. Planchetten räknas ur serverns tid i varje mobil, så att alla
 ser samma bokstav utan att något skickas (Jonas 2026-11-18). Se
 `findEchoGlowPoint` i `seance.ts`.
 
@@ -464,7 +466,7 @@ skickas därför högst fem gånger i sekunden och inte när mobilen är stilla.
 fingret på brädet inom två eller tre sekunder blir det tio ändringar. Som vyer
 till var och en blev det cirka 200 meddelanden, alltså 70–100 i sekunden. I
 gruppens kanal blir det cirka 110, alltså 40–55 i sekunden. Samma sak händer
-när någon har lyft fingret och alla kommer tillbaka till skenet. Räknat i en
+när någon har lyft fingret och alla kommer tillbaka till planchetten. Räknat i en
 simulering den 17 november 2026, inte uppmätt i Supabase.
 
 **Pausen.** Ett gratisprojekt som inte används på en vecka kan pausas och

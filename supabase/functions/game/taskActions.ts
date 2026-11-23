@@ -16,7 +16,7 @@ import { sortByJoinOrder } from './lobby.ts';
 import type { GameState, PlayerRecord } from './state.ts';
 
 /**
- * En spelares planchett i seansen. Den sista som kommer fram till skenet tar
+ * En spelares finger på planchetten i seansen. Den sista som kommer fram till planchetten tar
  * bokstaven, och den som lyfter fingret får meddelandet att börja om.
  */
 export function touchBoard({ state, mission, players, player, touch, nowMs }: {

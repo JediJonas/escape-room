@@ -21,7 +21,7 @@ const MISSION: Mission = {
   places: { B: 'Hallen', D: 'Biblioteket', F: 'Salongen' },
   house: HOUSE,
   steps: [
-    { id: 'seansen', type: 'seance', text: 'Följ skenet.', hints: ['a', 'b', 'c'], solution: { message: 'HJÄLP' } },
+    { id: 'seansen', type: 'seance', text: 'Följ planchetten.', hints: ['a', 'b', 'c'], solution: { message: 'HJÄLP' } },
     { id: 'urklippen', type: 'scene', text: 'Läs.', foundTitle: 'Tidningsurklippen' },
     { id: 'sedan', type: 'scene', text: 'Sedan.' },
     { id: 'slut', type: 'scene', text: 'Slut.' },

@@ -28,7 +28,7 @@ const later = (ms: number | null, byMs: number) => (ms === null ? null : ms + by
 
 /**
  * Pausen stoppar allt som går på tid, inte bara nedräkningen: minnet i
- * Rummen minns, skenet på brädet och källaren. När spelet fortsätter flyttas
+ * Rummen minns, planchetten på brädet och källaren. När spelet fortsätter flyttas
  * deras tider fram lika länge som pausen varade, så att inget har hunnit gå
  * under pausen (Jonas 2026-11-18).
  */

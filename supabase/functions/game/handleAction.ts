@@ -177,7 +177,7 @@ async function touchBoardAction(action: Action, context: Context): Promise<Actio
   return withParticipant(action, context, async (scope) => {
     const change = touchBoard({ state: scope.game.state, mission: scope.mission, players: scope.participants, player: scope.player, touch, nowMs });
     if ('refusal' in change) return fail(change.refusal);
-    // Flera mobiler kan säga till när skenet når bokstaven. Bara en ändring behöver skickas.
+    // Flera mobiler kan säga till när planchetten når bokstaven. Bara en ändring behöver skickas.
     const before = scope.game.state.seance;
     const after = change.state.seance;
     const isUnchanged = before !== null && after !== null && !hasSeanceChanged(before, after);

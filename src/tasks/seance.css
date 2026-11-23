@@ -1,9 +1,8 @@
 /*
- * Brädet i seansen ser ut som i salongens rundbild: ljust, gulnat trä med mörk
- * sliten kant, mörka ornament i hörnen och tung svart skrift. Det ligger på
- * det runda bordet i månljus (Jonas 2026-11-23). Rutnätet med bokstäverna är
- * kvar som förut. Bokstäverna syns hela tiden, och skenet stannar på dem utan
- * att något lyser upp.
+ * Brädet i seansen är en tecknad bild i samma stil som rundbilderna, utan
+ * bokstäver. Spelet skriver bokstäverna ovanpå, fem per rad, med en tom plats
+ * efter Ö. En gemensam planchett glider över brädet, och alla följer den med
+ * fingret. Ingen ring runt bokstaven (Jonas 2026-11-23).
  */
 
 /* IM Fell Double Pica SC, med bara versalerna A till Ö. Licensen, SIL OFL, ligger bredvid (Jonas 2026-11-23). */
@@ -22,12 +21,7 @@
 .seance-screen {
   /* Ett finger utanför rutnätet ska inte heller rulla eller zooma sidan. */
   touch-action: none;
-  --board-paper: #e2d5b4;
-  --board-paper-dark: #b9a57c;
-  --board-edge: #241a12;
   --board-ink: #22170f;
-  /* Linjerna runt bokstäverna och i hörnornamenten är lika tjocka (Jonas 2026-11-23). */
-  --board-line: 2px;
   /* Bordet i salongen, grått trä i månljus som i rundbilden. */
   background-color: #14171c;
   background-image:
@@ -55,10 +49,10 @@
 }
 
 /*
- * Ramen runt brädet. Den ligger mellan klockan överst och rutan i underkant,
+ * Ytan för brädet. Den ligger mellan klockan överst och rutan i underkant,
  * så att inget skymmer bokstäverna, och får samma största yta som saker i
- * fullskärm. Den står mitt i sidled men överst, under Tillbaka och tiden, som
- * andra saker (Jonas 2026-11-18).
+ * fullskärm. Brädet står mitt i sidled men överst, som andra saker
+ * (Jonas 2026-11-18).
  */
 .seance-frame {
   position: absolute;
@@ -66,102 +60,67 @@
   max-width: calc(var(--stage-max-width) - 1rem);
   max-height: var(--stage-max-height);
   margin: 0 auto;
+  container-type: size;
   display: flex;
-  padding: 1.1rem;
-  border: 3px solid var(--board-edge);
-  border-radius: 0.5rem;
-  /* Kanten på brädet, med ett mörkt ornament i varje hörn, som solen och månen på ett ouijabräde. */
-  background:
-    radial-gradient(circle at 1.1rem 1.1rem, var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem calc(0.6rem + var(--board-line)), transparent calc(0.64rem + var(--board-line))),
-    radial-gradient(circle at calc(100% - 1.1rem) 1.1rem, var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem calc(0.6rem + var(--board-line)), transparent calc(0.64rem + var(--board-line))),
-    radial-gradient(circle at 1.1rem calc(100% - 1.1rem), var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem calc(0.6rem + var(--board-line)), transparent calc(0.64rem + var(--board-line))),
-    radial-gradient(circle at calc(100% - 1.1rem) calc(100% - 1.1rem), var(--board-ink) 0 0.4rem, transparent 0.45rem 0.55rem, var(--board-ink) 0.6rem calc(0.6rem + var(--board-line)), transparent calc(0.64rem + var(--board-line))),
-    radial-gradient(ellipse at 30% 20%, rgb(120 90 50 / 0.18), transparent 40%),
-    linear-gradient(135deg, #cdbd96, var(--board-paper-dark));
-  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.6), inset 0 0 0 1px rgb(255 245 220 / 0.25), inset 0 0 1.25rem rgb(60 40 20 / 0.45);
+  justify-content: center;
+  align-items: flex-start;
 }
 
-/*
- * Själva brädet innanför kanten, gulnat och fläckigt, med två svarta linjer
- * runt om, lika tjocka som linjen i hörnornamenten (Jonas 2026-11-23). Skenet får lysa ut över kanten.
- */
-.seance-board {
+/* Bilden av brädet, 896 × 1200 pixlar, så stor som får plats. */
+.seance-board-image {
   position: relative;
-  flex: 1 1 auto;
-  border-radius: 0.2rem;
-  background:
-    repeating-linear-gradient(91deg, rgb(90 60 30 / 0.05) 0 1px, transparent 1px 13px),
-    radial-gradient(ellipse at 75% 80%, rgb(120 85 45 / 0.22), transparent 35%),
-    radial-gradient(ellipse at 15% 60%, rgb(120 85 45 / 0.14), transparent 30%),
-    radial-gradient(ellipse at center, var(--board-paper) 40%, var(--board-paper-dark));
-  box-shadow: inset 0 0 0 var(--board-line) var(--board-ink), inset 0 0 0 calc(var(--board-line) + 3px) var(--board-paper), inset 0 0 0 calc(2 * var(--board-line) + 3px) var(--board-ink), inset 0 0 2rem rgb(70 45 20 / 0.45);
-  /* Fingret ska flytta planchetten, inte rulla sidan, markera text eller öppna en meny. */
+  width: min(100cqw, 100cqh * 896 / 1200);
+  aspect-ratio: 896 / 1200;
+  container-type: inline-size;
+  background: url('./bilder/ouijabradet.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0.75rem 1.5rem rgb(0 0 0 / 0.6));
+  /* Fingret ska flytta med planchetten, inte rulla sidan, markera text eller öppna en meny. */
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 
+/* Rutnätet med bokstäverna, innanför ornamenten: 675 × 660 pixlar från 112, 265. */
+.seance-board {
+  position: absolute;
+  left: calc(112 / 896 * 100%);
+  top: calc(265 / 1200 * 100%);
+  width: calc(675 / 896 * 100%);
+  height: calc(660 / 1200 * 100%);
+}
 
 .seance-letters {
   position: absolute;
   inset: 0;
-  /* Över skenet, så att bokstaven under det syns. */
-  z-index: 1;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(6, 1fr);
   place-items: center;
-  /* Tung, gammaldags antikva, som skriften på brädet i rundbilden. */
   /* Ett gammalt boktryckstypsnitt. Det finns bara i normal vikt, så det görs inte fetare. */
   font-family: 'IM Fell Double Pica SC', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
   font-weight: 400;
-  font-size: clamp(1.5rem, 7.5vw, 2.4rem);
+  font-size: 8.4cqw;
+  line-height: 1;
   color: var(--board-ink);
   text-shadow: 0 1px 0 rgb(255 245 220 / 0.45);
 }
 
-.seance-letters .is-start { font-size: 1.2em; color: rgb(34 23 15 / 0.45); }
-
-
-.seance-glow,
+/*
+ * Planchetten i valnöt, 30 % av brädets bredd. Glaset är genomskinligt, och
+ * glasets mitt, 50,4 % från vänster och 30,9 % uppifrån i bilden, står på
+ * bokstaven (Jonas 2026-11-23).
+ */
 .seance-planchette {
   position: absolute;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
+  z-index: 2;
+  width: calc(30% * 896 / 675);
+  aspect-ratio: 361 / 420;
+  transform: translate(-50.4%, -30.9%);
+  background: url('./bilder/planchetten.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0.4rem 0.5rem rgb(0 0 0 / 0.45));
   pointer-events: none;
 }
-
-.seance-glow {
-  width: 24%;
-  /* Ett varmt sken som syns också på det ljusa brädet. */
-  background: radial-gradient(circle, rgb(255 214 120 / 0.95), rgb(230 130 40 / 0.55) 45%, transparent 70%);
-}
-
-/* Skenet flimrar medan det väntar på någon. */
-.seance-glow.is-waiting { animation: seance-flicker 1.4s ease-in-out infinite; }
-
-@keyframes seance-flicker {
-  0%, 100% { opacity: 1; }
-  40% { opacity: 0.55; }
-  60% { opacity: 0.85; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .seance-glow.is-waiting { animation: none; opacity: 0.75; }
-}
-
-.seance-planchette {
-  /* Större än fingret, så att skenet syns runt det. */
-  width: 28%;
-  z-index: 2;
-  border: 3px solid var(--board-ink);
-  box-shadow: 0 0 0 2px rgb(255 245 220 / 0.6), 0 0 12px rgb(0 0 0 / 0.5);
-}
-
-.seance-glow[hidden],
-.seance-planchette[hidden] { display: none; }
 
 /* Raderna ovanpå brädet. Fingret går igenom dem till brädet. */
 .seance-status {
@@ -177,7 +136,7 @@
   pointer-events: none;
 }
 
-/* Raden om vem skenet väntar på ligger i en ruta i underkant (Jonas 2026-11-17). */
+/* Raden om vem planchetten väntar på ligger i en ruta i underkant (Jonas 2026-11-17). */
 .seance-status {
   left: 50%;
   right: auto;
@@ -218,8 +177,9 @@
 .board-answer input { min-width: 0; font-size: max(1rem, 16px); }
 
 /*
- * Brädet står still när skenet har slocknat eller när det bokstaverar av sig
- * självt. Då tar det inte emot fingret, och sidan går att zooma som vanligt.
+ * Brädet står still när meddelandet är klart eller när planchetten
+ * bokstaverar av sig själv. Då tar det inte emot fingret, och sidan går att
+ * zooma som vanligt.
  */
 .seance-screen.is-still,
-.seance-screen.is-still .seance-board { touch-action: manipulation; }
+.seance-screen.is-still .seance-board-image { touch-action: manipulation; }

@@ -697,11 +697,11 @@
     {
       "id": "seansen",
       "type": "seance",
-      "text": "Lägg fingret på planchetten och följ skenet. Släpp inte.",
+      "text": "Lägg fingret på planchetten och följ med den. Släpp inte.",
       "hints": [
-        "Lägg fingret på planchetten och följ skenet. Alla måste hålla fingret kvar hela tiden. Lyfter någon börjar meddelandet om.",
-        "Skenet väntar tills allas planchetter är framme. Följ det tillsammans.",
-        "Meddelandet är två ord. Håll reda på bokstäverna där skenet stannar."
+        "Lägg fingret på planchetten och följ med den. Alla måste hålla fingret kvar hela tiden. Lyfter någon börjar meddelandet om.",
+        "Planchetten väntar tills allas fingrar är med. Följ den tillsammans.",
+        "Meddelandet är två ord. Håll reda på bokstäverna där planchetten stannar."
       ],
       "solution": {
         "message": "HJÄLP MIG"
@@ -753,7 +753,7 @@
     {
       "id": "rummen-minns",
       "type": "flashback",
-      "text": "Golvuret har stått stilla länge. Vrid visarna med fingret. De hakar i var femte minut.",
+      "text": "Golvuret har stått stilla länge.",
       "clockStart": "4.40",
       "flashbackMinutes": 3,
       "flashbackLabel": "kvart över tio, 1962",
@@ -804,7 +804,7 @@
     {
       "id": "vem-ar-jag",
       "type": "seance",
-      "text": "Planchetten rör sig av sig själv. Lägg fingret på den och följ skenet. Släpp inte.",
+      "text": "Planchetten rör sig av sig själv. Lägg fingret på den och följ med. Släpp inte.",
       "callsFromHouse": true,
       "question": "Brädet har frågat VEM ÄR JAG. Skriv namnet när ni vet vem det är.",
       "wrongAnswerMinutes": 2,

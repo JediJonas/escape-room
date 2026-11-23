@@ -17,7 +17,7 @@ function findSeance(view: PlayerView, gameId: string, stepNumber: number): Seanc
 export function applySeanceUpdate(view: PlayerView, update: SeanceUpdate): PlayerView {
   const current = findSeance(view, update.gameId, update.stepNumber);
   if (view.type !== 'game' || !current || current.anchorMs > update.seance.anchorMs) return view;
-  // Den som inte är med i seansen följer aldrig skenet.
+  // Den som inte är med i seansen följer aldrig planchetten.
   const seance = viewSeanceAs(update.seance, view.me.isPlaying ? view.me.name : '');
   return { ...view, step: { ...view.step, seance } };
 }

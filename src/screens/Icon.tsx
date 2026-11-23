@@ -4,6 +4,7 @@
  */
 const ICON_PATHS = {
   back: 'M15 5l-7 7 7 7',
+  next: 'M9 5l7 7-7 7',
   clock: 'M12 9v4l2.5 2.5M9.5 2.5h5M20 13a8 8 0 1 1-16 0 8 8 0 0 1 16 0z',
   menu: 'M4 7h16M4 12h16M4 17h16',
   close: 'M6 6l12 12M18 6L6 18',

@@ -129,7 +129,7 @@ test('bara spelledaren pausar, och vyn visar tiden som är kvar', () => {
   assert.deepEqual(buildGameView({ game: { ...game, state: resumed }, mission: MISSION, players: PLAYERS, viewer: GUEST }).clock, { isPaused: false, endsAtMs: 46 * 60_000 });
 });
 
-test('pausen stoppar också minnet, skenet och källaren', () => {
+test('pausen stoppar också minnet, planchetten och källaren', () => {
   const started = readState(startGame({ state: createInitialState(), mission: MISSION, players: PLAYERS, starter: LEADER, leaderPlays: true, minutes: 45, nowMs: 0 }));
   const timed: GameState = {
     ...started,

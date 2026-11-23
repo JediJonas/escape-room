@@ -309,7 +309,7 @@ starttiden, och har alla rum setts går gruppen vidare. Golvuret och minnet
 syns hos alla, så alla får en ny vy när de ändras. Se `flashback.ts`.
 Ett rum i minnet kan ha `image`, rundbilden av rummet 1962. Den som har
 valt rummet ser det i fullskärm och ser sig om i det som i ett rum i huset.
-Bilden brusar och flimrar, så att det syns att det är ett minne, och bitarna
+Bilden har ett svagt flimrande korn men inget blinkande ljus, så att det syns att det är ett minne, och bitarna
 visas inte, eftersom det de säger syns i bilden. Bitarna visas bara i ett rum
 utan bild. Valet av rum visar en bit av husets rundbild i dag, så att det
 inte avslöjar något av minnet (Jonas 2026-11-23).

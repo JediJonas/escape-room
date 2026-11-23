@@ -42,7 +42,7 @@ function imageStyle(image: string | null | undefined): CSSProperties | undefined
 /**
  * Rummet i minnet som rundbild i fullskärm, som ett rum i huset. Spelaren ser
  * sig om genom att vrida mobilen, med fingret som reserv. Inga texter: det som
- * finns att se står i bilden. Bilden brusar och flimrar, så att det syns att
+ * finns att se står i bilden. Bilden har ett svagt flimrande korn, så att det syns att
  * det är ett minne (Jonas 2026-11-23). Har spelaren flera rum i minnet byter
  * hon mellan dem nertill, och står ett rum tomt kan hon gå dit också.
  */

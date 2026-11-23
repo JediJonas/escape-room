@@ -1,7 +1,7 @@
 /*
- * Golvuret och minnet i Rummen minns. Minnet är sepiatonat, kornigt och
- * flimrar lite, i både ljust och mörkt läge, så att alla ser att huset minns
- * var de än är (Jonas 2026-11-17).
+ * Golvuret och minnet i Rummen minns. Minnet är sepiatonat och kornigt, i
+ * både ljust och mörkt läge, så att alla ser att huset minns var de än är
+ * (Jonas 2026-11-17). Ljuset blinkar inte (Jonas 2026-11-23).
  */
 
 /*
@@ -128,7 +128,7 @@
   background-image:
     radial-gradient(ellipse at center, rgb(255 240 210 / 0.35), rgb(40 25 10 / 0.55) 85%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
-  animation: memory-flicker 4s steps(1, end) infinite;
+  filter: sepia(0.6);
 }
 
 .memory-screen .game-header,
@@ -206,42 +206,35 @@
 .memory-room-name { font: 600 1.05rem Georgia, 'Times New Roman', serif; }
 .memory-room-card:disabled { opacity: 0.35; }
 
-@keyframes memory-flicker {
-  0%, 100% { filter: sepia(0.6) brightness(1); }
-  37% { filter: sepia(0.6) brightness(0.93); }
-  39% { filter: sepia(0.6) brightness(1.04); }
-  71% { filter: sepia(0.6) brightness(0.96); }
-}
 
 @media (prefers-reduced-motion: reduce) {
-  .memory-screen { animation: none; filter: sepia(0.6); }
   .memory { transition: none; }
 }
 .memory-left { margin: 0 0 0.75rem; font-variant-numeric: tabular-nums; font-weight: 600; }
 .memory-left.is-fading { color: var(--bad); }
 
 /*
- * Rummet i minnet i fullskärm. Bilden från 1962 är lätt tonad, brusar och
- * flimrar, så att det syns att det är ett minne och inte nuet (Jonas 2026-11-23).
+ * Rummet i minnet i fullskärm. Bilden från 1962 är lätt tonad och har ett
+ * svagt korn som flimrar, så att det syns att det är ett minne. Ljuset blinkar
+ * inte, eftersom det såg ut som en trasig lampa (Jonas 2026-11-23).
  */
 .memory-room-screen .round-view {
   filter: sepia(0.35) contrast(0.92) brightness(1.02);
-  animation: memory-room-flicker 5s steps(1, end) infinite;
   transition: opacity 2s;
 }
 
 .memory-room-screen.is-fading .round-view { opacity: 0.55; }
 
-/* Bruset ligger över bilden och hoppar runt, som korn i en gammal film. */
+/* Kornet ligger över bilden och hoppar runt, som i en gammal film. */
 .memory-grain {
   position: absolute;
   inset: -50%;
   z-index: 1;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.45;
+  opacity: 0.3;
   mix-blend-mode: overlay;
-  animation: memory-grain 0.5s steps(1, end) infinite;
+  animation: memory-grain 0.4s steps(1, end) infinite;
 }
 
 /* Kanterna mörknar, som i ett gammalt fotografi. */
@@ -266,13 +259,6 @@
   80% { transform: translate(8%, 3%); }
 }
 
-@keyframes memory-room-flicker {
-  0%, 100% { filter: sepia(0.35) contrast(0.92) brightness(1.02); }
-  41% { filter: sepia(0.35) contrast(0.92) brightness(0.9); }
-  43% { filter: sepia(0.35) contrast(0.92) brightness(1.06); }
-  77% { filter: sepia(0.35) contrast(0.92) brightness(0.95); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .memory-grain, .memory-room-screen .round-view { animation: none; }
+  .memory-grain { animation: none; }
 }

@@ -12,6 +12,19 @@
   background: #000000;
 }
 
+/*
+ * Ett lager över rundbilden i nutid gör rummet lite mörkare (Jonas 2026-11-23).
+ * Det ligger under ramen runt det som är tänt. Minnet har sitt eget lager.
+ */
+.room-screen:not(.memory-room-screen) .round-view::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: rgb(0 0 0 / 0.25);
+}
+
 .room-screen .room-top {
   position: absolute;
   inset: 0 0 auto;

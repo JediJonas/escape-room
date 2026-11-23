@@ -480,7 +480,8 @@ function describeFlashbackFor({ mission, step, state, places, viewerId, particip
   const flashbackStep = mission.steps.find((candidate): candidate is FlashbackStep => candidate.type === 'flashback');
   const isShown = step.type === 'flashback' || state.flashback?.remembersUntilMs !== null;
   if (state.status !== 'running' || !state.flashback || !flashbackStep || !isShown) return null;
-  return describeFlashback({ flashback: state.flashback, step: flashbackStep, places, viewerId, participantIds });
+  const roomImages = Object.fromEntries((mission.house?.rooms ?? []).flatMap((room) => (room.image ? [[room.place, room.image]] : [])));
+  return describeFlashback({ flashback: state.flashback, step: flashbackStep, places, roomImages, viewerId, participantIds });
 }
 
 export function buildGameView({ game, mission, players, viewer }: {

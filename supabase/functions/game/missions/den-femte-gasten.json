@@ -268,6 +268,17 @@
               "pitchDeg": 0,
               "radiusDeg": 11
             }
+          },
+          {
+            "id": "proppskapet",
+            "name": "Proppskåpet",
+            "text": "Ett rostigt plåtskåp på väggen. Luckan kärvar, men bakom den sitter tre gamla säkringar i rad. På en gulnad lapp under dem står det Källaren.",
+            "image": "uppdrag/den-femte-gasten/saker/proppskapet.webp",
+            "spot": {
+              "yawDeg": 165,
+              "pitchDeg": 10,
+              "radiusDeg": 8
+            }
           }
         ],
         "doorSpots": {

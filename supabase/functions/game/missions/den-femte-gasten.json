@@ -760,6 +760,7 @@
       "rooms": [
         {
           "place": "B",
+          "image": "uppdrag/den-femte-gasten/minnet/hallen.webp",
           "pieces": [
             "En ung kvinna i röd sjal sitter vid pianot. Locket är uppfällt och noterna står uppslagna.",
             "Gästboken ligger uppslagen på bordet. Bläcket på den sista raden är fortfarande blankt.",
@@ -768,6 +769,7 @@
         },
         {
           "place": "F",
+          "image": "uppdrag/den-femte-gasten/minnet/salongen.webp",
           "pieces": [
             "En ung kvinna med pärlhalsband sitter vid bordet. Framför henne ligger ouijabrädet.",
             "Golvuret har stannat på kvart över tio.",
@@ -776,6 +778,7 @@
         },
         {
           "place": "C",
+          "image": "uppdrag/den-femte-gasten/minnet/koket.webp",
           "pieces": [
             "En ung man med runda glasögon står vid spisen och häller upp kaffe i en kopp.",
             "Fem kaffekoppar står på bänken. Fyra är urdruckna, och den femte är full och kall.",
@@ -785,6 +788,7 @@
         },
         {
           "place": "D",
+          "image": "uppdrag/den-femte-gasten/minnet/sovrummet.webp",
           "pieces": [
             "En ung man står vid byrån och röker pipa. Han ser sig om i rummet.",
             "Ett stearinljus på fönsterbrädan har brunnit ner och slocknat.",

@@ -331,3 +331,10 @@ har funktionerna `koket` och `sovrummet`, med betraktaren mitt i rummet.
 - **Kaffestrålen och låset** (Jonas 2026-11-20). Strålen såg ut att rinna
   utanför koppen, så den togs bort och pipen hålls nu över koppen. Dörren i
   sovrummet hade lås och fick ett vanligt dörrhandtag, i båda bilderna.
+
+## Minnet i spelet
+
+Rundbilderna från 1962 visas nu i Rummen minns (Jonas 2026-11-23) och ligger i
+`public/uppdrag/den-femte-gasten/minnet/`. Hallen kommer ur git-historiken,
+köket och sovrummet ur projektfilerna i 4K. Salongen 1962 finns bara i
+1376×768 och är uppskalad till 2752×1376, så den är mjukare än de andra.

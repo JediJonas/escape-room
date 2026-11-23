@@ -73,7 +73,7 @@ test('väntrummet visar alla i den ordning de gick med och markerar mobilens ege
 test('bara spelledaren får välja uppdrag', () => {
   const leader = createPlayer(0, { name: 'Jonna' });
   const view = buildLobbyView({ game: GAME, mission: MISSION, missions: [MISSION], players: [leader], viewer: leader });
-  assert.deepEqual(view.missionChoices, [{ id: 'prov', title: 'Provhuset', minPlayers: 2, theme: null }]);
+  assert.deepEqual(view.missionChoices, [{ id: 'prov', title: 'Provhuset', minPlayers: 2, theme: null, cover: null, tagline: null }]);
 });
 
 test('väntrummet läcker inte andra spelares id eller inloggningar', () => {

@@ -22,6 +22,7 @@ import { PauseCover } from './PauseCover.tsx';
 import { describePlaceStatus } from './placeStatus.ts';
 import { readReadNarrations, saveReadNarrations } from '../start/savedGame.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
+import { EndHero } from './EndHero.tsx';
 import { Icon } from './Icon.tsx';
 import { useMissionTheme } from '../theme/useMissionTheme.ts';
 
@@ -81,7 +82,7 @@ export function GameScreen(props: GameScreenProps) {
   if (hintsSeen.stepNumber !== step.number || hintsSeen.count !== step.hints.length) {
     const isNewHint = hintsSeen.stepNumber === step.number && step.hints.length > hintsSeen.count;
     setHintsSeen({ stepNumber: step.number, count: step.hints.length });
-    if (isNewHint) setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, title: `Ledtråd ${step.hints.length}.`, text: step.hints[step.hints.length - 1] }));
+    if (isNewHint) setInfo((shown) => ({ id: (shown?.id ?? 0) + 1, title: `Ledtråd ${step.hints.length}`, text: step.hints[step.hints.length - 1] }));
   }
   const closeInfo = useCallback(() => setInfo(null), []);
   return (
@@ -120,11 +121,15 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     setPendingFind(null);
   }
 
+  // Uppdraget uppe till vänster och klockan uppe till höger (Jonas 2026-11-23).
+  const missionLabel = <span className="eyebrow">{view.missionTitle}</span>;
+  const clockChip = view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />;
+
   // Har spelledaren avslutat spelet visas bara det, inte steget gruppen var på (Jonas 2026-11-18).
   if (view.isEndedByLeader) {
     return (
-      <ScreenLayout actions={<button type="button" onClick={game.leave}>Till startsidan</button>}>
-        <p className="hint game-header"><span>{view.missionTitle} · slut</span></p>
+      <ScreenLayout top={missionLabel} actions={<button type="button" onClick={game.leave}>Till startsidan</button>}>
+        <EndHero />
         <p className="scene-text">{view.me.isLeader ? 'Du har avslutat spelet.' : 'Spelledaren har avslutat spelet.'}</p>
       </ScreenLayout>
     );
@@ -153,11 +158,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   // Medan huset minns ser alla minnet, var de än är, och inget av det som finns i nuet (Jonas 2026-11-17).
   if (step.flashback && flashback.isRemembering && !view.isFinished) {
     return withLeaderMenu(
-      <ScreenLayout className="memory-screen" actions={<p className="hint">Dörrarna är stängda tills minnet bleknar.</p>}>
-        <p className="hint game-header">
-          <span>{view.missionTitle} · steg {step.number} av {step.count}</span>
-          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-        </p>
+      <ScreenLayout className="memory-screen" top={<>{missionLabel}{clockChip}</>} actions={<p className="status-line">Dörrarna är stängda tills minnet bleknar.</p>}>
         <FlashbackScreen flashback={step.flashback} isFading={flashback.isFading} msLeft={flashback.msLeft} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseFlashbackRoom} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>,
@@ -183,8 +184,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       {start}
       {title ? <span className="thing-title" role="heading" aria-level={1}>{title}</span> : <span />}
       <span className="thing-header-end">
-        {view.clock?.isPaused && <span className="paused">Pausat</span>}
-        {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
+        {clockChip}
       </span>
     </>
   );
@@ -203,9 +203,10 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     { id: `${view.gameId}:${step.number}:kallaren`, text: cellarText },
   ];
   const narration = narrations.find(({ id, text }) => text !== null && !readNarrations.includes(id));
-  const narrationHeader = fullscreenHeader(<span />);
+  const narrationHeader = fullscreenHeader(missionLabel);
   const showNarration = (text: string, onOk?: () => void) => withLeaderMenu(
     <ThingScreen header={narrationHeader} actions={onOk ? <button type="button" onClick={onOk} disabled={isBusy}>Ok</button> : undefined}>
+      <span className="ornament" aria-hidden="true" />
       {text.split('\n\n').map((paragraph) => <p key={paragraph} className="narration-text">{paragraph}</p>)}
     </ThingScreen>,
   );
@@ -272,18 +273,13 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         setPendingFind(spot);
         game.findThing({ yawDeg: spot.yawDeg, pitchDeg: spot.pitchDeg });
       };
-      const roomHeader = (
-        <>
-          {view.clock?.isPaused && <span className="paused">Pausat</span>}
-          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-        </>
-      );
       return withLeaderMenu(
         <RoomView
           key={house.room.id}
           house={house}
           image={`${import.meta.env.BASE_URL}${house.image}`}
-          header={roomHeader}
+          missionTitle={view.missionTitle}
+          header={clockChip}
           note={isGoingDown ? cellar.goDownText : ''}
           error={error}
           canFind={view.me.isPlaying}
@@ -299,14 +295,9 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
     if (view.me.isPlaying && house.canSearch) houseActions.push(<button key="search" type="button" onClick={game.searchRoom} disabled={isBusy}>Leta i rummet</button>);
     // Ingen rad säger att mobilen väntar på de andra, och spelledaren ser inte vilka som är klara.
     // Steget går vidare av sig självt när alla är klara (Jonas 2026-11-18).
-    const houseHint = <p className="hint">{isGoingDown ? cellar.goDownText : 'Gå runt i huset och leta.'}</p>;
+    const houseHint = <p className="status-line">{isGoingDown ? cellar.goDownText : 'Gå runt i huset och leta.'}</p>;
     return withLeaderMenu(
-      <ScreenLayout actions={houseActions.length > 0 ? houseActions : houseHint}>
-        <p className="hint game-header">
-          <span>{view.missionTitle} · steg {step.number} av {step.count}</span>
-          {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-        </p>
-        {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
+      <ScreenLayout top={<>{missionLabel}{clockChip}</>} actions={houseActions.length > 0 ? houseActions : houseHint}>
         <RoomList house={house} isBusy={isBusy} onOpen={setOpenThingId} onWalk={game.walk} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>,
@@ -418,17 +409,16 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
   }
 
   return withLeaderMenu(
-    <ScreenLayout actions={actions.length > 0 ? actions : <p className="hint" />}>
-      <p className="hint game-header">
-        {isMenuOverView && <button type="button" className="chip" onClick={() => setIsMenuOpen(false)}><Icon name="close" />Stäng menyn</button>}
-        <span>{view.missionTitle} · {view.isFinished ? 'slut' : `steg ${step.number} av ${step.count}`}</span>
-        {view.clock && <Countdown clock={view.clock} clockOffsetMs={clockOffsetMs} />}
-      </p>
-      {view.clock?.isPaused && <p className="status paused" role="status">Spelet är pausat.</p>}
+    <ScreenLayout
+      top={<>{isMenuOverView ? <button type="button" className="chip" onClick={() => setIsMenuOpen(false)}><Icon name="close" />Stäng menyn</button> : missionLabel}{!view.isFinished && clockChip}</>}
+      actions={actions.length > 0 ? actions : <p className="status-line" />}
+    >
+      {view.isFinished && <EndHero />}
       {!(house && cellar) && <p className="scene-text">{step.text}</p>}
       <DocumentList documents={step.documents} />
       {step.role && (
         <section className="role-card" aria-label="Bara du ser det här">
+          <span className="role-tag" aria-hidden="true"><Icon name="secret" />Bara du ser det här</span>
           <h2>{step.role.title}</h2>
           {step.role.pieces.map((piece) => <p key={piece} className={step.documents.length > 0 ? 'clipping' : undefined}>{piece}</p>)}
         </section>

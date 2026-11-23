@@ -12,19 +12,27 @@
   background: #000000;
 }
 
-.room-screen .game-header {
+.room-screen .room-top {
   position: absolute;
   inset: 0 0 auto;
   z-index: 3;
   margin: 0;
-  padding: calc(0.5rem + env(safe-area-inset-top)) 1rem 1.5rem;
-  align-items: center;
-  color: var(--text);
+  padding: var(--top-gap) var(--content-edge) 1.5rem;
   background: linear-gradient(rgb(0 0 0 / 0.55), transparent);
   pointer-events: none;
 }
 
-.room-screen .room-name { font-weight: 600; }
+/* Uppdraget och rummet i två rader uppe till vänster (Jonas 2026-11-23). */
+.room-name {
+  display: grid;
+  margin: 0;
+  color: var(--text);
+  font: var(--display-weight) var(--text-l)/1.1 var(--font-display);
+  letter-spacing: var(--display-tracking);
+  text-transform: var(--display-case);
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.6);
+}
+.room-name .eyebrow { color: rgb(255 255 255 / 0.65); }
 
 /*
  * Ramen runt det som är tänt. Den ersätter siktet som alltid låg mitt i
@@ -81,7 +89,11 @@
 
 .room-label {
   width: auto;
+  padding: 0 var(--space-5) 0 var(--space-4);
   min-height: var(--leader-menu-size);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   border-color: rgb(var(--glow) / 0.7);
   box-shadow: 0 0 24px rgb(var(--glow) / 0.25);
   color: var(--text);
@@ -111,3 +123,5 @@
 }
 
 .room-error:empty { display: none; }
+
+.room-label .icon { color: var(--accent); }

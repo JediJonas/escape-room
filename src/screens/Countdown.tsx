@@ -18,6 +18,8 @@ export function Countdown({ clock, clockOffsetMs }: { clock: ClockView; clockOff
   }, [clock.isPaused]);
   const remainingMs = findRemainingMs(clock, nowMs + clockOffsetMs);
   const className = isLowTime(remainingMs) ? 'chip countdown is-low' : 'chip countdown';
-  if (remainingMs <= 0) return <span className={className}><Icon name="clock" />Tiden är ute</span>;
-  return <span className={className} aria-label={`Tid kvar ${formatRemaining(remainingMs)}`}><Icon name="clock" />{formatRemaining(remainingMs)}</span>;
+  // Pausat spel visar en paus i stället för klockan (Jonas 2026-11-23).
+  const icon = <Icon name={clock.isPaused ? 'pause' : 'clock'} />;
+  if (remainingMs <= 0) return <span className={className}>{icon}Tiden är ute</span>;
+  return <span className={className} aria-label={`${clock.isPaused ? 'Pausat, tid kvar' : 'Tid kvar'} ${formatRemaining(remainingMs)}`}>{icon}{formatRemaining(remainingMs)}</span>;
 }

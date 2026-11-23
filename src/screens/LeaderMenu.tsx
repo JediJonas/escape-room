@@ -1,26 +1,39 @@
 import { useEffect, useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
-import { Icon } from './Icon.tsx';
+import { HINT_COUNT } from '../../supabase/functions/game/mission.ts';
+import { Icon, type IconName } from './Icon.tsx';
 import './leaderMenu.css';
 
 /** Mobiler som har kommit efter start och väntar på ett svar. */
 function PendingList({ view, isBusy, onAnswer }: { view: GameView; isBusy: boolean; onAnswer: (playerId: string, isAdmitted: boolean) => void }) {
   if (!view.pending || view.pending.length === 0) return null;
   return (
-    <div className="pending-list">
-      <h2>Vill vara med</h2>
+    <>
       {view.pending.map((pending) => (
         <div key={pending.playerId} className="pending">
-          <p>{pending.takesOver ? `En ny mobil vill ta över ${pending.takesOver}.` : `${pending.name} vill vara med.`}</p>
-          <div className="leader-tools">
-            <button type="button" className="secondary small" onClick={() => onAnswer(pending.playerId, true)} disabled={isBusy}>
+          <p>{pending.takesOver ? `En ny mobil vill ta över ${pending.takesOver}.` : <><strong>{pending.name}</strong> vill vara med.</>}</p>
+          <div className="pending-answers">
+            <button type="button" className="secondary" onClick={() => onAnswer(pending.playerId, false)} disabled={isBusy}>Neka</button>
+            <button type="button" onClick={() => onAnswer(pending.playerId, true)} disabled={isBusy}>
               {pending.takesOver ? 'Låt den ta över' : 'Släpp in'}
             </button>
-            <button type="button" className="secondary small" onClick={() => onAnswer(pending.playerId, false)} disabled={isBusy}>Neka</button>
           </div>
         </div>
       ))}
-    </div>
+    </>
+  );
+}
+
+/** En rad i menyn, med en ikon framför. */
+function MenuItem({ icon, label, note, isDanger, disabled, onClick }: { icon: IconName; label: string; note?: string; isDanger?: boolean; disabled: boolean; onClick: () => void }) {
+  return (
+    <li>
+      <button type="button" className={isDanger ? 'menu-item is-danger' : 'menu-item'} onClick={onClick} disabled={disabled}>
+        <Icon name={icon} />
+        {label}
+        {note && <small>{note}</small>}
+      </button>
+    </li>
   );
 }
 
@@ -84,32 +97,33 @@ export function LeaderMenu({ view, isBusy, onSetPaused, onGiveHint, onShowSoluti
           <button type="button" className="leader-menu-backdrop" aria-label="Stäng menyn" tabIndex={-1} onClick={() => setIsOpen(false)} />
           {isConfirmingEnd ? (
             <section className="leader-menu" aria-label="Avsluta spelet">
-              <h2>Avsluta spelet för alla?</h2>
-              <p>Det går inte att ångra. Alla mobiler visar att spelet är slut.</p>
-              <div className="leader-menu-actions">
+              <header>
+                <h2>Avsluta spelet för alla?</h2>
+                <small>Det går inte att ångra. Alla mobiler visar att spelet är slut.</small>
+              </header>
+              <div className="leader-menu-confirm">
                 <button type="button" className="secondary" onClick={() => setIsConfirmingEnd(false)}>Avbryt</button>
                 <button type="button" className="danger" onClick={runAndClose(onEndGame)} disabled={isBusy}>Avsluta spelet</button>
               </div>
             </section>
           ) : (
           <section className="leader-menu" aria-label="Spelledarens meny">
+            {/* Steget och ledtrådarna står överst, så att spelarnas skärmar slipper dem (Jonas 2026-11-23). */}
+            <header>
+              <h2>Spelledare</h2>
+              <small>Steg {step.number} av {step.count}{step.hasHelp && ` · ${step.hints.length} av ${HINT_COUNT} ledtrådar`}</small>
+            </header>
             <PendingList view={view} isBusy={isBusy} onAnswer={onAnswerPending} />
             {step.hasHelp && step.solution && <p className="solution">Facit: {step.solution}</p>}
-            <div className="leader-menu-actions">
-              {step.hasHelp && (
-                <button type="button" className="secondary" onClick={runAndClose(onGiveHint)} disabled={isBusy || !step.canGiveHint}>
-                  Ge ledtråd
-                </button>
-              )}
-              {step.canShowSolution && !step.solution && <button type="button" className="secondary" onClick={onShowSolution} disabled={isBusy}>Visa facit för mig</button>}
-              {canSkip && <button type="button" className="secondary" onClick={runAndClose(onNextStep)} disabled={isBusy}>Hoppa över uppgiften</button>}
-              {view.clock && (
-                <button type="button" className="secondary" onClick={runAndClose(() => onSetPaused(!isPaused))} disabled={isBusy}>
-                  {isPaused ? 'Fortsätt spelet' : 'Pausa spelet'}
-                </button>
-              )}
-              <button type="button" className="secondary" onClick={() => setIsConfirmingEnd(true)} disabled={isBusy}>Avsluta spelet</button>
-            </div>
+            <ul className="menu-list">
+              {step.hasHelp && <MenuItem icon="hint" label="Ge ledtråd" note={`${Math.min(step.hints.length + 1, HINT_COUNT)} av ${HINT_COUNT}`} onClick={runAndClose(onGiveHint)} disabled={isBusy || !step.canGiveHint} />}
+              {step.canShowSolution && !step.solution && <MenuItem icon="solution" label="Visa facit för mig" onClick={onShowSolution} disabled={isBusy} />}
+              {canSkip && <MenuItem icon="skip" label="Hoppa över uppgiften" onClick={runAndClose(onNextStep)} disabled={isBusy} />}
+              {view.clock && <MenuItem icon={isPaused ? 'play' : 'pause'} label={isPaused ? 'Fortsätt spelet' : 'Pausa spelet'} onClick={runAndClose(() => onSetPaused(!isPaused))} disabled={isBusy} />}
+            </ul>
+            <ul className="menu-list is-last">
+              <MenuItem icon="end" label="Avsluta spelet" isDanger onClick={() => setIsConfirmingEnd(true)} disabled={isBusy} />
+            </ul>
           </section>
           )}
         </>

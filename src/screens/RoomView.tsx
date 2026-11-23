@@ -7,6 +7,7 @@ import { RoundImageView, type ScreenProjection } from '../view/RoundImageView.ts
 import { buildOutlinePath, listFrameOutline } from './roomFrame.ts';
 import { type RoomVisit, chooseStartLook, enterRoom } from './roomVisit.ts';
 import { type RoomTarget, findTappedTarget, hasLookedAround, listRoomTargets } from './roomTargets.ts';
+import { Icon } from './Icon.tsx';
 import './roomView.css';
 
 /**
@@ -34,11 +35,13 @@ function rememberLook(roomId: string, look: LookDirection) {
  *
  * Komponenten ska få rummet som nyckel, så att visaren börjar om i varje rum.
  */
-export function RoomView({ house, image, header, note, error, canFind, isBusy, onOpen, onWalk, onFind }: {
+export function RoomView({ house, image, missionTitle, header, note, error, canFind, isBusy, onOpen, onWalk, onFind }: {
   house: HouseView;
   /** Bildens adress. */
   image: string;
-  /** Det som står överst bredvid rummets namn, som klockan. */
+  /** Uppdragets namn, som står ovanför rummets namn. */
+  missionTitle: string;
+  /** Det som står överst till höger, som klockan. */
   header: ReactNode;
   /** Raden längst ner när inget är tänt, till exempel vem som går ner i källaren. */
   note: string;
@@ -89,10 +92,11 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
   const isAimedCalling = aimed?.kind === 'thing' && aimed.isCalling;
   return (
     <main className="room-screen">
-      <p className="hint game-header">
-        <span className="room-name">{house.room.name}</span>
+      <header className="topbar room-top">
+        {/* Uppdraget och rummet i två rader uppe till vänster (Jonas 2026-11-23). */}
+        <h1 className="room-name"><span className="eyebrow">{missionTitle}</span>{house.room.name}</h1>
         {header}
-      </p>
+      </header>
       <p className="error room-error" role="alert">{error}</p>
       <RoundImageView src={image} lookRef={lookRef} onTap={handleTap} onLook={handleLook}>
         <svg className="room-frame" aria-hidden="true">
@@ -102,6 +106,7 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
       <div className="room-bottom">
         {aimed ? (
           <button type="button" className={isAimedCalling ? 'room-label is-calling' : 'room-label'} onClick={() => activate(aimed)}>
+            <Icon name="open" />
             {aimed.label}
             {isAimedCalling && <span className="calling-note"> · något rör sig</span>}
           </button>

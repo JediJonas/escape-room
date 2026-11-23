@@ -207,12 +207,14 @@
 
 /*
  * En sak att titta på, som tavlan: närbilden fyller det som blir över, och
- * texten står under den (Jonas 2026-11-20).
+ * texten står under den (Jonas 2026-11-20). Bilden fyller hela bredden med
+ * rundade hörn och en tunn kant, och texten står i en mörk ruta, som i
+ * designen (Jonas 2026-11-23).
  */
 .thing-look {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
   height: 100%;
   min-height: 0;
 }
@@ -223,6 +225,20 @@
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  object-fit: contain;
-  border-radius: 0.5rem;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
 }
+
+.thing-screen .thing-look .thing-caption {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface-solid);
+  color: var(--text);
+  font: 1.125rem/1.45 var(--font-reading);
+}
+
+.thing-caption p { margin: 0; }
+.thing-caption p + p { margin-top: var(--space-2); }

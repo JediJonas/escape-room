@@ -1,11 +1,11 @@
-import { type FormEvent, type ReactNode, useCallback, useState } from 'react';
+import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react';
 import type { GameView } from '../../supabase/functions/game/game.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { BoardTouch } from '../../supabase/functions/game/seance.ts';
 import type { CellarMove } from '../../supabase/functions/game/cellar.ts';
 import type { Direction, Spot } from '../../supabase/functions/game/spots.ts';
 import { requestMotionPermission } from '../device/motion.ts';
-import { gameAudio } from '../sound/gameAudio.ts';
+import { gameAudio, unlockAudioOnEveryTap } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
 import { MelodyButton, PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
@@ -72,6 +72,7 @@ type Info = { id: number; title?: string; text: string };
  */
 export function GameScreen(props: GameScreenProps) {
   const { step } = props.view;
+  useEffect(unlockAudioOnEveryTap, []);
   const [info, setInfo] = useState<Info | null>(null);
   const [hintsSeen, setHintsSeen] = useState({ stepNumber: step.number, count: step.hints.length });
   if (hintsSeen.stepNumber !== step.number || hintsSeen.count !== step.hints.length) {

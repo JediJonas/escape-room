@@ -1,5 +1,5 @@
 import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
-import { watchMotion } from '../device/motion.ts';
+import { requestMotionPermission, shouldAskForMotion, watchMotion } from '../device/motion.ts';
 import { DEFAULT_FIELD_OF_VIEW_DEG, type LookDirection, clampPitchDeg, dragToTurn, orientationToLook, turnLook, wrapYawDeg } from './lookDirection.ts';
 import { createSphereView, createStripView } from './roundImageViewer.ts';
 
@@ -12,8 +12,9 @@ const MAX_TAP_MOVE_PX = 10;
  * Rundbilden i spelet, med rummet vågrätt och det mjuka perspektivet som
  * provet på riktig mobil valde (se docs/koncept.md, Rundbilder). Mobilen
  * styr om rörelsesensorn ger värden, annars fingret. Tillståndet begärs i
- * en scen tidigare, så här lyssnar visaren bara. Reserven är den breda
- * bilden som bara går att dra i sidled.
+ * en scen tidigare, så här lyssnar visaren bara. Har sidan laddats om
+ * efter scenen, eller kom spelaren in senare, ber första trycket i bilden
+ * om tillståndet. Reserven är den breda bilden som bara går att dra i sidled.
  *
  * Blicken skrivs i lookRef, så att den som visar kan läsa vart spelaren
  * tittar när hon trycker, utan att React ritar om vid varje sensorvärde.
@@ -81,24 +82,42 @@ export function RoundImageView({ src, lookRef, onTap, onLook, children }: {
     image.onerror = () => setMode('failed');
     image.src = src;
 
-    const stopSensor = watchMotion({
-      onOrientation: ({ alpha, beta, gamma }) => {
-        if (alpha === null || beta === null || gamma === null) return;
-        const sensed = orientationToLook({ alpha, beta, gamma });
-        // Sensorns nollpunkt är godtycklig, så blicken börjar där den var.
-        if (sensorYawOffsetDeg === null) sensorYawOffsetDeg = lookRef.current.yawDeg - sensed.yawDeg;
-        if (!isSensing) {
-          isSensing = true;
-          setIsSensorSteering(true);
-        }
-        lookRef.current = { yawDeg: wrapYawDeg(sensed.yawDeg + sensorYawOffsetDeg), pitchDeg: isSphere ? clampPitchDeg(sensed.pitchDeg) : 0, rollDeg: sensed.rollDeg };
-        draw();
-      },
-      onMovement: () => {},
-    });
-    const sensorTimer = setTimeout(() => {
-      if (!isSensing) stopSensor();
-    }, NO_SENSOR_VALUES_TIMEOUT_MS);
+    let stopSensor = () => {};
+    let sensorTimer: ReturnType<typeof setTimeout> | undefined;
+    function startSensor() {
+      stopSensor();
+      clearTimeout(sensorTimer);
+      stopSensor = watchMotion({
+        onOrientation: handleOrientation,
+        onMovement: () => {},
+      });
+      sensorTimer = setTimeout(() => {
+        if (!isSensing) stopSensor();
+      }, NO_SENSOR_VALUES_TIMEOUT_MS);
+    }
+    function handleOrientation({ alpha, beta, gamma }: { alpha: number | null; beta: number | null; gamma: number | null }) {
+      if (alpha === null || beta === null || gamma === null) return;
+      const sensed = orientationToLook({ alpha, beta, gamma });
+      // Sensorns nollpunkt är godtycklig, så blicken börjar där den var.
+      if (sensorYawOffsetDeg === null) sensorYawOffsetDeg = lookRef.current.yawDeg - sensed.yawDeg;
+      if (!isSensing) {
+        isSensing = true;
+        setIsSensorSteering(true);
+      }
+      lookRef.current = { yawDeg: wrapYawDeg(sensed.yawDeg + sensorYawOffsetDeg), pitchDeg: isSphere ? clampPitchDeg(sensed.pitchDeg) : 0, rollDeg: sensed.rollDeg };
+      draw();
+    }
+    startSensor();
+
+    // iPhone tar bara frågan direkt i ett tryck. Den ställs innan trycket öppnar något,
+    // eftersom visaren då försvinner. Trycket gör ändå det det ska.
+    let isStopped = false;
+    function askForSensor() {
+      if (isSensing || !shouldAskForMotion()) return;
+      void requestMotionPermission().then((answer) => {
+        if (answer === 'granted' && !isStopped) startSensor();
+      });
+    }
 
     // Fingret vrider bara när sensorn inte styr. Ett kort tryck är alltid ett tryck.
     let start: { x: number; y: number } | null = null;
@@ -116,6 +135,7 @@ export function RoundImageView({ src, lookRef, onTap, onLook, children }: {
       draw();
     };
     const handleUp = (event: PointerEvent) => {
+      askForSensor();
       if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) <= MAX_TAP_MOVE_PX) {
         const box = frame.getBoundingClientRect();
         const point = { xPx: event.clientX - box.left, yPx: event.clientY - box.top };
@@ -133,6 +153,7 @@ export function RoundImageView({ src, lookRef, onTap, onLook, children }: {
     frame.addEventListener('pointermove', handleMove);
     frame.addEventListener('pointerup', handleUp);
     return () => {
+      isStopped = true;
       clearTimeout(sensorTimer);
       stopSensor();
       frame.removeEventListener('pointerdown', handleDown);

@@ -24,21 +24,39 @@ export function getMotionSupport() {
   };
 }
 
+type PermissionAnswer = 'granted' | 'denied' | 'not-needed';
+
+/**
+ * Svaret gäller tills sidan laddas om. iPhone glömmer tillståndet vid en
+ * omladdning, så då måste frågan ställas igen.
+ */
+let latestAnswer: PermissionAnswer | null = null;
+
 /**
  * Ber om tillstånd där det krävs. Måste anropas direkt i ett tryck.
  */
-export async function requestMotionPermission(): Promise<'granted' | 'denied' | 'not-needed'> {
+export async function requestMotionPermission(): Promise<PermissionAnswer> {
   const requests = [findPermissionRequest('DeviceOrientationEvent'), findPermissionRequest('DeviceMotionEvent')].filter(
     (request) => request !== null,
   );
   if (requests.length === 0) return 'not-needed';
   try {
     const answers = await Promise.all(requests.map((request) => request()));
-    return answers.every((answer) => answer === 'granted') ? 'granted' : 'denied';
+    latestAnswer = answers.every((answer) => answer === 'granted') ? 'granted' : 'denied';
   } catch {
     // Kastas när frågan ställs utanför ett tryck, eller när sidan inte är säker.
-    return 'denied';
+    latestAnswer = 'denied';
   }
+  return latestAnswer;
+}
+
+/**
+ * Sant när mobilen kräver en fråga och den inte har ställts sedan sidan
+ * laddades, till exempel när spelaren har laddat om sidan efter scenen som
+ * frågar. Har spelaren svarat nej frågar sidan inte igen.
+ */
+export function shouldAskForMotion(): boolean {
+  return latestAnswer === null && getMotionSupport().needsPermission;
 }
 
 /** Lyssnar på lutning och rörelse tills den returnerade funktionen anropas. */

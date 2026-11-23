@@ -311,8 +311,8 @@ Ett rum i minnet kan ha `image`, rundbilden av rummet 1962. Den som har
 valt rummet ser det i fullskärm och ser sig om i det som i ett rum i huset.
 Bilden har ett svagt flimrande korn men inget blinkande ljus, så att det syns att det är ett minne, och bitarna
 visas inte, eftersom det de säger syns i bilden. Bitarna visas bara i ett rum
-utan bild. Valet av rum visar en bit av husets rundbild i dag, så att det
-inte avslöjar något av minnet (Jonas 2026-11-23).
+utan bild. Valet av rum visar en bit av rundbilden från minnet, och husets
+rundbild i dag för ett rum utan egen bild (Jonas 2026-11-23).
 
 **Golvuret och pianot går att använda hela tiden** (Jonas 2026-11-18). En
 sak i huset vars steg inte är det aktuella har `instrument` i vyn: urtavlan

@@ -199,13 +199,13 @@ export type FlashbackView = {
   flashbackLabel: string;
   /**
    * Alla rum i minnet, och om spelaren kan välja dem just nu. Bilden är
-   * rummets rundbild i dag, så att valet inte avslöjar något av minnet.
+   * rundbilden från minnet, eller rummets rundbild i dag om minnet saknar
+   * bild (Jonas 2026-11-23).
    */
   rooms: { place: Place; image: string | null; isChoosable: boolean }[];
   /**
    * Spelarens rum i minnet och det hon ser där, i den ordning hon valde dem.
-   * Bilden är rundbilden av rummet som det var, och den syns bara för den
-   * som har valt rummet (Jonas 2026-11-23).
+   * Bilden är rundbilden av rummet som det var (Jonas 2026-11-23).
    */
   myRooms: { place: Place; image: string | null; pieces: string[] }[];
   /** Om spelaren kan välja ett rum nu, eller ett rum till när de andra har valt. */
@@ -225,7 +225,7 @@ export function describeFlashback({ flashback, step, places, roomImages = {}, vi
   flashback: FlashbackState;
   step: FlashbackStep;
   places: readonly Place[];
-  /** Rummens rundbilder i dag, räknat från webbsidans början, för valet av rum. */
+  /** Rummens rundbilder i dag, räknat från webbsidans början, för ett rum i minnet som saknar egen bild. */
   roomImages?: Partial<Record<PlaceId, string>>;
   viewerId: string;
   participantIds: readonly string[];
@@ -240,7 +240,7 @@ export function describeFlashback({ flashback, step, places, roomImages = {}, vi
     dialMinutes: flashback.dialMinutes,
     remembersUntilMs: flashback.remembersUntilMs,
     flashbackLabel: step.flashbackLabel,
-    rooms: step.rooms.map((room) => ({ place: findPlace(room.place), image: findImage(room.place), isChoosable: choosable.includes(room.place) })),
+    rooms: step.rooms.map((room) => ({ place: findPlace(room.place), image: room.image ?? findImage(room.place), isChoosable: choosable.includes(room.place) })),
     myRooms: mine.map((room) => ({ place: findPlace(room.place), image: room.image, pieces: room.pieces })),
     choice,
   };

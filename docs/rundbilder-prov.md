@@ -338,3 +338,10 @@ Rundbilderna från 1962 visas nu i Rummen minns (Jonas 2026-11-23) och ligger i
 `public/uppdrag/den-femte-gasten/minnet/`. Hallen kommer ur git-historiken,
 köket och sovrummet ur projektfilerna i 4K. Salongen 1962 finns bara i
 1376×768 och är uppskalad till 2752×1376, så den är mjukare än de andra.
+- **Skarp salong och pärlhalsband** (Jonas 2026-11-23). Salongen 1962 togs
+  fram på nytt i 4K från den uppskalade bilden, med ett anrop. Ett anrop till
+  bytte kvinnans korta halsband mot ett långt pärlhalsband över tröjan.
+  Originalen ligger i projektfilerna under `granskning/salongen-1962-skarp/`.
+- **Mouche** (Jonas 2026-11-23). Kvinnan med röd sjal har en mouche på högra
+  kinden, i hallen 1962 och på tavlan i köket, så att man ser att det är samma
+  flicka. Den är målad med vanlig bildbehandling, utan Gemini.

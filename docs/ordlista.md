@@ -83,7 +83,7 @@ sist under Namn som är bestämda.
 | Begrepp | Betydelse | I koden |
 | --- | --- | --- |
 | Rumsvy | Rummet som en rundbild i fullskärm, där spelaren trycker på saker och dörrar i bilden. Det enda sättet att se ett rum, sedan textvyn togs bort (Jonas 2026-11-20). Ett rum utan bild, som källaren, visas som en lista tills bilden finns. | `RoomView`, `RoomList` |
-| Sakvy | Det som öppnas när spelaren trycker på en sak: saken i fullskärm, utan rubrik och text, med klockan och Tillbaka överst. Pianot och ouijabrädet visar först en närbild och en text med knappen Använd. | `ThingScreen` |
+| Sakvy | Det som öppnas när spelaren trycker på en sak: saken i fullskärm, utan text, med Tillbaka, sakens namn som rubrik och klockan överst. Pianot och ouijabrädet visar först en närbild och en text med knappen Använd. | `ThingScreen` |
 | Berättartext | En text i fullskärm som dyker upp av sig själv, visas en gång och bekräftas med Ok. Också scenerna i huset visas så. | `narration`, `melodyText`, `callingFrom` |
 | Fullskärm | En vy som fyller skärmen. Inte helskärm. Bakgrunden går kant i kant, men innehållet har en största bredd och höjd. | `ThingScreen` |
 | Fyra hörn | Varje skärm har samma fyra hörn: uppdraget uppe till vänster, tiden uppe till höger, statusraden nere till vänster och spelledarens meny nere till höger. I fullskärm står Tillbaka i uppdragets hörn. Knapparna står ovanför den nedre raden. Hörnen följer innehållets kanter, inte skärmens. | |

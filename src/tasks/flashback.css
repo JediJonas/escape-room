@@ -214,14 +214,12 @@
 .memory-left.is-fading { color: var(--bad); }
 
 /*
- * Rummet i minnet i fullskärm. Bilden från 1962 är lätt tonad och har ett
- * svagt korn som flimrar, så att det syns att det är ett minne. Ljuset blinkar
- * inte, eftersom det såg ut som en trasig lampa (Jonas 2026-11-23).
+ * Rummet i minnet i fullskärm. Bilden från 1962 visas i sina egna färger,
+ * med ett svagt korn som flimrar, så att det syns att det är ett minne. Ljuset
+ * blinkar inte, eftersom det såg ut som en trasig lampa, och bilden är inte
+ * sepiatonad (Jonas 2026-11-23).
  */
-.memory-room-screen .round-view {
-  filter: sepia(0.35) contrast(0.92) brightness(1.02);
-  transition: opacity 2s;
-}
+.memory-room-screen .round-view { transition: opacity 2s; }
 
 .memory-room-screen.is-fading .round-view { opacity: 0.55; }
 

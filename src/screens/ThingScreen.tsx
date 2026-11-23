@@ -38,7 +38,7 @@ export function ThingLook({ name, text, image }: { name: string; text: string; i
   return (
     <div className={image ? 'thing-look has-image' : 'thing-look'}>
       {image && <img className="thing-image" src={`${import.meta.env.BASE_URL}${image}`} alt={name} />}
-      <article className="document-card thing-paper">{text.split('\n').map((line) => <p key={line}>{line}</p>)}</article>
+      <article className="thing-paper thing-caption">{text.split('\n').map((line) => <p key={line}>{line}</p>)}</article>
     </div>
   );
 }

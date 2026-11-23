@@ -1,10 +1,5 @@
-import type { DoorView } from '../../supabase/functions/game/house.ts';
+import { DEFAULT_WALL_CENTERS_DEG, type HouseView } from '../../supabase/functions/game/house.ts';
 import { type LookDirection, wrapYawDeg } from '../view/lookDirection.ts';
-
-/** Ett halvt varv, så att väggen hamnar rakt bakom. */
-const HALF_TURN_DEG = 180;
-/** Rummen i rundbilderna är kvadratiska, så varje vägg är en fjärdedel av varvet, med mitten på 0, 90, 180 och -90 grader. */
-const WALL_DEG = 90;
 
 /**
  * Rummet som spelaren är i, rummet hon kom från och åt vilket håll hon
@@ -27,9 +22,13 @@ export function enterRoom(visit: RoomVisit, roomId: string): RoomVisit {
  * eller om dörren inte syns i rundbilden, tittar hon rakt fram. I hallen är
  * ytterdörren rakt bakom.
  */
-export function chooseStartLook(doors: readonly DoorView[], cameFrom: string | null): LookDirection {
-  const spot = doors.find((door) => door.id === cameFrom)?.spot;
-  if (!spot) return { yawDeg: 0, pitchDeg: 0 };
-  const wallDeg = Math.round((spot.frame?.yawDeg ?? spot.yawDeg) / WALL_DEG) * WALL_DEG;
-  return { yawDeg: wrapYawDeg(wallDeg + HALF_TURN_DEG), pitchDeg: 0 };
+export function chooseStartLook(house: Pick<HouseView, 'doors' | 'wallCentersDeg'>, cameFrom: string | null): LookDirection {
+  const spot = house.doors.find((door) => door.id === cameFrom)?.spot;
+  const walls = house.wallCentersDeg ?? DEFAULT_WALL_CENTERS_DEG;
+  if (!spot || walls.length === 0) return { yawDeg: 0, pitchDeg: 0 };
+  // Dörren sitter på väggen vars mitt ligger närmast, och väggen mittemot är två steg bort.
+  const doorDeg = spot.frame?.yawDeg ?? spot.yawDeg;
+  const distances = walls.map((wall) => Math.abs(wrapYawDeg(wall - doorDeg)));
+  const doorWall = distances.indexOf(Math.min(...distances));
+  return { yawDeg: wrapYawDeg(walls[(doorWall + walls.length / 2) % walls.length] ?? 0), pitchDeg: 0 };
 }

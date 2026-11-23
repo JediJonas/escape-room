@@ -14,6 +14,7 @@ function createThing(id: string, name: string, spot: ThingView['spot'], isCallin
 const HOUSE: HouseView = {
   room: { id: 'B', name: 'Hallen' },
   image: 'hallen.webp',
+  wallCentersDeg: [0, 90, 180, -90],
   doors: [{ id: 'F', name: 'Salongen', spot: DOOR_SPOT }],
   things: [createThing('pianot', 'Pianot', PIANO_SPOT, true)],
   hiddenSpots: [BOOK_SPOT],

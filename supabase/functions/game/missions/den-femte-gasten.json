@@ -16,6 +16,7 @@
       {
         "place": "F",
         "image": "testsida/rundbilder/salongen-malad.webp",
+        "wallCentersDeg": [0, 69, 180, -69],
         "doors": [
           "B",
           "D",

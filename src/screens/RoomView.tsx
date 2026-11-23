@@ -52,7 +52,7 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
 }) {
   const roomId = house.room.id;
   noteRoom(roomId);
-  const lookRef = useRef<LookDirection>(visit.look ?? chooseStartLook(house.doors, visit.cameFrom));
+  const lookRef = useRef<LookDirection>(visit.look ?? chooseStartLook(house, visit.cameFrom));
   const [aimedKey, setAimedKey] = useState<string | null>(null);
   // Ramen flyttas vid varje sensorvärde, så den skrivs direkt i SVG:n utan att React ritar om.
   const frameRef = useRef<SVGPolygonElement>(null);

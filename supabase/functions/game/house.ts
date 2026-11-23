@@ -87,11 +87,22 @@ export type HouseRoom = {
   /** Var dörrarna sitter i rundbilden. En låst dörr som också är en sak sitter på samma ställe som saken. */
   doorSpots?: Partial<Record<PlaceId, Spot>>;
   /**
+   * Var väggarnas mitt ligger i rundbilden, i ordning ett varv runt. Utan den
+   * ligger mitten på 0, 90, 180 och -90 grader, som när betraktaren står mitt
+   * i rummet. I salongen står betraktaren närmare hallen, så sidoväggarna
+   * hamnar närmare bortre väggen (Jonas 2026-11-23).
+   */
+  wallCentersDeg?: number[];
+  /**
    * Dörren till rummet är låst för alla utom den som steget skickar dit, som
    * den instängda till källaren (Jonas 2026-11-18). Dörren står ändå i listan.
    */
   isLocked?: boolean;
 };
+
+/** Väggarnas mitt när betraktaren står mitt i ett kvadratiskt rum. */
+export const DEFAULT_WALL_CENTERS_DEG = [0, 90, 180, -90];
+const WALL_COUNT = 4;
 
 export type House = {
   /** Rummet där alla börjar. */
@@ -233,6 +244,8 @@ export type HouseView = {
   room: Place;
   /** Rundbilden av rummet, eller null om rummet inte har någon än. */
   image: string | null;
+  /** Var väggarnas mitt ligger i rundbilden, i ordning ett varv runt. Saknas från en server som är äldre än webbsidan. */
+  wallCentersDeg?: number[];
   doors: DoorView[];
   things: ThingView[];
   /** Var det sitter saker som ingen har hittat, utan vad de är. */
@@ -308,6 +321,7 @@ export function describeHouse({ state, mission, house, places, viewerId, partici
   return {
     room: findPlace(room.place),
     image: room.image ?? null,
+    wallCentersDeg: room.wallCentersDeg ?? DEFAULT_WALL_CENTERS_DEG,
     doors: room.doors.filter(isOpenTo).map((place) => ({ ...findPlace(place), spot: findDoorSpot(place) })),
     things: visible.map((thing) => describeThing(thing, mission, state, { id: viewerId, participantIds })),
     hiddenSpots: room.things.flatMap((thing) => (!isFound(thing, state) && thing.spot ? [thing.spot] : [])),
@@ -366,6 +380,8 @@ function findImageErrors(room: Record<string, unknown>): string[] {
   if (room.image === undefined) return room.doorSpots === undefined ? [] : [`rummet ${place} har dörrar i en rundbild men ingen bild`];
   if (!isFilledText(room.image)) return [`rummet ${place} har en tom bild`];
   const errors: string[] = [];
+  const walls = room.wallCentersDeg;
+  if (walls !== undefined && !(Array.isArray(walls) && walls.length === WALL_COUNT && walls.every((wall) => typeof wall === 'number'))) errors.push(`rummet ${place} har väggar i rundbilden som inte går att läsa`);
   const doorSpots = (room.doorSpots ?? {}) as Record<string, unknown>;
   const things = room.things as Record<string, unknown>[];
   for (const [door, spot] of Object.entries(doorSpots)) {

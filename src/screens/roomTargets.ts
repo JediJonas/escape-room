@@ -1,6 +1,6 @@
 import type { HouseView } from '../../supabase/functions/game/house.ts';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
-import { type Direction, type Spot, findSpotAt } from '../../supabase/functions/game/spots.ts';
+import { type Direction, type Spot, findSpotAt, measureAngleDeg } from '../../supabase/functions/game/spots.ts';
 
 /** Något i rundbilden som går att trycka på: en dörr, en sak eller något som ingen har hittat. */
 export type RoomTarget =
@@ -32,8 +32,20 @@ export function listRoomTargets(house: HouseView, canFind: boolean): RoomTarget[
  * under fingret, och annars det som är tänt mitt i bilden, så att den som
  * vrider mobilen kan trycka var som helst (se docs/koncept.md, Saker i rundbilden).
  */
-export function findTappedTarget(targets: readonly RoomTarget[], tapped: Direction, aimed: Direction, isSidewaysOnly: boolean): RoomTarget | null {
-  return findSpotAt(targets, tapped, { isSidewaysOnly }) ?? findSpotAt(targets, aimed, { isSidewaysOnly });
+export function findTappedTarget(targets: readonly RoomTarget[], tapped: Direction, aimed: Direction | null, isSidewaysOnly: boolean): RoomTarget | null {
+  return findSpotAt(targets, tapped, { isSidewaysOnly }) ?? (aimed ? findSpotAt(targets, aimed, { isSidewaysOnly }) : null);
+}
+
+/** Så långt måste blicken ha rört sig innan något tänds, så att en darrande hand inte räknas. */
+export const LOOK_AROUND_DEG = 3;
+
+/**
+ * Om spelaren har börjat se sig omkring sedan hon kom in i rummet. Innan dess
+ * tänds inget, inte ens det som råkar vara mitt i bilden, som golvuret i
+ * salongen (Jonas 2026-11-23).
+ */
+export function hasLookedAround(start: Direction, look: Direction): boolean {
+  return measureAngleDeg(start, look) >= LOOK_AROUND_DEG;
 }
 
 /** Saken som en spelare just hittade, om den nu syns på samma plats. */

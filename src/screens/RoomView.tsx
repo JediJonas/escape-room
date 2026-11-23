@@ -6,7 +6,7 @@ import type { LookDirection } from '../view/lookDirection.ts';
 import { RoundImageView, type ScreenProjection } from '../view/RoundImageView.tsx';
 import { listFrameOutline } from './roomFrame.ts';
 import { type RoomVisit, chooseStartLook, enterRoom } from './roomVisit.ts';
-import { type RoomTarget, findTappedTarget, listRoomTargets } from './roomTargets.ts';
+import { type RoomTarget, findTappedTarget, hasLookedAround, listRoomTargets } from './roomTargets.ts';
 import './roomView.css';
 
 /**
@@ -52,7 +52,13 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
 }) {
   const roomId = house.room.id;
   noteRoom(roomId);
-  const lookRef = useRef<LookDirection>(visit.look ?? chooseStartLook(house.doors, visit.cameFrom));
+  const isBackFromThing = visit.look !== null;
+  const firstLook = visit.look ?? chooseStartLook(house.doors, visit.cameFrom);
+  const lookRef = useRef<LookDirection>(firstLook);
+  // I ett nytt rum tänds inget förrän spelaren har börjat se sig omkring
+  // (Jonas 2026-11-23). Den som kommer tillbaka från en sak ser det tänt som förut.
+  const startLookRef = useRef(firstLook);
+  const hasLookedAroundRef = useRef(isBackFromThing);
   const [aimedKey, setAimedKey] = useState<string | null>(null);
   // Ramen flyttas vid varje sensorvärde, så den skrivs direkt i SVG:n utan att React ritar om.
   const frameRef = useRef<SVGPolygonElement>(null);
@@ -69,13 +75,14 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
 
   function handleLook(look: LookDirection, isSidewaysOnly: boolean, toScreen: ScreenProjection) {
     rememberLook(roomId, look);
-    const target = findSpotAt(targets, look, { isSidewaysOnly });
+    if (!hasLookedAroundRef.current) hasLookedAroundRef.current = hasLookedAround(startLookRef.current, look);
+    const target = hasLookedAroundRef.current ? findSpotAt(targets, look, { isSidewaysOnly }) : null;
     setAimedKey(target?.key ?? null);
     frameRef.current?.setAttribute('points', target ? listFramePoints(target.spot, toScreen) : '');
   }
 
   function handleTap(tapped: LookDirection, isSidewaysOnly: boolean) {
-    const target = findTappedTarget(targets, tapped, lookRef.current, isSidewaysOnly);
+    const target = findTappedTarget(targets, tapped, hasLookedAroundRef.current ? lookRef.current : null, isSidewaysOnly);
     if (target) activate(target);
   }
 

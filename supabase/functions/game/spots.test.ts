@@ -47,3 +47,10 @@ test('en bred ram vinner över en smal när mitten ligger i båda', () => {
   // Mitten ligger närmare tavlans mitt, så tavlan vinner fast bokhyllan är större.
   assert.equal(findSpotAt(items, { yawDeg: 2, pitchDeg: 0 })?.name, 'tavlan');
 });
+
+test('en kontur är minst tre punkter med vridning och lutning', () => {
+  const spot = { yawDeg: 0, pitchDeg: 0, radiusDeg: 10 };
+  assert.ok(isSpot({ ...spot, outline: [[0, 0], [10, 5], [4, -6]] }));
+  assert.ok(!isSpot({ ...spot, outline: [[0, 0], [10, 5]] }));
+  assert.ok(!isSpot({ ...spot, outline: [[0, 0], [10, 5], [4, -100]] }));
+});

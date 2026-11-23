@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import type { HouseView, ThingView } from '../../supabase/functions/game/house.ts';
-import { HIDDEN_LABEL, findTappedTarget, findThingAtSpot, listRoomTargets } from './roomTargets.ts';
+import { HIDDEN_LABEL, findTappedTarget, findThingAtSpot, hasLookedAround, listRoomTargets } from './roomTargets.ts';
 
 const PIANO_SPOT = { yawDeg: -28, pitchDeg: -12, radiusDeg: 16 };
 const BOOK_SPOT = { yawDeg: -76, pitchDeg: -19, radiusDeg: 10 };
@@ -49,4 +49,15 @@ test('en sak som just hittades känns igen på platsen', () => {
   const found = { ...HOUSE, things: [...HOUSE.things, createThing('gastboken', 'Gästboken', BOOK_SPOT)], hiddenSpots: [] };
   assert.equal(findThingAtSpot(found, BOOK_SPOT), 'gastboken');
   assert.equal(findThingAtSpot(HOUSE, BOOK_SPOT), null);
+});
+
+test('innan spelaren har sett sig omkring gäller trycket bara det under fingret', () => {
+  const targets = listRoomTargets(HOUSE, true);
+  assert.equal(findTappedTarget(targets, { yawDeg: 120, pitchDeg: 0 }, null, false), null);
+});
+
+test('en darrande hand räknas inte som att se sig omkring, men en vridning gör det', () => {
+  const start = { yawDeg: 0, pitchDeg: 0 };
+  assert.ok(!hasLookedAround(start, { yawDeg: 1, pitchDeg: -1 }));
+  assert.ok(hasLookedAround(start, { yawDeg: 5, pitchDeg: 0 }));
 });

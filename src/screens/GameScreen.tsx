@@ -167,6 +167,7 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         <MemoryRoomView
           rooms={memoryRooms}
           flashbackLabel={step.flashback.flashbackLabel}
+          missionTitle={view.missionTitle}
           header={clockChip}
           error={error}
           isFading={flashback.isFading}

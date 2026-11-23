@@ -46,11 +46,12 @@ function imageStyle(image: string | null | undefined): CSSProperties | undefined
  * det är ett minne (Jonas 2026-11-23). Har spelaren flera rum i minnet byter
  * hon mellan dem nertill, och står ett rum tomt kan hon gå dit också.
  */
-export function MemoryRoomView({ rooms, flashbackLabel, header, error, isFading, msLeft, onTakeAnother }: {
+export function MemoryRoomView({ rooms, flashbackLabel, missionTitle, header, error, isFading, msLeft, onTakeAnother }: {
   /** Spelarens rum i minnet som har en rundbild, i den ordning hon valde dem. */
   rooms: { place: { id: PlaceId; name: string }; image: string }[];
-  /** Står ovanför rummets namn i stället för uppdraget, så att det syns att huset minns. */
+  /** Raden överst i minnet, som "kvart över tio, 1962". Året står efter rummets namn. */
   flashbackLabel: string;
+  missionTitle: string;
   /** Det som står överst till höger, som klockan. */
   header: ReactNode;
   error: string;
@@ -63,10 +64,12 @@ export function MemoryRoomView({ rooms, flashbackLabel, header, error, isFading,
   const shown = rooms.find((room) => room.place.id === shownId) ?? rooms[rooms.length - 1];
   const next = rooms[(rooms.indexOf(shown) + 1) % rooms.length];
   const lookRef = useRef<LookDirection>({ yawDeg: 0, pitchDeg: 0 });
+  // Uppdraget överst som i husets rum, och året efter rummet, som Salongen 1962 (Jonas 2026-11-23).
+  const year = /\d{4}/.exec(flashbackLabel)?.[0] ?? '';
   return (
     <main className={isFading ? 'room-screen memory-room-screen is-fading' : 'room-screen memory-room-screen'}>
       <header className="topbar room-top">
-        <h1 className="room-name"><span className="eyebrow">{flashbackLabel}</span>{shown.place.name}</h1>
+        <h1 className="room-name"><span className="eyebrow">{missionTitle}</span>{year ? `${shown.place.name} ${year}` : shown.place.name}</h1>
         {header}
       </header>
       <p className="error room-error" role="alert">{error}</p>

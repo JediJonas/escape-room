@@ -262,12 +262,14 @@ test('Hoppa över uppgiften medan huset minns får minnet att blekna direkt, och
   assert.deepEqual(lateFade, { state });
 });
 
-test('minnet visar rummen med sina rundbilder, och ett rum utan bild får null', () => {
-  const started = turnHands({ flashback: startFlashback(STEP), step: STEP, minutes: NINE_FIFTEEN, nowMs: 0 });
+test('valet visar rummen i dag, och bara den som har valt ett rum ser rundbilden av minnet', () => {
+  const step: FlashbackStep = { ...STEP, rooms: STEP.rooms.map((room) => ({ ...room, image: `minnet-${room.place}.webp` })) };
+  const started = turnHands({ flashback: startFlashback(step), step, minutes: NINE_FIFTEEN, nowMs: 0 });
   assert.ok('flashback' in started);
-  const chosen = chooseRoom({ flashback: started.flashback, step: STEP, playerId: 'p0', participantIds: ['p0'], placeId: 'B', nowMs: 1 });
+  const chosen = chooseRoom({ flashback: started.flashback, step, playerId: 'p0', participantIds: ['p0', 'p1'], placeId: 'B', nowMs: 1 });
   assert.ok('flashback' in chosen);
-  const view = describeFlashback({ flashback: chosen.flashback, step: STEP, places: PLACES, roomImages: { B: 'hallen.webp', C: 'koket.webp' }, viewerId: 'p0', participantIds: ['p0'] });
-  assert.deepEqual(view.rooms.map((room) => room.image), ['hallen.webp', 'koket.webp', null, null]);
-  assert.equal(view.myRooms[0]?.image, 'hallen.webp');
+  const describe = (viewerId: string) => describeFlashback({ flashback: chosen.flashback, step, places: PLACES, roomImages: { B: 'hallen.webp', C: 'koket.webp' }, viewerId, participantIds: ['p0', 'p1'] });
+  assert.deepEqual(describe('p0').rooms.map((room) => room.image), ['hallen.webp', 'koket.webp', null, null]);
+  assert.equal(describe('p0').myRooms[0]?.image, 'minnet-B.webp');
+  assert.ok(!JSON.stringify(describe('p1')).includes('minnet-'));
 });

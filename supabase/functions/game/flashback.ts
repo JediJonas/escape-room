@@ -176,13 +176,13 @@ export function chooseFlashbackRoom({ flashback, step, playerId, participantIds,
  * flera i samma rum delas bitarna mellan dem i den ordning de valde, så att
  * ingen får samma skärm.
  */
-function findMyRooms(flashback: FlashbackState, step: FlashbackStep, playerId: string): { place: PlaceId; pieces: string[] }[] {
+function findMyRooms(flashback: FlashbackState, step: FlashbackStep, playerId: string): { place: PlaceId; image: string | null; pieces: string[] }[] {
   return flashback.choices.filter((choice) => choice.playerId === playerId).flatMap((mine) => {
     const room = step.rooms.find((candidate) => candidate.place === mine.place);
     if (!room) return [];
     const holders = flashback.choices.filter((choice) => choice.place === mine.place);
     const holderIndex = holders.indexOf(mine);
-    return [{ place: mine.place, pieces: room.pieces.filter((_, pieceIndex) => pieceIndex % holders.length === holderIndex) }];
+    return [{ place: mine.place, image: room.image ?? null, pieces: room.pieces.filter((_, pieceIndex) => pieceIndex % holders.length === holderIndex) }];
   });
 }
 
@@ -197,9 +197,16 @@ export type FlashbackView = {
   remembersUntilMs: number | null;
   /** Raden överst i minnet, efter platsens namn, till exempel "kvart över nio, 1962". */
   flashbackLabel: string;
-  /** Alla rum i minnet, och om spelaren kan välja dem just nu. */
+  /**
+   * Alla rum i minnet, och om spelaren kan välja dem just nu. Bilden är
+   * rummets rundbild i dag, så att valet inte avslöjar något av minnet.
+   */
   rooms: { place: Place; image: string | null; isChoosable: boolean }[];
-  /** Spelarens rum i minnet och det hon ser där, i den ordning hon valde dem. */
+  /**
+   * Spelarens rum i minnet och det hon ser där, i den ordning hon valde dem.
+   * Bilden är rundbilden av rummet som det var, och den syns bara för den
+   * som har valt rummet (Jonas 2026-11-23).
+   */
   myRooms: { place: Place; image: string | null; pieces: string[] }[];
   /** Om spelaren kan välja ett rum nu, eller ett rum till när de andra har valt. */
   choice: FlashbackChoiceState;
@@ -218,10 +225,7 @@ export function describeFlashback({ flashback, step, places, roomImages = {}, vi
   flashback: FlashbackState;
   step: FlashbackStep;
   places: readonly Place[];
-  /**
-   * Rummens rundbilder, räknat från webbsidans början. Minnet visar rummen
-   * med dem i stället för bara namnet (Jonas 2026-11-23).
-   */
+  /** Rummens rundbilder i dag, räknat från webbsidans början, för valet av rum. */
   roomImages?: Partial<Record<PlaceId, string>>;
   viewerId: string;
   participantIds: readonly string[];
@@ -237,7 +241,7 @@ export function describeFlashback({ flashback, step, places, roomImages = {}, vi
     remembersUntilMs: flashback.remembersUntilMs,
     flashbackLabel: step.flashbackLabel,
     rooms: step.rooms.map((room) => ({ place: findPlace(room.place), image: findImage(room.place), isChoosable: choosable.includes(room.place) })),
-    myRooms: mine.map((room) => ({ place: findPlace(room.place), image: findImage(room.place), pieces: room.pieces })),
+    myRooms: mine.map((room) => ({ place: findPlace(room.place), image: room.image, pieces: room.pieces })),
     choice,
   };
 }
@@ -276,6 +280,7 @@ export function findFlashbackErrors(step: Record<string, unknown>, name: string,
     if (roomPlaces.has(place)) errors.push(`${name} har två rum på platsen ${String(place)}`);
     roomPlaces.add(place);
     if (!Array.isArray(room?.pieces) || room.pieces.length < piecesNeeded || !room.pieces.every(isFilledText)) errors.push(`rummet ${String(place)} i ${name} ska ha minst ${piecesNeeded} bitar`);
+    if (room?.image !== undefined && !isFilledText(room.image)) errors.push(`rummet ${String(place)} i ${name} har en tom bild`);
   }
   return errors;
 }

@@ -307,9 +307,10 @@ minns är dörrarna stängda. Servern tickar inte: när tiden har gått säger
 mobilerna till, och servern för fram tillståndet. Visarna går då tillbaka till
 starttiden, och har alla rum setts går gruppen vidare. Golvuret och minnet
 syns hos alla, så alla får en ny vy när de ändras. Se `flashback.ts`.
-Vyn har rummens rundbilder från huset, så att minnet visar rummen som
-bilder, både när spelaren väljer och i rummet hon har valt. Bitarna står
-kvar som text under bilden (Jonas 2026-11-23).
+Ett rum i minnet kan ha `image`, rundbilden av rummet 1962. Den som har
+valt rummet ser sig om i den som i huset, och bitarna står som text under
+bilden. Valet av rum visar en bit av husets rundbild i dag, så att det inte
+avslöjar något av minnet (Jonas 2026-11-23).
 
 **Golvuret och pianot går att använda hela tiden** (Jonas 2026-11-18). En
 sak i huset vars steg inte är det aktuella har `instrument` i vyn: urtavlan

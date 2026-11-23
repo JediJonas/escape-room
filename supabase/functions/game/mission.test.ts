@@ -182,3 +182,12 @@ test('omslaget i väntrummet är en bild under uppdrag/', () => {
   assert.match(findMissionErrors({ ...VALID, cover: 'https://example.com/a.webp' }).join(), /omslaget/);
   for (const mission of MISSIONS) if (mission.cover) assert.ok(existsSync(join(import.meta.dirname, '../../../public', mission.cover)), mission.cover);
 });
+
+test('rundbilderna i minnet finns i public', () => {
+  for (const mission of MISSIONS) {
+    for (const step of mission.steps) {
+      if (step.type !== 'flashback') continue;
+      for (const room of step.rooms) if (room.image) assert.ok(existsSync(join(import.meta.dirname, '../../../public', room.image)), room.image);
+    }
+  }
+});

@@ -1,5 +1,7 @@
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
+import type { LookDirection } from '../view/lookDirection.ts';
+import { RoundImageView } from '../view/RoundImageView.tsx';
 import type { FlashbackView } from '../../supabase/functions/game/flashback.ts';
 import { formatFlashbackLeft } from './flashbackTime.ts';
 import './flashback.css';
@@ -37,10 +39,24 @@ function imageStyle(image: string | null | undefined): CSSProperties | undefined
 }
 
 /**
+ * Rundbilden av rummet som det var. Spelaren ser sig om i den som i huset,
+ * men inget går att trycka på (Jonas 2026-11-23).
+ */
+function MemoryLook({ image, name }: { image: string; name: string }) {
+  const lookRef = useRef<LookDirection>({ yawDeg: 0, pitchDeg: 0 });
+  return (
+    <div className="memory-look" role="img" aria-label={`${name} som det var`}>
+      <RoundImageView src={`${import.meta.env.BASE_URL}${image}`} lookRef={lookRef} onTap={() => {}} />
+    </div>
+  );
+}
+
+/**
  * Huset minns kvällen 1962. Spelaren väljer ett rum bland dem som går att
- * välja och ser det som det var, sepiatonat och flimrande. Rummen visas med
- * sina rundbilder, både i valet och i minnet (Jonas 2026-11-23). Det som
- * finns i nuet syns inte så länge minnet varar. Se docs/koncept.md, Nu och 1962.
+ * välja och ser sig om i det som det var, sepiatonat och flimrande. Valet
+ * visar rummen som de ser ut i dag, och det valda rummet visas med
+ * rundbilden från 1962 (Jonas 2026-11-23). Det som finns i nuet syns inte så
+ * länge minnet varar. Se docs/koncept.md, Nu och 1962.
  */
 export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy, onChoose }: {
   flashback: FlashbackView;
@@ -62,7 +78,7 @@ export function FlashbackScreen({ flashback, isFading, msLeft, canChoose, isBusy
       {myRooms.map((room) => (
         <div key={room.place.id} className="memory-pieces">
           {myRooms.length > 1 && <h2 className="memory-room">{room.place.name}</h2>}
-          {room.image && <div className="memory-picture" style={imageStyle(room.image)} role="img" aria-label={`${room.place.name} som det var`} />}
+          {room.image && <MemoryLook image={room.image} name={room.place.name} />}
           {room.pieces.map((piece) => <p key={piece}>{piece}</p>)}
         </div>
       ))}

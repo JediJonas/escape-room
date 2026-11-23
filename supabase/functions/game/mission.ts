@@ -150,7 +150,15 @@ export type SeanceStep = {
 };
 
 /** Ett rum i Rummen minns: platsen och det som syns där i minnet, viktigast först. */
-export type Room = { place: PlaceId; pieces: string[] };
+export type Room = {
+  place: PlaceId;
+  pieces: string[];
+  /**
+   * Rundbilden av rummet som det var i minnet, räknat från webbsidans början.
+   * Den som har valt rummet ser sig om i den (Jonas 2026-11-23).
+   */
+  image?: string;
+};
 
 /**
  * Splittrade rum: golvuret får huset att minnas, och spelarna väljer var

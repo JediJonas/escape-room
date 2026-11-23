@@ -20,8 +20,17 @@ export type SpotFrame = { yawDeg: number; pitchDeg: number; widthDeg: number; he
  * Konturen är sakens form som punkter med vridning och lutning i grader. Den
  * ritas i stället för ramen, men ramen är fortfarande träffytan, så att det
  * räcker att mitten är i närheten av en smal sak (Jonas 2026-11-23).
+ * De dolda linjerna ritas inte, där något står framför saken (Jonas
+ * 2026-11-23). Linje nummer i går från konturens punkt i till nästa.
  */
-export type Spot = { yawDeg: number; pitchDeg: number; radiusDeg: number; frame?: SpotFrame; outline?: [number, number][] };
+export type Spot = {
+  yawDeg: number;
+  pitchDeg: number;
+  radiusDeg: number;
+  frame?: SpotFrame;
+  outline?: [number, number][];
+  hiddenEdges?: number[];
+};
 
 export type Direction = { yawDeg: number; pitchDeg: number };
 
@@ -109,11 +118,18 @@ function isOutline(value: unknown): value is [number, number][] {
     && value.every((point) => Array.isArray(point) && point.length === 2 && isDirection(point[0], point[1]));
 }
 
+/** Dolda linjer finns bara på en kontur, varje linje en gång, och minst en linje syns. */
+function isHiddenEdges(value: unknown, outline: [number, number][]): boolean {
+  return Array.isArray(value) && value.length < outline.length && new Set(value).size === value.length
+    && value.every((edge) => Number.isInteger(edge) && edge >= 0 && edge < outline.length);
+}
+
 export function isSpot(value: unknown): value is Spot {
   if (!value || typeof value !== 'object') return false;
-  const { yawDeg, pitchDeg, radiusDeg, frame, outline } = value as Record<string, unknown>;
+  const { yawDeg, pitchDeg, radiusDeg, frame, outline, hiddenEdges } = value as Record<string, unknown>;
   return isDirection(yawDeg, pitchDeg)
     && typeof radiusDeg === 'number' && radiusDeg > 0 && radiusDeg <= MAX_RADIUS_DEG
     && (frame === undefined || isSpotFrame(frame))
-    && (outline === undefined || isOutline(outline));
+    && (outline === undefined || isOutline(outline))
+    && (hiddenEdges === undefined || (isOutline(outline) && isHiddenEdges(hiddenEdges, outline)));
 }

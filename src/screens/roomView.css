@@ -40,11 +40,12 @@
   pointer-events: none;
 }
 
-.room-frame polygon {
+.room-frame path {
   fill: none;
   stroke: rgb(255 214 140 / 0.95);
   stroke-width: 2;
   stroke-linejoin: round;
+  stroke-linecap: round;
   filter: drop-shadow(0 0 4px rgb(255 214 140 / 0.6));
 }
 

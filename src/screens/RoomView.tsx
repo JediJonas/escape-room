@@ -4,7 +4,7 @@ import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import { type Spot, findSpotAt } from '../../supabase/functions/game/spots.ts';
 import type { LookDirection } from '../view/lookDirection.ts';
 import { RoundImageView, type ScreenProjection } from '../view/RoundImageView.tsx';
-import { listFrameOutline } from './roomFrame.ts';
+import { buildOutlinePath, listFrameOutline } from './roomFrame.ts';
 import { type RoomVisit, chooseStartLook, enterRoom } from './roomVisit.ts';
 import { type RoomTarget, findTappedTarget, hasLookedAround, listRoomTargets } from './roomTargets.ts';
 import './roomView.css';
@@ -61,7 +61,7 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
   const hasLookedAroundRef = useRef(isBackFromThing);
   const [aimedKey, setAimedKey] = useState<string | null>(null);
   // Ramen flyttas vid varje sensorvärde, så den skrivs direkt i SVG:n utan att React ritar om.
-  const frameRef = useRef<SVGPolygonElement>(null);
+  const frameRef = useRef<SVGPathElement>(null);
   const targets = listRoomTargets(house, canFind);
   const aimed = targets.find((target) => target.key === aimedKey) ?? null;
   const callingThing = targets.find((target) => target.kind === 'thing' && target.isCalling);
@@ -78,7 +78,7 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
     if (!hasLookedAroundRef.current) hasLookedAroundRef.current = hasLookedAround(startLookRef.current, look);
     const target = hasLookedAroundRef.current ? findSpotAt(targets, look, { isSidewaysOnly }) : null;
     setAimedKey(target?.key ?? null);
-    frameRef.current?.setAttribute('points', target ? listFramePoints(target.spot, toScreen) : '');
+    frameRef.current?.setAttribute('d', target ? buildFramePath(target.spot, toScreen) : '');
   }
 
   function handleTap(tapped: LookDirection, isSidewaysOnly: boolean) {
@@ -96,7 +96,7 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
       <p className="error room-error" role="alert">{error}</p>
       <RoundImageView src={image} lookRef={lookRef} onTap={handleTap} onLook={handleLook}>
         <svg className="room-frame" aria-hidden="true">
-          <polygon ref={frameRef} />
+          <path ref={frameRef} />
         </svg>
       </RoundImageView>
       <div className="room-bottom">
@@ -116,11 +116,11 @@ export function RoomView({ house, image, header, note, error, canFind, isBusy, o
 }
 
 /** Ramens kant på skärmen, som SVG vill ha den. Ligger en bit av ramen bakom spelaren ritas ingen ram. */
-function listFramePoints(spot: Spot, toScreen: ScreenProjection): string {
+function buildFramePath(spot: Spot, toScreen: ScreenProjection): string {
   const outline = listFrameOutline(spot);
   const points = outline.map(toScreen).filter((point) => point !== null);
   if (points.length < outline.length) return '';
-  return points.map((point) => `${point.xPx.toFixed(1)},${point.yPx.toFixed(1)}`).join(' ');
+  return buildOutlinePath(points, spot.outline ? spot.hiddenEdges : []);
 }
 
 /**

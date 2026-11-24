@@ -1,3 +1,4 @@
+import { toCssUrl } from '../view/assetUrl.ts';
 import { type CSSProperties, useState } from 'react';
 import type { LobbyView } from '../../supabase/functions/game/lobby.ts';
 import { MAX_PLAYERS } from '../../supabase/functions/game/lobby.ts';
@@ -65,7 +66,7 @@ export function LobbyScreen({ view, joinUrl, isBusy, error, onLeave, onStart }: 
             <label
               key={choice.id}
               className="mission-card"
-              style={{ '--card-image': choice.cover ? `url(${import.meta.env.BASE_URL}${choice.cover})` : 'none', '--card-font': choice.theme?.tokens['font-display'] ?? 'var(--font-ui)' } as CSSProperties}
+              style={{ '--card-image': choice.cover ? toCssUrl(choice.cover) : 'none', '--card-font': choice.theme?.tokens['font-display'] ?? 'var(--font-ui)' } as CSSProperties}
             >
               <input type="radio" name="mission" value={choice.id} checked={missionId === choice.id} onChange={() => setMissionId(choice.id)} />
               <span>

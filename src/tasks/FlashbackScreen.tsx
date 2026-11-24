@@ -2,6 +2,7 @@ import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 
 import type { PlaceId } from '../../supabase/functions/game/places.ts';
 import type { LookDirection } from '../view/lookDirection.ts';
 import { RoundImageView } from '../view/RoundImageView.tsx';
+import { toCssUrl } from '../view/assetUrl.ts';
 import type { FlashbackView } from '../../supabase/functions/game/flashback.ts';
 import { formatFlashbackLeft } from './flashbackTime.ts';
 import '../screens/roomView.css';
@@ -36,7 +37,7 @@ export function useFlashbackTime(remembersUntilMs: number | null, clockOffsetMs:
 
 /** Rummets rundbild som bakgrund, eller ingen när servern inte har skickat någon. */
 function imageStyle(image: string | null | undefined): CSSProperties | undefined {
-  return image ? { '--room-image': `url(${import.meta.env.BASE_URL}${image})` } as CSSProperties : undefined;
+  return image ? { '--room-image': toCssUrl(image) } as CSSProperties : undefined;
 }
 
 /**

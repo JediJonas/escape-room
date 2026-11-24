@@ -89,12 +89,12 @@
   text-transform: uppercase;
 }
 
-/* Ringarna eller korset står över notisens rubrik, i linje med den. */
+/* Ringarna eller korset står mitt över notisens rubrik, med luft under (Jonas 2026-11-24). */
 .np-symbol {
   display: block;
-  align-self: flex-start;
+  align-self: center;
   height: min(8cqw, 2rem);
-  margin: 0 0 1.5cqw;
+  margin: 0 0 4cqw;
   color: #1d1a16;
 }
 

@@ -37,7 +37,8 @@ Testerna ligger bredvid det de testar, som `src/sync/sync.test.ts`.
 
 Testsidan provar rörelse och lutning, QR-skanning, ljud, synkade tryck och
 rundbilder var för sig, på iPhone Safari och Android Chrome. Den ligger på
-`https://jedijonas.github.io/escape-room/testsida/`.
+`https://jedijonas.github.io/escape-room/testsida/`. Startsidan länkar inte
+dit, och versionen syns bara på testsidan (Jonas 2026-11-24).
 
 - Lägg till `?debug=1` i adressen för att se felsökningsloggen.
 - Testkorten med QR-koder finns på `testsida/platskort.html`.

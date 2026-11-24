@@ -1,9 +1,10 @@
-import { VERSION } from '../config.ts';
 import { ScreenLayout } from './ScreenLayout.tsx';
 
 /**
  * Startsidan, mörk i motorns neutrala färger (Jonas 2026-11-23). Gå med i
- * spel står överst, eftersom de flesta går med (Jonas 2026-11-17).
+ * spel står överst, eftersom de flesta går med (Jonas 2026-11-17). Länken till
+ * testsidan och versionsnumret visas inte längre (Jonas 2026-11-24). Testsidan
+ * nås på testsida/ och visar själv versionen.
  */
 export function StartScreen({ error, onJoin, onCreate }: { error: string; onJoin: () => void; onCreate: () => void }) {
   return (
@@ -13,7 +14,6 @@ export function StartScreen({ error, onJoin, onCreate }: { error: string; onJoin
         <>
           <button type="button" onClick={onJoin}>Gå med i spel</button>
           <button type="button" className="secondary" onClick={onCreate}>Starta nytt spel</button>
-          <p className="version">Version {VERSION} · <a href="testsida/">Den tekniska testsidan</a></p>
         </>
       }
     >

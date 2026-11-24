@@ -18,15 +18,35 @@
 /*
  * Fönstret mot pianot: en tecknad oktav, C till B, som ligger bredvid sig
  * själv och flyttas en vit tangent per steg. Bara spelarens fyra vita
- * tangenter syns (Jonas 2026-11-23). Fönstret är så stort som får plats.
+ * tangenter syns (Jonas 2026-11-23). Fönstret är lika brett som ytan, som
+ * ouijabrädet. Räcker inte höjden står tangenterna kvar i underkant och
+ * deras övre del göms, som under pianots lock (Jonas 2026-11-24).
  */
 .piano-window {
   position: relative;
   overflow: hidden;
-  width: min(100cqw, 100cqh * var(--keys-ratio));
-  aspect-ratio: var(--keys-ratio);
+  width: 100cqw;
+  height: min(100cqh, 100cqw / var(--keys-ratio));
   border-radius: 0.3rem;
   box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.5);
+}
+
+/* Skuggan från locket över tangenternas överkant. */
+.piano-window::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  height: 0.6rem;
+  background: linear-gradient(rgb(0 0 0 / 0.6), transparent);
+  pointer-events: none;
+}
+
+/* Tangenterna i full höjd, räknade från fönstrets underkant. */
+.piano-keyboard {
+  position: absolute;
+  inset: auto 0 0;
+  aspect-ratio: var(--keys-ratio);
 }
 
 .piano-octaves {
@@ -36,10 +56,10 @@
   background: url('./bilder/pianot-oktav.webp') left top / 50% 100% repeat-x;
 }
 
-/* Knapparna är osynliga och ligger på tangenterna i bilden. Tangenterna börjar under träet, 175 av 1344 pixlar. */
+/* Knapparna är osynliga och ligger på tangenterna i bilden, som börjar i bildens överkant. */
 .piano-key {
   position: absolute;
-  top: calc(175 / 1344 * 100%);
+  top: 0;
   bottom: 0;
   display: flex;
   align-items: flex-end;
@@ -60,10 +80,10 @@
 
 .piano-key:active { background: rgb(40 30 15 / 0.16); }
 
-/* De svarta tangenterna går till 915 av 1344 pixlar i bilden. */
+/* De svarta tangenterna går till 739 av 1168 pixlar i bilden. */
 .piano-key-black {
   z-index: 1;
-  bottom: calc((1344 - 915) / 1344 * 100%);
+  bottom: calc((1168 - 739) / 1168 * 100%);
   padding: 0;
   border-radius: 0 0 0.3rem 0.3rem;
 }
@@ -71,5 +91,5 @@
 .piano-key-black:active { background: rgb(0 0 0 / 0.35); }
 
 /* I fullskärm fyller pianot hela ytan mellan klockan och kanten (Jonas 2026-11-18). */
-.piano-screen .thing-stage { justify-content: stretch; }
+.piano-screen .thing-stage { justify-content: stretch; padding-inline: 0.5rem; }
 .piano-screen .piano-keys { flex: 1 1 auto; height: auto; min-height: 0; }

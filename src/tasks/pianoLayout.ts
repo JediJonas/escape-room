@@ -6,8 +6,12 @@
  * pixlar.
  */
 
-/** Bildens storlek i pixlar. */
-export const OCTAVE_IMAGE = { width: 1186, height: 1344 };
+/**
+ * Bildens storlek i pixlar. Bilden är beskuren till tangenterna, utan det
+ * bruna träet ovanför, så att tangenterna kan fylla skärmens bredd
+ * (Jonas 2026-11-24).
+ */
+export const OCTAVE_IMAGE = { width: 1186, height: 1168 };
 
 /** Skarvarna mellan de vita tangenterna i bilden, från C:s vänsterkant till B:s högerkant. Tangenterna är inte lika breda. */
 // Uppmätta i bilden, en siffra per skarv.
@@ -18,8 +22,6 @@ const WHITE_EDGES = [0, 170, 355, 507, 685, 860, 1025, 1186];
 const BLACK_CENTERS: Record<string, number> = { C: 160, D: 333, F: 670, G: 847, A: 1017 };
 const BLACK_WIDTH = 114;
 
-/** De svarta tangenterna går från tangenternas överkant till så här långt ner i bilden. */
-export const BLACK_KEY_SPAN = { top: 175, bottom: 915 };
 
 const WHITE_LETTERS = 'CDEFGAB';
 

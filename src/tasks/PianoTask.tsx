@@ -50,6 +50,8 @@ function toPercent(pixels: number, width: number): string {
  * intilliggande vita tangenter och de svarta däremellan och i kanterna
  * (Jonas 2026-11-18). Pianot är en tecknad bild av en oktav, och knapparna
  * ligger osynliga ovanpå tangenterna i bilden (Jonas 2026-11-23).
+ * Tangenterna är lika breda som ouijabrädet. Räcker inte höjden göms
+ * tangenternas övre del, som under pianots lock (Jonas 2026-11-24).
  * En vit tangent låter i den egna mobilen och skickas till servern, som avgör
  * om de senaste tonerna är melodin. De svarta finns inte i melodin, så de
  * låter bara i mobilen. Inget säger till om en fel ton (Jonas 2026-11-18).
@@ -86,25 +88,27 @@ export function PianoKeys({ keys, onPlayKey }: { keys: readonly PianoKey[]; onPl
   return (
     <section className="piano-keys" aria-label="Dina tangenter">
       <div className="piano-window" style={{ '--keys-ratio': width / OCTAVE_IMAGE.height } as CSSProperties}>
-        <div className="piano-octaves" aria-hidden="true" style={{ left: toPercent(layout.imageLeft, width), width: toPercent(2 * OCTAVE_IMAGE.width, width) }} />
-        {layout.whiteKeys.map(({ note, left, width: keyWidth }) => (
-          <button key={note} type="button" className="piano-key" style={{ left: toPercent(left, width), width: toPercent(keyWidth, width) }} onPointerDown={(event) => strike(event, note, true)} onPointerUp={release} onPointerCancel={forget} onKeyDown={(event) => strike(event, note, true)}>
-            {names.get(note)}
-          </button>
-        ))}
-        {layout.blackKeys.map(({ note, left, width: keyWidth }) => (
-          <button
-            key={note}
-            type="button"
-            className="piano-key piano-key-black"
-            aria-label="Svart tangent"
-            style={{ left: toPercent(left, width), width: toPercent(keyWidth, width) }}
-            onPointerDown={(event) => strike(event, note, false)}
-            onPointerUp={release}
-            onPointerCancel={forget}
-            onKeyDown={(event) => strike(event, note, false)}
-          />
-        ))}
+        <div className="piano-keyboard">
+          <div className="piano-octaves" aria-hidden="true" style={{ left: toPercent(layout.imageLeft, width), width: toPercent(2 * OCTAVE_IMAGE.width, width) }} />
+          {layout.whiteKeys.map(({ note, left, width: keyWidth }) => (
+            <button key={note} type="button" className="piano-key" style={{ left: toPercent(left, width), width: toPercent(keyWidth, width) }} onPointerDown={(event) => strike(event, note, true)} onPointerUp={release} onPointerCancel={forget} onKeyDown={(event) => strike(event, note, true)}>
+              {names.get(note)}
+            </button>
+          ))}
+          {layout.blackKeys.map(({ note, left, width: keyWidth }) => (
+            <button
+              key={note}
+              type="button"
+              className="piano-key piano-key-black"
+              aria-label="Svart tangent"
+              style={{ left: toPercent(left, width), width: toPercent(keyWidth, width) }}
+              onPointerDown={(event) => strike(event, note, false)}
+              onPointerUp={release}
+              onPointerCancel={forget}
+              onKeyDown={(event) => strike(event, note, false)}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { isFramedNotice, splitNotice } from './notice.ts';
+import { findNoticeSymbol, isFramedNotice, splitNotice } from './notice.ts';
 
 test('första meningen blir rubrik, utan punkt', () => {
   expect(splitNotice('Kyrkonytt. Kantor Sven Dahl spelar piano vid söndagens gudstjänst.')).toEqual({ heading: 'Kyrkonytt', body: 'Kantor Sven Dahl spelar piano vid söndagens gudstjänst.' });
@@ -13,4 +13,12 @@ test('en notis med en enda mening har ingen rubrik', () => {
 test('vissa notiser har ram och andra inte, och samma text får alltid samma svar', () => {
   expect(isFramedNotice('Annons. Seanser och spådomar. Fru Lindqvist tar emot på torsdagar.')).toBe(true);
   expect(isFramedNotice('Kyrkonytt. Kantor Sven Dahl spelar piano vid söndagens gudstjänst.')).toBe(false);
+});
+
+test('förlovningsannonsen får ringar och dödsrunan ett kors', () => {
+  expect(findNoticeSymbol('Förlovningsannons')).toBe('rings');
+  expect(findNoticeSymbol('Dödsruna')).toBe('cross');
+  expect(findNoticeSymbol('Begravning')).toBe('cross');
+  expect(findNoticeSymbol('Kyrkonytt')).toBeNull();
+  expect(findNoticeSymbol(null)).toBeNull();
 });

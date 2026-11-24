@@ -89,18 +89,34 @@
   text-transform: uppercase;
 }
 
+/* Ringarna eller korset står mitt över notisens rubrik, med luft under (Jonas 2026-11-24). */
+.np-symbol {
+  display: block;
+  align-self: center;
+  height: min(8cqw, 2rem);
+  margin: 0 0 4cqw;
+  color: #1d1a16;
+}
+
 .np-notice { margin: 0; font-size: min(6.8cqw, 1.6rem); line-height: 1.38; }
 
 /*
  * Vissa notiser har en svart ram, som annonser i en tidning, men inte alla
  * (Jonas 2026-11-23). Vilka avgörs av texten, så att samma notis alltid ser
- * likadan ut.
+ * likadan ut. Ramen är en smal linje (Jonas 2026-11-24).
  */
+/*
+ * Texten i ramen har lika mycket luft på båda sidor, och ramen går fri från
+ * hundörat uppe till höger (Jonas 2026-11-24). Rubriken är lite mindre, så
+ * att ett långt ord som Förlovningsannons får plats.
+ */
+.paper.clip-small.is-framed { padding-inline: 14%; }
+.paper.clip-small.is-framed .np-kicker { font-size: min(6.6cqw, 1.55rem); }
+
 .paper.clip-small.is-framed::before {
   content: '';
   position: absolute;
-  inset: 6% 6.5%;
-  border: 3px solid #1d1a16;
-  box-shadow: inset 0 0 0 3px transparent, inset 0 0 0 4px #1d1a16;
+  inset: 10.5% 9.5%;
+  border: 1.5px solid #1d1a16;
   pointer-events: none;
 }

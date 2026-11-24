@@ -9,7 +9,7 @@ import { gameAudio, unlockAudioOnEveryTap } from '../sound/gameAudio.ts';
 import { CellarDark, CellarStatus } from '../tasks/CellarTask.tsx';
 import { GrandfatherClock } from '../tasks/GrandfatherClock.tsx';
 import { MelodyButton, PianoKeys, PianoTask } from '../tasks/PianoTask.tsx';
-import { FlashbackScreen, MemoryRoomView, useFlashbackTime } from '../tasks/FlashbackScreen.tsx';
+import { FlashbackScreen, MemoryCountdown, MemoryRoomView, useFlashbackTime } from '../tasks/FlashbackScreen.tsx';
 import { EchoBoard, SeanceBoard } from '../tasks/SeanceBoard.tsx';
 import { Countdown } from './Countdown.tsx';
 import { LeaderMenu } from './LeaderMenu.tsx';
@@ -167,7 +167,6 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
         <MemoryRoomView
           rooms={memoryRooms}
           flashbackLabel={step.flashback.flashbackLabel}
-          missionTitle={view.missionTitle}
           header={clockChip}
           error={error}
           isFading={flashback.isFading}
@@ -177,8 +176,8 @@ function GameContent({ view, clockOffsetMs, isBusy, error, actions: game }: Game
       );
     }
     return withLeaderMenu(
-      <ScreenLayout className="memory-screen" top={<>{missionLabel}{clockChip}</>} actions={<p className="status-line">Dörrarna är stängda tills minnet bleknar.</p>}>
-        <FlashbackScreen flashback={step.flashback} isFading={flashback.isFading} msLeft={flashback.msLeft} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseFlashbackRoom} />
+      <ScreenLayout top={<>{missionLabel}{clockChip}</>} actions={<MemoryCountdown msLeft={flashback.msLeft} isFading={flashback.isFading} />}>
+        <FlashbackScreen flashback={step.flashback} isFading={flashback.isFading} canChoose={view.me.isPlaying} isBusy={isBusy} onChoose={game.chooseFlashbackRoom} />
         <p className="error" role="alert">{error}</p>
       </ScreenLayout>,
     );

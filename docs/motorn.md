@@ -309,10 +309,16 @@ starttiden, och har alla rum setts går gruppen vidare. Golvuret och minnet
 syns hos alla, så alla får en ny vy när de ändras. Se `flashback.ts`.
 Ett rum i minnet kan ha `image`, rundbilden av rummet 1962. Den som har
 valt rummet ser det i fullskärm och ser sig om i det som i ett rum i huset.
-Bilden har ett svagt flimrande korn men inget blinkande ljus, så att det syns att det är ett minne, och bitarna
+Bilden är sepiatonad med mörkare kanter och har ett svagt flimrande korn men inget
+blinkande ljus, så att det syns att det är ett minne (Jonas 2026-11-24), och bitarna
 visas inte, eftersom det de säger syns i bilden. Bitarna visas bara i ett rum
 utan bild. Valet av rum visar en bit av rundbilden från minnet, och husets
 rundbild i dag för ett rum utan egen bild (Jonas 2026-11-23).
+Valet är byggt som berättartexten, med "Huset minns" och tiden i minnet, och
+rummen står som bildkort i sepia. Ett rum som inte går att välja är grått och
+märkt "Upptaget". Nedräkningen står nere till vänster som en klocka likadan som
+spelets, "Minnet bleknar om 4:12", och blir röd de sista 20 sekunderna
+(Jonas 2026-11-24).
 
 **Golvuret och pianot går att använda hela tiden** (Jonas 2026-11-18). En
 sak i huset vars steg inte är det aktuella har `instrument` i vyn: urtavlan

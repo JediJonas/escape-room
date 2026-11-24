@@ -316,7 +316,7 @@ utan bild. Valet av rum visar en bit av rundbilden från minnet, och husets
 rundbild i dag för ett rum utan egen bild (Jonas 2026-11-23).
 Valet är byggt som berättartexten, med "Huset minns" och tiden i minnet, och
 rummen står som bildkort i sepia. Ett rum som inte går att välja är grått och
-märkt "Ingen har valt". Nedräkningen står nere till vänster som en klocka likadan som
+märkt "Upptaget". Nedräkningen står nere till vänster som en klocka likadan som
 spelets, "Minnet bleknar om 4:12", och blir röd de sista 20 sekunderna
 (Jonas 2026-11-24).
 

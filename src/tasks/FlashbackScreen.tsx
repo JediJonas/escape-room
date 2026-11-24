@@ -126,7 +126,7 @@ function describeAsk(flashback: FlashbackView, canChoose: boolean): string {
  * Huset minns kvällen 1962. Spelaren väljer ett rum bland dem som går att
  * välja. Skärmen är byggd som berättartexten, med ornament, "Huset minns" och
  * tiden i minnet, och rummen står som bildkort i sepia. Ett rum som inte går
- * att välja är grått och märkt "Ingen har valt" (Jonas 2026-11-24). Ett rum med
+ * att välja är grått och märkt "Upptaget" (Jonas 2026-11-24). Ett rum med
  * rundbild från 1962 visas i MemoryRoomView, och här står bara bitarna i ett
  * rum utan bild (Jonas 2026-11-23). Det som finns i nuet syns inte så länge
  * minnet varar. Se docs/koncept.md, Nu och 1962.
@@ -168,7 +168,7 @@ export function FlashbackScreen({ flashback, isFading, canChoose, isBusy, onChoo
                 <button key={place.id} type="button" className={`memory-room-card${image ? ' has-image' : ''}${state}`} style={imageStyle(image)} onClick={() => onChoose(place.id)} disabled={isBusy || !isChoosable}>
                   <span className="memory-room-name">{place.name}</span>
                   {isMine && <span className="memory-room-note">Här är du</span>}
-                  {!isMine && !isChoosable && <span className="memory-room-note">Ingen har valt</span>}
+                  {!isMine && !isChoosable && <span className="memory-room-note">Upptaget</span>}
                 </button>
               );
             })}

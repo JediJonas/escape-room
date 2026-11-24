@@ -213,8 +213,6 @@ html body { padding: 0; }
   color: var(--accent);
 }
 .brand-mark svg { width: 2.75rem; height: 2.75rem; fill: none; stroke: currentColor; stroke-width: 3; stroke-linejoin: round; }
-.version { margin: var(--space-2) 0 0; color: var(--text-muted); font-size: var(--text-xs); text-align: center; }
-.version a { color: var(--text-muted); }
 
 /* Koden i fyra rutor. Fältet ligger osynligt ovanpå rutorna. */
 .code-boxes { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }

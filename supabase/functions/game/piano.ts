@@ -125,18 +125,30 @@ export type PianoView = {
 /** En tangent som spelaren har, med tonen och dess namn. */
 export type PianoKey = { note: string; name: string };
 
-/** Spelarens tangenter, lägst först. */
-export function listMyKeys(keys: readonly string[], keyPlayerIds: readonly string[], viewerId: string): PianoKey[] {
+/** Spelarens tangenter, lägst först. Ett dolt namn är en tom text. */
+export function listMyKeys(keys: readonly string[], keyPlayerIds: readonly string[], viewerId: string, showsNames = true): PianoKey[] {
   const mine = dealKeys(keys, keyPlayerIds)[viewerId] ?? [];
-  return keys.filter((key) => mine.includes(key)).map((note) => ({ note, name: nameNote(note) }));
+  return keys.filter((key) => mine.includes(key)).map((note) => ({ note, name: showsNames ? nameNote(note) : '' }));
 }
 
-export function describePiano({ piano, step, viewerId, participantIds, melodyPlayerName }: {
+/**
+ * Om tangenterna har sina namn. I början spelar gruppen på gehör, och namnen
+ * syns först när spelledaren har gett ledtråden som uppdraget pekar ut, och
+ * efter att melodin är spelad (Jonas 2026-11-24). Utan en sådan ledtråd syns
+ * namnen hela tiden.
+ */
+export function showsKeyNames(step: PianoStep, hintsGiven: number): boolean {
+  return step.keyNamesAtHint === undefined || hintsGiven >= step.keyNamesAtHint;
+}
+
+export function describePiano({ piano, step, viewerId, participantIds, melodyPlayerName, hintsGiven }: {
   piano: PianoState;
   step: PianoStep;
   viewerId: string;
   participantIds: readonly string[];
   melodyPlayerName: string;
+  /** Ledtrådarna som spelledaren har gett i steget. */
+  hintsGiven: number;
 }): PianoView {
   const hasMelody = piano.melodyPlayerId === viewerId;
   return {
@@ -145,7 +157,7 @@ export function describePiano({ piano, step, viewerId, participantIds, melodyPla
     melodyPlayerName,
     melody: hasMelody ? step.solution.melody : null,
     beatMs: step.beatMs,
-    myKeys: listMyKeys(step.keys, listKeyPlayers(piano.melodyPlayerId, participantIds), viewerId),
+    myKeys: listMyKeys(step.keys, listKeyPlayers(piano.melodyPlayerId, participantIds), viewerId, showsKeyNames(step, hintsGiven)),
   };
 }
 
@@ -171,6 +183,9 @@ export function findPianoErrors(step: Record<string, unknown>, name: string): st
   const isMelody = Array.isArray(melody) && melody.length >= MIN_MELODY_NOTES && melody.every((tone) => isMelodyNote(tone, hasKeys ? keys : []));
   if (!isMelody) errors.push(`${name} ska ha en melodi på minst ${MIN_MELODY_NOTES} toner, alla bland tangenterna och högst ${MAX_BEATS} slag långa`);
   if (step.melodyText !== undefined && !(typeof step.melodyText === 'string' && step.melodyText.trim().length > 0)) errors.push(`${name} har en tom text för den som får melodin`);
+  const hintCount = Array.isArray(step.hints) ? step.hints.length : 0;
+  const namesAt = step.keyNamesAtHint;
+  if (namesAt !== undefined && !(Number.isInteger(namesAt) && (namesAt as number) >= 1 && (namesAt as number) <= hintCount)) errors.push(`${name} har keyNamesAtHint som inte är numret på en av ledtrådarna`);
   if (step.callsFromHouse !== undefined && typeof step.callsFromHouse !== 'boolean') errors.push(`${name} har callsFromHouse som inte är sant eller falskt`);
   if (step.goTo !== undefined || step.textAtPlace !== undefined || step.roles !== undefined) errors.push(`${name} är ett piano och kan inte ha plats eller roller`);
   return errors;

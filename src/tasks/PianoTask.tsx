@@ -91,7 +91,7 @@ export function PianoKeys({ keys, onPlayKey }: { keys: readonly PianoKey[]; onPl
         <div className="piano-keyboard">
           <div className="piano-octaves" aria-hidden="true" style={{ left: toPercent(layout.imageLeft, width), width: toPercent(2 * OCTAVE_IMAGE.width, width) }} />
           {layout.whiteKeys.map(({ note, left, width: keyWidth }) => (
-            <button key={note} type="button" className="piano-key" style={{ left: toPercent(left, width), width: toPercent(keyWidth, width) }} onPointerDown={(event) => strike(event, note, true)} onPointerUp={release} onPointerCancel={forget} onKeyDown={(event) => strike(event, note, true)}>
+            <button key={note} type="button" className="piano-key" aria-label={names.get(note) || 'Vit tangent'} style={{ left: toPercent(left, width), width: toPercent(keyWidth, width) }} onPointerDown={(event) => strike(event, note, true)} onPointerUp={release} onPointerCancel={forget} onKeyDown={(event) => strike(event, note, true)}>
               {names.get(note)}
             </button>
           ))}

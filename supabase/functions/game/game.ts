@@ -537,6 +537,7 @@ export function buildGameView({ game, mission, players, viewer }: {
           viewerId: viewer.id,
           participantIds: sortByJoinOrder(participants).map((player) => player.id),
           melodyPlayerName: players.find((player) => player.id === state.piano?.melodyPlayerId)?.name ?? '',
+          hintsGiven: state.hintsGiven,
         })
         : null,
     },

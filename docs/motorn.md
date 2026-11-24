@@ -366,6 +366,7 @@ och de senaste tonerna, högst lika många som melodin har. Handlingen
 `playKey` tar en tangent. Inget säger till om en fel ton, och tonen låter
 bara i mobilen som spelade den, så ingen annan får en ny vy av den. När de
 senaste tonerna är melodin är uppgiften klar (Jonas 2026-11-18). Med `callsFromHouse` kallar pianot på gruppen som brädet.
+Med `keyNamesAtHint` saknar tangenterna namn tills spelledaren har gett ledtråden med det numret, från 1, och servern skickar då en tom text som namn. Efter att melodin är spelad har de alltid namn (Jonas 2026-11-24).
 Tonerna görs i ljudmotorn, så att inget klipp behöver hämtas. Se `piano.ts`.
 
 **Tidningsurklippen** är en scen med roller. Urklippen är bitarna i en roll

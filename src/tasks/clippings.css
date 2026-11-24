@@ -105,6 +105,9 @@
  * (Jonas 2026-11-23). Vilka avgörs av texten, så att samma notis alltid ser
  * likadan ut. Ramen är en smal linje (Jonas 2026-11-24).
  */
+/* Texten i ramen har lika mycket luft på båda sidor (Jonas 2026-11-24). */
+.paper.clip-small.is-framed { padding-inline: 11.5%; }
+
 .paper.clip-small.is-framed::before {
   content: '';
   position: absolute;

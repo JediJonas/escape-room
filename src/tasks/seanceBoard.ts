@@ -5,16 +5,30 @@
  * på servern, se supabase/functions/game/seance.ts.
  */
 
-import { type BoardPoint, type SeanceView, measureDistanceInCells } from '../../supabase/functions/game/seance.ts';
+import { type BoardPoint, type SeanceView } from '../../supabase/functions/game/seance.ts';
 
-/**
- * Fingret räknas som på planchetten när det är närmare glasets mitt än en
- * halv ruta, och som av först när det är längre bort än så här. Skillnaden
- * gör att ett finger i kanten inte skickar på och av till servern hela tiden,
- * och att planchetten hinner en bit före fingret innan den stannar.
+/*
+ * Fingret räknas som på planchetten inom en cirkel som börjar i överkanten
+ * av glasets ring och slutar vid planchettens nedersta kant, så att fingret
+ * kan ligga var som helst på planchetten (Jonas 2026-11-23). Måtten är i
+ * brädets bildpixlar och följer seance.css: rutnätet är 675 × 660, och
+ * planchetten är 30 % av brädets bredd, 896, och 361 × 420 i sin bild.
  */
-const ON_GLOW_CELLS = 0.5;
-const OFF_GLOW_CELLS = 0.8;
+const GRID = { width: 675, height: 660 };
+const BOARD_WIDTH = 896;
+const PLANCHETTE = { shareOfBoard: 0.3, width: 361, height: 420 };
+const PLANCHETTE_HEIGHT = (PLANCHETTE.shareOfBoard * BOARD_WIDTH * PLANCHETTE.height) / PLANCHETTE.width;
+/** Glasets mitt, ringens överkant och planchettens underkant, i delar av planchettens höjd. */
+const PLANCHETTE_Y = { glass: 0.309, ringTop: 0.138, bottom: 0.962 };
+const HALF = 0.5;
+const TOUCH_RADIUS = ((PLANCHETTE_Y.bottom - PLANCHETTE_Y.ringTop) * HALF) * PLANCHETTE_HEIGHT;
+/** Cirkelns mitt ligger så här långt under glasets mitt. */
+const TOUCH_BELOW_GLASS = (((PLANCHETTE_Y.ringTop + PLANCHETTE_Y.bottom) * HALF) - PLANCHETTE_Y.glass) * PLANCHETTE_HEIGHT;
+/**
+ * Den som redan är på får glida så här mycket längre ut innan hon räknas som
+ * av. Då skickar ett finger i kanten inte på och av till servern hela tiden.
+ */
+const OFF_MARGIN = 1.2;
 
 /** Hur länge ett lyft finger får vara borta innan kontakten bryts, så att ett finger som glider inte förstör allt. */
 export const LIFT_GRACE_MS = 500;
@@ -30,7 +44,9 @@ export function isFingerOnGlow({ finger, glow, wasOn }: {
   wasOn: boolean;
 }): boolean {
   if (!finger) return false;
-  return measureDistanceInCells(finger, glow) < (wasOn ? OFF_GLOW_CELLS : ON_GLOW_CELLS);
+  const dx = (finger.x - glow.x) * GRID.width;
+  const dy = (finger.y - glow.y) * GRID.height - TOUCH_BELOW_GLASS;
+  return Math.hypot(dx, dy) < TOUCH_RADIUS * (wasOn ? OFF_MARGIN : 1);
 }
 
 /**

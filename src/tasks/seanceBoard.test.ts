@@ -18,12 +18,18 @@ const VIEW: SeanceView = {
   brokenBy: null,
 };
 
-test('fingret räknas som på planchetten nära glasets mitt, och får glida lite innan det räknas som av', () => {
+test('fingret räknas som på planchetten var som helst på den, och får glida lite innan det räknas som av', () => {
   const glow = findCellCenter(7);
-  const nearby = { x: glow.x + 0.4 / 5, y: glow.y };
-  const further = { x: glow.x + 0.7 / 5, y: glow.y };
-  assert.equal(isFingerOnGlow({ finger: nearby, glow, wasOn: false }), true);
-  assert.equal(isFingerOnGlow({ finger: further, glow, wasOn: false }), false);
+  // Rutnätet är 675 × 660 bildpixlar. Cirkeln har radien 129 och mitten 75 under glasets mitt.
+  const onGlass = glow;
+  const nearTip = { x: glow.x, y: glow.y + 190 / 660 };
+  const aboveRing = { x: glow.x, y: glow.y - 70 / 660 };
+  const beside = { x: glow.x + 130 / 675, y: glow.y + 75 / 660 };
+  const further = { x: glow.x + 150 / 675, y: glow.y + 75 / 660 };
+  assert.equal(isFingerOnGlow({ finger: onGlass, glow, wasOn: false }), true);
+  assert.equal(isFingerOnGlow({ finger: nearTip, glow, wasOn: false }), true);
+  assert.equal(isFingerOnGlow({ finger: aboveRing, glow, wasOn: false }), false);
+  assert.equal(isFingerOnGlow({ finger: beside, glow, wasOn: false }), false);
   assert.equal(isFingerOnGlow({ finger: further, glow, wasOn: true }), true);
   assert.equal(isFingerOnGlow({ finger: null, glow, wasOn: true }), false);
 });

@@ -3,7 +3,7 @@ import { test } from 'vitest';
 import { advanceStep, buildGameView, startGame } from './game.ts';
 import { type Mission, type PianoStep, findMissionErrors } from './mission.ts';
 import { getMission } from './missions/index.ts';
-import { dealKeys, describePiano, isPianoSolved, listKeyPlayers, nameNote, pressKey, readPianoState, startPiano } from './piano.ts';
+import { dealKeys, describePiano, findPianoErrors, isPianoSolved, listKeyPlayers, nameNote, pressKey, readPianoState, startPiano } from './piano.ts';
 import { playKey } from './taskActions.ts';
 import { type GameState, type PlayerRecord, createInitialState } from './state.ts';
 
@@ -111,10 +111,10 @@ test('gruppen spelar som den vill, och de senaste tonerna avgör', () => {
 
 test('bara mobilen som spelar melodin får den, och var och en ser bara sina tangenter', () => {
   const piano = startPiano('p0');
-  const listener = describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna' });
+  const listener = describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna', hintsGiven: 0 });
   assert.deepEqual(listener.melody, STEP.solution.melody);
   assert.deepEqual(listener.myKeys.map((key) => key.note), keysOf('p0').p0);
-  const player = describePiano({ piano, step: STEP, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna' });
+  const player = describePiano({ piano, step: STEP, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna', hintsGiven: 0 });
   assert.equal(player.melody, null);
   assert.deepEqual(player.myKeys.map((key) => key.note), keysOf('p0').p1);
 });
@@ -122,9 +122,9 @@ test('bara mobilen som spelar melodin får den, och var och en ser bara sina tan
 test('bara den som spelar melodin får berättartexten om melodin', () => {
   const piano = startPiano('p0');
   const step = { ...STEP, melodyText: 'Du hör en melodi i ditt huvud.' };
-  assert.equal(describePiano({ piano, step, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna' }).melodyText, 'Du hör en melodi i ditt huvud.');
-  assert.equal(describePiano({ piano, step, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna' }).melodyText, null);
-  assert.equal(describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna' }).melodyText, null);
+  assert.equal(describePiano({ piano, step, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna', hintsGiven: 0 }).melodyText, 'Du hör en melodi i ditt huvud.');
+  assert.equal(describePiano({ piano, step, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna', hintsGiven: 0 }).melodyText, null);
+  assert.equal(describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: IDS, melodyPlayerName: 'Anna', hintsGiven: 0 }).melodyText, null);
   const broken = { ...MISSION, steps: [{ ...step, melodyText: ' ' }, ...MISSION.steps.slice(1)] };
   assert.ok(findMissionErrors(broken).some((error) => error.includes('tom text')));
 });
@@ -196,10 +196,27 @@ test('pianot går att spela innan berättelsen har kommit dit, med tangenterna d
 test('när de bara är två delar de på alla åtta tangenter', () => {
   const piano = startPiano('p0');
   const ids = ['p0', 'p1'];
-  const listener = describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: ids, melodyPlayerName: 'Anna' });
-  const player = describePiano({ piano, step: STEP, viewerId: 'p1', participantIds: ids, melodyPlayerName: 'Anna' });
+  const listener = describePiano({ piano, step: STEP, viewerId: 'p0', participantIds: ids, melodyPlayerName: 'Anna', hintsGiven: 0 });
+  const player = describePiano({ piano, step: STEP, viewerId: 'p1', participantIds: ids, melodyPlayerName: 'Anna', hintsGiven: 0 });
   assert.equal(listener.myKeys.length, 4);
   assert.equal(player.myKeys.length, 4);
   assert.deepEqual(new Set([...listener.myKeys, ...player.myKeys].map((key) => key.note)), new Set(STEP.keys));
   assert.ok('piano' in pressKey({ piano, step: STEP, playerId: 'p0', participantIds: ids, key: listener.myKeys[0].note }));
+});
+
+test('tangenterna får sina namn först vid ledtråden som uppdraget pekar ut', () => {
+  const piano = startPiano('p0');
+  const step = { ...STEP, keyNamesAtHint: 3 };
+  const namesAt = (hintsGiven: number) => describePiano({ piano, step, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna', hintsGiven }).myKeys.map((key) => key.name);
+  assert.ok(namesAt(2).every((name) => name === ''));
+  assert.ok(namesAt(3).every((name) => name !== ''));
+  assert.ok(describePiano({ piano, step: STEP, viewerId: 'p1', participantIds: IDS, melodyPlayerName: 'Anna', hintsGiven: 0 }).myKeys.every((key) => key.name !== ''));
+});
+
+test('keyNamesAtHint måste vara numret på en ledtråd', () => {
+  const errorsWith = (keyNamesAtHint: unknown) => findPianoErrors({ ...STEP, keyNamesAtHint }, 'Pianot');
+  assert.deepEqual(errorsWith(3), []);
+  assert.equal(errorsWith(0).length, 1);
+  assert.equal(errorsWith(4).length, 1);
+  assert.equal(errorsWith('3').length, 1);
 });

@@ -252,6 +252,12 @@ export type PianoStep = {
   /** Pianot kallar på gruppen från huset tills melodin är spelad, som brädet (Jonas 2026-11-18). */
   callsFromHouse?: boolean;
   hints: string[];
+  /**
+   * Numret på ledtråden, från 1, som gör att tangenterna får sina namn. Innan
+   * dess spelar gruppen på gehör. Utan numret syns namnen hela tiden
+   * (Jonas 2026-11-24).
+   */
+  keyNamesAtHint?: number;
   /** Melodin. Lämnar aldrig servern, utom till mobilen som spelar den och till spelledaren som ber om facit. */
   solution: { melody: MelodyNote[] };
 };

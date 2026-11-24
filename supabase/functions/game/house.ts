@@ -11,7 +11,7 @@
 import type { Mission, MissionStep, Place } from './mission.ts';
 import { type PlaceId, isPlaceId } from './places.ts';
 import { SEANCE_LETTERS, isSeanceComplete } from './seance.ts';
-import { type PianoKey, listKeyPlayers, listMyKeys } from './piano.ts';
+import { type PianoKey, listKeyPlayers, listMyKeys, showsKeyNames } from './piano.ts';
 import { readDialTime } from './flashback.ts';
 import { findReadSteps, hasRead } from './found.ts';
 import type { GameState } from './state.ts';
@@ -235,7 +235,9 @@ function describeInstrument(opened: readonly MissionStep[], state: GameState, vi
   const piano = opened.find((step) => step.type === 'piano');
   if (piano?.type !== 'piano') return null;
   // Utanför steget spelar ingen melodin, så tangenterna delas mellan alla.
-  return { type: 'piano', keys: listMyKeys(piano.keys, listKeyPlayers(state.piano?.melodyPlayerId ?? null, participantIds), viewerId) };
+  // Namnen syns bara när melodin redan är spelad.
+  const showsNames = showsKeyNames(piano, state.solvedSteps.includes(piano.id) ? piano.hints.length : 0);
+  return { type: 'piano', keys: listMyKeys(piano.keys, listKeyPlayers(state.piano?.melodyPlayerId ?? null, participantIds), viewerId, showsNames) };
 }
 
 /** En dörr till ett rum intill, och var den sitter i rundbilden. */

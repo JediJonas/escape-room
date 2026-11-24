@@ -855,6 +855,7 @@
         "Melodin börjar lågt, klättrar till den högsta tonen, sjunker och slutar på en lång ton.",
         "Melodin är E A B C B G A."
       ],
+      "keyNamesAtHint": 3,
       "solution": {
         "melody": [
           {

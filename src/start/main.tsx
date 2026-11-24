@@ -1,8 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.tsx';
-// Testsidans stil ligger under, och motorns tokens och komponenter skriver över den.
-import '../testsida/style.css';
+// Testsidans stil ligger i ett lager under, och motorns tokens och komponenter skriver över den.
+import './testsidaLayer.css';
 import '../theme/tokens.css';
 import './start.css';
 import '../theme/engine.css';

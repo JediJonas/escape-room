@@ -1,0 +1,9 @@
+/*
+ * Testsidans stil ligger under startsidans i ett eget lager. Bygget lägger
+ * den i en egen fil, eftersom testsidan delar den, och den filen länkas in
+ * efter startsidans. Utan lagret vann då testsidans button-regel över
+ * motorns, så att knapparna i spelledarens meny tappade flex och ikonerna
+ * hamnade fel. Ett lager förlorar alltid mot stil utan lager, hur filerna än
+ * ordnas.
+ */
+@import '../testsida/style.css' layer(testsida);

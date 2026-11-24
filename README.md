@@ -25,6 +25,7 @@ Webbsidan byggs med React och Vite, med samma upplägg som Maffia.
 | `src/sync/` | Kanalen mellan mobilerna och vilka som håller fingret på skärmen |
 | `src/view/` | Visaren för rundbilder, med bred bild som reserv |
 | `public/` | Bilder som läggs ut som de är, som rundbilderna och testkorten |
+| `public/favicon.svg`, `public/icons/`, `public/manifest.webmanifest` | Ikonen för flikar, bokmärken och hemskärmen: nyckelhålet från loggan i vitt på lila, i samma stil som Låtquiz. PNG-filerna renderas från SVG-filerna med `node tools/ikoner.mjs` och görs om när de ändras |
 | `supabase/migrations/` | Databasens schema och kanalernas regler |
 | `supabase/functions/game/` | Spelets serverfunktion och motorns rena regler |
 | `supabase/functions/game/missions/` | Uppdragsfilerna, som bara serverfunktionen läser |

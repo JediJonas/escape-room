@@ -19,7 +19,8 @@ export function StartScreen({ error, onJoin, onCreate }: { error: string; onJoin
     >
       <div className="brand">
         <div className="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 48 48"><circle cx="24" cy="19" r="7" /><path d="M20.5 25l-3 14h13l-3-14" /></svg>
+          {/* Nyckelhålet är en enda kontur: ringen är öppen nertill och går över i den smala delen (Jonas 2026-11-24). */}
+          <svg viewBox="0 0 48 48"><path d="M20.5 25l-3 14h13l-3-14A7 7 0 1 0 20.5 25z" /></svg>
         </div>
         <h1>Escape room</h1>
         <p>Ett partyspel för tre till tio personer, var och en med sin mobil.</p>

@@ -105,13 +105,18 @@
  * (Jonas 2026-11-23). Vilka avgörs av texten, så att samma notis alltid ser
  * likadan ut. Ramen är en smal linje (Jonas 2026-11-24).
  */
-/* Texten i ramen har lika mycket luft på båda sidor (Jonas 2026-11-24). */
-.paper.clip-small.is-framed { padding-inline: 11.5%; }
+/*
+ * Texten i ramen har lika mycket luft på båda sidor, och ramen går fri från
+ * hundörat uppe till höger (Jonas 2026-11-24). Rubriken är lite mindre, så
+ * att ett långt ord som Förlovningsannons får plats.
+ */
+.paper.clip-small.is-framed { padding-inline: 14%; }
+.paper.clip-small.is-framed .np-kicker { font-size: min(6.6cqw, 1.55rem); }
 
 .paper.clip-small.is-framed::before {
   content: '';
   position: absolute;
-  inset: 6% 6.5%;
+  inset: 10.5% 9.5%;
   border: 1.5px solid #1d1a16;
   pointer-events: none;
 }

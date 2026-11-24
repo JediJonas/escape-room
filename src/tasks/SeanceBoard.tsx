@@ -82,7 +82,8 @@ export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, answer }
       const turn = describeLetterTurn(current);
       // Mitt eget finger har lämnat planchetten: jag stoppar den här direkt, utan att vänta på servern.
       const isMeOff = current.isMeOnGlow && !reportedOn.current;
-      const isHeld = current.movesFromMs === null || isMeOff;
+      // När meddelandet är klart glider planchetten ikapp till sista bokstaven, om den låg efter.
+      const isHeld = !current.isComplete && (current.movesFromMs === null || isMeOff);
       const frameMs = Date.now();
       const computed = findGlowProgress(current, frameMs + offset);
       const { durationMs } = current.segment;
@@ -95,8 +96,8 @@ export function SeanceBoard({ seance, clockOffsetMs, canTouch, onTouch, answer }
       });
       shown = { turn, progress, atMs: frameMs };
       const glow = { point: findPointOnSegment(current.segment, progress), hasArrived: progress >= 1 };
-      // När meddelandet är klart går planchetten tillbaka till den tomma platsen och står still.
-      if (planchetteRef.current) Object.assign(planchetteRef.current.style, toPercent(current.isComplete ? START_POINT : glow.point));
+      // När meddelandet är klart står planchetten kvar på sista bokstaven (Jonas 2026-11-24).
+      if (planchetteRef.current) Object.assign(planchetteRef.current.style, toPercent(glow.point));
       if (!current.isComplete) {
         // Under respiten efter ett lyft finger räknas fingret som kvar.
         const isTouching = pointerId.current !== null || liftTimer.current !== null;

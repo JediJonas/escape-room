@@ -17,6 +17,7 @@ const ICON_PATHS = {
   end: 'M5 21V4M5 4h11l-2 4 2 4H5',
   check: 'M5 12.5l4.5 4.5L19 7.5',
   open: 'M16 16l4.5 4.5M17.5 11a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z',
+  door: 'M4 20V5.5L13 3v18M13 5h5v15M4 20h16M10 12v1',
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

@@ -106,9 +106,10 @@ export function RoomView({ house, image, missionTitle, header, note, error, canF
       <div className="room-bottom">
         {aimed ? (
           <button type="button" className={isAimedCalling ? 'room-label is-calling' : 'room-label'} onClick={() => activate(aimed)}>
-            <Icon name="open" />
-            {aimed.label}
-            {isAimedCalling && <span className="calling-note"> · något rör sig</span>}
+            {/* Dörrar har samma dörrikon som i Rummen minns (Jonas 2026-11-24). */}
+            <Icon name={aimed.kind === 'door' ? 'door' : 'open'} />
+            {/* En sak som kallar säger det kort, så att knappen får plats (Jonas 2026-11-24). */}
+            {isAimedCalling ? `${aimed.label} kallar!` : aimed.label}
           </button>
         ) : (
           <p className={callingThing ? 'room-note is-calling' : 'room-note'} role="status">

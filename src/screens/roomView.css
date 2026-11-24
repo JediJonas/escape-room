@@ -112,6 +112,8 @@
   color: var(--text);
   font-size: var(--text-m);
   font-weight: 600;
+  /* Texten bryts aldrig, så att knappen alltid är en rad (Jonas 2026-11-24). */
+  white-space: nowrap;
   pointer-events: auto;
 }
 

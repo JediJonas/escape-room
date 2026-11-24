@@ -2,7 +2,8 @@ import { type PointerEvent, type ReactNode, useState } from 'react';
 import type { FoundItem } from '../../supabase/functions/game/found.ts';
 import type { MissionDocument } from '../../supabase/functions/game/mission.ts';
 import { Icon } from './Icon.tsx';
-import { isFramedNotice, splitNotice } from './notice.ts';
+import { findNoticeSymbol, isFramedNotice, splitNotice } from './notice.ts';
+import { NoticeSymbolMark } from './NoticeSymbolMark.tsx';
 import { swipeTarget } from './swipe.ts';
 import './thingScreen.css';
 import '../tasks/guestbook.css';
@@ -90,8 +91,10 @@ function PaperContent({ paper }: { paper: Paper }) {
     );
   }
   const notice = splitNotice(paper.text ?? '');
+  const symbol = findNoticeSymbol(notice.heading);
   return (
     <>
+      {symbol && <NoticeSymbolMark symbol={symbol} />}
       {notice.heading && <p className="np-kicker">{notice.heading}</p>}
       <p className="np-notice">{notice.body}</p>
     </>
